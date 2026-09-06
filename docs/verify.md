@@ -26,3 +26,5 @@ Carried from PRD Appendix C and architecture Appendix D. Tick as confirmed; cite
 | 20 | Karma GAP on Base; Optimism retro mechanics | WP14 | open | |
 | 21 | HCB crypto acceptance; Endaoment terms | counsel | open | |
 | 22 | Nederland guardians / Tribal offices | owner conversation | open | gates public launch |
+| 23 | Season snowline nudge thresholds (`RUNOFF_SNOWLINE_M` 2400 m, `FREEZE_SNOWLINE_M` 2000 m) in `packages/needs/src/season.ts` | WP3 | open | first guess; date decides, snowline only nudges edges |
+| 24 | Placeholder DO / pm25 / snow values and times in `packages/needs/test/fixtures/boulder-creek-2026-09-06.json` | WP3 → WP16 | open | replace with the twin-mcp fixture tree values once WP1 lands |
