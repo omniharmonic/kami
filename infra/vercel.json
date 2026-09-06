@@ -6,9 +6,9 @@
     { "path": "/api/cron/binding-check", "schedule": "30 9 * * *" },
     { "path": "/api/cron/retention", "schedule": "45 9 * * *" },
     { "path": "/api/cron/verify-chain", "schedule": "0 10 * * *" },
-    { "path": "/api/cron/reputation", "schedule": "0 11 * * *" },
-    { "path": "/api/cron/reconcile", "schedule": "30 11 * * *" },
-    { "path": "/api/cron/eas-timestamp", "schedule": "0 12 * * *" },
-    { "path": "/api/cron/safe-poll", "schedule": "*/5 * * * *" }
+    { "path": "/api/cron/safe-poll", "schedule": "* * * * *" },
+    { "path": "/api/cron/eas-timestamp", "schedule": "20 3 * * *" },
+    { "path": "/api/cron/reconcile", "schedule": "40 3 * * *" },
+    { "path": "/api/cron/reputation", "schedule": "10 4 * * *" }
   ]
 }

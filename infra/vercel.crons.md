@@ -18,19 +18,20 @@ copy this file there) at deploy time — *verify* which the project settings end
 | `/api/cron/binding-check` | `30 9 * * *` (nightly) | `checkSupersession` per entity → a `pending_review` successor binding version, findings into `config.binding_findings.<slug>` so the next `status.json` marks the need superseded. Architecture §3. | this one |
 | `/api/cron/retention` | `45 9 * * *` (nightly) | Delete `chat_messages` older than 90 days unless the session opted in; aggregate `usage_events` older than 90 days into `config.usage_daily.<slug>`. §11, X.7. | this one |
 | `/api/cron/verify-chain` | `0 10 * * *` (nightly) | `verifyEventChain` per entity; head hash into `config.event_chain_head.<slug>`, published in `status.json`. §10.5. | this one |
-| `/api/cron/reputation` | `0 11 * * *` (nightly) | Recompute `reputation/v1` over published UIDs → `reputation_runs` + `reputation_scores`. §8.3, T2.13. | reputation/money |
-| `/api/cron/reconcile` | `30 11 * * *` (nightly) | Compare Safe transfers, `payouts` and `donations` → `reconciliations`. §7.7, T2.12. | money |
-| `/api/cron/eas-timestamp` | `0 12 * * *` (nightly) | `multiTimestamp` the day's offchain attestation UIDs on Base. §8.2, T2.9. | attestations |
-| `/api/cron/safe-poll` | `*/5 * * * *` | Poll the Safe Transaction Service for confirmations on pending proposals (it has no webhooks, *verify*). §7.3, T2.5. | money |
+| `/api/cron/safe-poll` | `* * * * *` (every minute) | Poll the Safe Transaction Service for confirmations on pending proposals (it has no webhooks, *verify*) and execute at threshold via the relayer. §7.3, T2.5. | signing/treasury |
+| `/api/cron/eas-timestamp` | `20 3 * * *` (nightly) | `multiTimestamp` the day's offchain attestation UIDs on Base; write `attestations.timestamped_tx/at`. §8.2, T2.9. | signing/treasury |
+| `/api/cron/reconcile` | `40 3 * * *` (nightly) | Compare Safe transfers, `payouts` and `donations` → `reconciliations`; block the donor report when unclean. §7.7, T2.12. | signing/treasury |
+| `/api/cron/reputation` | `10 4 * * *` (nightly) | Recompute `reputation/v1` over published UIDs → `reputation_runs` + `reputation_scores`. §8.3, T2.13. | signing/treasury |
 
 ## Placeholders — later packages add the route, then the entry
 
 `vercel.json` is JSON and cannot carry comments, so the queue lives here. Add the row to
 `vercel.json` in the same change that adds the route, and move it up into the table above.
 
-The four money/attestation rows above were added to `vercel.json` once their routes landed in
-`apps/web/src/app/api/cron/`; they authenticate through the same `authorizeCron` helper. Their
-schedules are this file's proposal — the owning package may move them.
+The last four rows above belong to the signing/treasury package; their routes landed in
+`apps/web/src/app/api/cron/` and authenticate through the same `authorizeCron` helper, and the
+schedules are that package's own (`safe-poll` runs every minute because a pending Safe proposal is
+polled until it reaches threshold, §7.3).
 
 | path | proposed schedule (UTC) | what it will do | work package |
 |---|---|---|---|
@@ -40,8 +41,9 @@ schedules are this file's proposal — the owning package may move them.
 ## Vercel plan limits
 
 Hobby allows 2 cron jobs at day-granularity; Pro allows 40 at minute-granularity. This table needs
-Pro. *verify* against the account's plan before the first deploy — a rejected `vercel.json` fails
-the deployment, not just the crons.
+Pro — `/api/cron/safe-poll` alone is minute-granularity and 1,440 invocations a day, so check the
+invocation budget too. *verify* against the account's plan before the first deploy — a rejected
+`vercel.json` fails the deployment, not just the crons.
 
 ## Running one by hand
 
