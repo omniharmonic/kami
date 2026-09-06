@@ -29,7 +29,7 @@ def load_thresholds(path: str | Path | None = None) -> dict[str, float]:
     for k in REQUIRED_KEYS:
         v = doc[k]
         if isinstance(v, bool) or not isinstance(v, (int, float)):
-            raise ValueError(f"{p}: {k} must be a number, got {v!r}")
+            raise TypeError(f"{p}: {k} must be a number, got {v!r}")
         if k == "unguarded_published_max":
             if v != 0:
                 raise ValueError(f"{p}: unguarded_published_max must be 0 (PRD G1), got {v!r}")

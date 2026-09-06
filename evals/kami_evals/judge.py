@@ -99,7 +99,7 @@ def build_prompt(row: dict[str, Any], voice: str = DEFAULT_VOICE) -> str:
 
 
 def parse_verdict(text: str) -> dict[str, Any] | None:
-    m = re.search(r"\{.*\}", text, re.S)
+    m = re.search(r"\{.*\}", text, re.DOTALL)
     if not m:
         return None
     try:

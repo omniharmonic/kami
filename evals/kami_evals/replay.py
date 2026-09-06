@@ -246,11 +246,11 @@ def write_report(report: dict[str, Any], out_dir: str | Path | None = None) -> P
 
 def summarize(report: dict[str, Any]) -> str:
     lines = [
-        f"replay: {report['turns']} turns, {report['sentences']} sentences, "
-        f"{report['dropped']} dropped (rate {report['drop_rate']:.3f}, "
-        f"max {report['thresholds']['replay_max_drop_rate']}), "
-        f"unguarded published: {report['unguarded_published']} "
-        f"(max {report['thresholds']['unguarded_published_max']})",
+        (f"replay: {report['turns']} turns, {report['sentences']} sentences, "
+         f"{report['dropped']} dropped (rate {report['drop_rate']:.3f}, "
+         f"max {report['thresholds']['replay_max_drop_rate']}), "
+         f"unguarded published: {report['unguarded_published']} "
+         f"(max {report['thresholds']['unguarded_published_max']})"),
         "by category:",
     ]
     for cat, c in report["by_category"].items():

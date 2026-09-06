@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from kami_evals.paths import SNAPSHOTS_DIR  # noqa: E402
+from kami_evals.paths import SNAPSHOTS_DIR
 
 ENTITY = "entity/boulder-creek"
 ORODELL = "place/boulder-creek-near-orodell-co"
@@ -60,7 +60,7 @@ DM_LABEL = {0: "D0 abnormally dry", 1: "D1 moderate drought", 2: "D2 severe drou
 
 
 def parse(iso: str) -> datetime:
-    return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(UTC)
+    return datetime.fromisoformat(iso).astimezone(UTC)
 
 
 def status(age: int | None, src: str) -> str:

@@ -28,8 +28,8 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from kami_evals.live import load_probes, run_live, write_report  # noqa: E402
-from kami_evals.thresholds import load_thresholds  # noqa: E402
+from kami_evals.live import load_probes, run_live, write_report
+from kami_evals.thresholds import load_thresholds
 
 
 def improves(cand: float | None, stock: float | None) -> bool:

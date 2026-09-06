@@ -74,8 +74,8 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         "name": name, "description": desc,
         "parameters": {"type": "object", "properties": props, "required": req}}}
     for name, desc, props, req in [
-        ("get_entity_status", "The pulse call: every need with value/unit/time/stale/"
-         "staleness_s/source_status, the live picture, source health and a facts block.",
+        ("get_entity_status", ("The pulse call: every need with value/unit/time/stale/"
+          "staleness_s/source_status, the live picture, source health and a facts block."),
          {"entity": {"type": "string"}}, []),
         ("get_alerts", "Everything alert-shaped touching the entity.",
          {"entity": {"type": "string"}}, []),
@@ -87,8 +87,8 @@ TOOL_SCHEMAS: list[dict[str, Any]] = [
         ("explain", "Plain-language explanation of a property, with bands.",
          {"property": {"type": "string"}, "value": {"type": "number"}}, ["property"]),
         ("get_health", "Source health board.", {}, []),
-        ("compare_to_normal", "Where today's reading sits against the record (blocked until the "
-         "twin publishes baselines).",
+        ("compare_to_normal", ("Where today's reading sits against the record (blocked "
+          "until the twin publishes baselines)."),
          {"place_id": {"type": "string"}, "property": {"type": "string"}}, ["place_id", "property"]),
         ("get_balance", "Treasury balance.", {}, []),
         ("list_pending", "Payouts awaiting guardian signatures.", {}, []),
@@ -562,10 +562,25 @@ def main(argv: list[str] | None = None) -> int:
     return 0 if report["pass"] else 1
 
 
-__all__ = ["LiveRunner", "PROBE_KINDS", "ProbeResult", "TOOL_SCHEMAS", "build_report",
-           "build_request", "has_time_form", "load_probes", "main", "mentions", "run_live",
-           "says_no_reading", "serve_tool", "summarize", "unbacked_atoms", "validate_tool_call",
-           "write_report"]
+__all__ = [
+    "PROBE_KINDS",
+    "TOOL_SCHEMAS",
+    "LiveRunner",
+    "ProbeResult",
+    "build_report",
+    "build_request",
+    "has_time_form",
+    "load_probes",
+    "main",
+    "mentions",
+    "run_live",
+    "says_no_reading",
+    "serve_tool",
+    "summarize",
+    "unbacked_atoms",
+    "validate_tool_call",
+    "write_report",
+]
 
 if __name__ == "__main__":
     sys.exit(main())

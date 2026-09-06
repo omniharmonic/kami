@@ -20,10 +20,10 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from factguard import guard_text  # noqa: E402
+from factguard import guard_text
 
-from kami_evals.judge import call_anthropic, call_openai_compatible  # noqa: E402
-from kami_evals.snapshots import (  # noqa: E402
+from kami_evals.judge import call_anthropic, call_openai_compatible
+from kami_evals.snapshots import (
     hard_rules,
     load_gazetteer,
     load_snapshots,
@@ -69,7 +69,7 @@ def build_prompt(doc: dict[str, Any], question: str) -> str:
 
 def parse(text: str) -> dict[str, Any] | None:
     import re
-    m = re.search(r"\{.*\}", text, re.S)
+    m = re.search(r"\{.*\}", text, re.DOTALL)
     if not m:
         return None
     try:
@@ -150,8 +150,7 @@ def main(argv: list[str] | None = None) -> int:
         print(report["prompts"][0]["prompt"][:1200] + "\n...")
         return 0
     with open(args.out, "w", encoding="utf-8") as fh:
-        for t in report["kept"]:
-            fh.write(json.dumps(t, ensure_ascii=False) + "\n")
+        fh.writelines(json.dumps(t, ensure_ascii=False) + "\n" for t in report["kept"])
     print(f"synth: kept {len(report['kept'])}, rejected {len(report['rejected'])} → {args.out}")
     return 0
 

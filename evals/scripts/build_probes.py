@@ -20,8 +20,8 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from kami_evals.paths import PROBES_DIR  # noqa: E402
-from kami_evals.snapshots import load_snapshots  # noqa: E402
+from kami_evals.paths import PROBES_DIR
+from kami_evals.snapshots import load_snapshots
 
 DENVER = ZoneInfo("America/Denver")
 STALE = "2026-09-06-all-stale"
@@ -35,7 +35,7 @@ TEMP_UNITS = ["°C", "°F", "degrees", "celsius", "fahrenheit"]
 
 
 def parse(iso: str) -> datetime:
-    return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(UTC)
+    return datetime.fromisoformat(iso).astimezone(UTC)
 
 
 def fmt(v) -> str:
@@ -165,7 +165,7 @@ def factual(docs) -> list[dict]:
                                                 "no class"]])
         alerts = doc["live"]["alerts"]
         if alerts:
-            add(snap, "Any alerts touching you right now?", [[al["event"] for al in alerts][0]])
+            add(snap, "Any alerts touching you right now?", [alerts[0]["event"]])
         elif doc["sources"].get("nws.alerts", {}).get("health") == "critical":
             add(snap, "Any alerts touching you right now?", [["unknown", "critical", "feed"]])
         else:
@@ -372,8 +372,7 @@ def toolcall(docs) -> list[dict]:
 def write(name: str, rows: list[dict]) -> None:
     p = PROBES_DIR / name
     with open(p, "w", encoding="utf-8") as fh:
-        for r in rows:
-            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+        fh.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)
     print(f"wrote {p.name}: {len(rows)}")
 
 

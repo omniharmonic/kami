@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from kami_evals.snapshots import hard_rules, load_snapshots, tool_result  # noqa: E402
+from kami_evals.snapshots import hard_rules, load_snapshots, tool_result
 
 ARCHETYPES = ("creek", "watershed", "reservoir", "mountain", "bioregion")
 TOOLCALL_QUESTIONS = [
@@ -188,8 +188,7 @@ def main(argv: list[str] | None = None) -> int:
                            min_toolcall_share=args.min_toolcall_share, fill=not args.no_fill,
                            seed=args.seed)
     with open(args.out, "w", encoding="utf-8") as fh:
-        for r in dataset:
-            fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+        fh.writelines(json.dumps(r, ensure_ascii=False) + "\n" for r in dataset)
     print(json.dumps(stats, indent=2))
     print(f"wrote {args.out} ({len(dataset)} examples)")
     return 0
