@@ -40,8 +40,27 @@ export function ipHash(ip: string, day = new Date().toISOString().slice(0, 10)):
   return createHmac("sha256", secret()).update(`${day}|${ip}`).digest("hex").slice(0, 32);
 }
 
+/**
+ * The client controls the left of `x-forwarded-for`, so reading entry 0 lets
+ * anyone rotate a header to escape the per-IP rate limit. Each trusted proxy
+ * appends the address it saw, so the honest address is the Nth from the right,
+ * where N is how many proxies are actually in front of us: 1 on Vercel, more
+ * behind an extra load balancer, 0 when nothing proxies us at all.
+ * `TRUSTED_PROXY_HOPS` says which; the default of 1 matches the documented
+ * deployment. Anything to the left of that is attacker-supplied and ignored.
+ */
 export function clientIp(headers: Headers): string {
+  const hops = Number.parseInt(process.env.TRUSTED_PROXY_HOPS ?? "1", 10);
   const fwd = headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
+  if (fwd) {
+    const chain = fwd.split(",").map((s) => s.trim()).filter(Boolean);
+    if (chain.length > 0) {
+      const n = Number.isFinite(hops) && hops >= 0 ? hops : 1;
+      // hops=1 → the last entry (what our proxy saw); hops=0 → also the last,
+      // since there is then no forwarded chain we can trust at all.
+      const index = Math.max(0, chain.length - Math.max(1, n));
+      return chain[index]!;
+    }
+  }
   return headers.get("x-real-ip") ?? "0.0.0.0";
 }

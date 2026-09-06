@@ -22,9 +22,13 @@ describe("deploy-profile plan", () => {
     // .env has only the two keys
     const envKeys = plan.files.get(".env")!.split("\n").filter((l) => l && !l.startsWith("#")).map((l) => l.split("=")[0]);
     expect(envKeys).toEqual(["PLATFORM_MCP_TOKEN", "KAMI_ENTITY_SLUG"]);
-    // no binding.yaml in the repo yet (owned by another package) → warning, not failure, in dry-run
-    expect(plan.warnings.some((w) => w.includes("binding"))).toBe(true);
-    expect(plan.files.has("binding.json")).toBe(false);
+    // profiles/boulder-creek/binding.yaml now exists, so the plan converts it to
+    // binding.json. (Before that file landed this asserted the warning path
+    // instead; the warning path is still covered by the missing-binding test.)
+    expect(plan.files.has("binding.json")).toBe(true);
+    const binding = JSON.parse(plan.files.get("binding.json")!);
+    expect(binding.entity_id).toBe("entity/boulder-creek");
+    expect(binding.anchor).toBe("place/boulder-creek-near-orodell-co");
   });
 
   it("config.yaml points at the gate, not vLLM, and includes exactly the §5.1 tool lists", () => {
@@ -125,7 +129,19 @@ describe("deploy-profile plan", () => {
 
   it("requires PLATFORM_MCP_TOKEN and a binding outside dry-run", () => {
     expect(() => buildPlan({ slug: "boulder-creek", stateDir: tmp(), platformMcpToken: "" })).toThrow(/PLATFORM_MCP_TOKEN/);
-    expect(() => buildPlan({ slug: "boulder-creek", stateDir: tmp(), platformMcpToken: "t" })).toThrow(/binding/);
+    // A real deploy still refuses without a binding; boulder-creek has one now,
+    // so the missing case is exercised by pointing at a path that has none.
+    expect(() =>
+      buildPlan({
+        slug: "boulder-creek",
+        stateDir: tmp(),
+        platformMcpToken: "t",
+        bindingFile: path.join(import.meta.dirname, "fixtures", "no-such-binding.yaml"),
+      }),
+    ).toThrow(/binding/);
+    // With its committed binding, a real deploy plan builds.
+    const plan = buildPlan({ slug: "boulder-creek", stateDir: tmp(), platformMcpToken: "t" });
+    expect(plan.files.has("binding.json")).toBe(true);
   });
 
   it("parses the CLI flags", () => {

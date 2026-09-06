@@ -61,7 +61,18 @@ function json(status: number, body: unknown, headers: Record<string, string> = {
 }
 
 function sseHeaders(extra: Record<string, string> = {}): Record<string, string> {
-  return { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-store", connection: "keep-alive", "x-accel-buffering": "no", ...extra };
+  // `no-transform` is load-bearing, not decoration: Next's own `compression`
+  // middleware gzips `text/event-stream` otherwise, which buffers the whole
+  // reply and destroys sentence-by-sentence release — measured as every frame
+  // arriving within 12 ms at the end instead of 40 ms apart. `x-accel-buffering`
+  // does the same job for nginx-style proxies.
+  return {
+    "content-type": "text/event-stream; charset=utf-8",
+    "cache-control": "no-store, no-transform",
+    connection: "keep-alive",
+    "x-accel-buffering": "no",
+    ...extra,
+  };
 }
 
 export function sseEvent(event: string, data: unknown): string {

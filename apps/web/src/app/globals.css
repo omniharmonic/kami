@@ -13,7 +13,9 @@
   --bg-sunken: #efe7db;
   --ink: #26221d;
   --ink-soft: #5d554b;
-  --ink-faint: #8a8176;
+  /* 4.82:1 on --bg-sunken, the worst case — WCAG AA at body sizes.
+     #8a8176 read 3.12:1 there and failed axe on 52 nodes. */
+  --ink-faint: #6b6358;
   --line: #ddd3c4;
   --accent: #2f6f8f;
   --accent-ink: #ffffff;
@@ -37,7 +39,8 @@
     --bg-sunken: #16130f;
     --ink: #f1eadf;
     --ink-soft: #c8beb0;
-    --ink-faint: #948a7c;
+    /* 4.65:1 on --bg-raised, the worst case in dark mode. */
+    --ink-faint: #a79c8c;
     --line: #3b352d;
     --accent: #7fb3cf;
     --accent-ink: #10202a;

@@ -7,11 +7,12 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run",
     "deploy-profile": "tsx src/deploy-profile.ts",
     "pause": "tsx src/pause.ts",
-    "pause-drill": "tsx src/pause-drill.ts"
+    "pause-drill": "tsx src/pause-drill.ts",
+    "provision-entity": "tsx src/provision-entity.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "yaml": "2.9.0"

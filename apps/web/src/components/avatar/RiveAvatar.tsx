@@ -94,10 +94,16 @@ export function RiveAvatar({ archetype, inputs, label, reducedMotion, size = 240
       data-stale={stale ? "true" : "false"}
       style={{ position: "relative", width: `min(60vw, ${size}px)`, aspectRatio: "1 / 1" }}
     >
+      {/*
+        `alt` carries the label and `role="img"` is dropped: an <img alt="">
+        is already presentational, so pairing it with role="img" made axe
+        report `presentation-role-conflict`. `aria-label` stays because it is
+        the name every test and e2e spec reads, and it matches `alt` exactly,
+        so the two can never diverge.
+      */}
       <img
         src={src}
-        alt=""
-        role="img"
+        alt={label}
         aria-label={label}
         width={240}
         height={240}

@@ -16,6 +16,8 @@ describe("Avatar (no rig available — today's production path)", () => {
     const img = screen.getByRole("img");
     expect(img.getAttribute("src")).toBe("/rigs/fallback/creek-asleep.svg");
     const label = img.getAttribute("aria-label")!;
+    // alt matches aria-label exactly, so the image is never nameless if ARIA is stripped.
+    expect(img.getAttribute("alt")).toBe(label);
     expect(label).toContain("can't feel my gauge");
     expect(label).toContain("Flow: 15.4 cfs at Orodell, 2026-09-04 20:15Z, stale");
     expect(container.querySelector(".avatar-stage")!.getAttribute("data-avatar-reason")).toBe("rig-unavailable");

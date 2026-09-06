@@ -197,6 +197,17 @@ export async function acceptInvite(db: DbOrTx, token: string, userId: string, de
     });
   await db.update(schema.guardianInvites).set({ acceptedUserId: userId }).where(eq(schema.guardianInvites.id, inv.id));
   await appendEntityEvent(db, { entity_id: inv.entityId, actor: userId, kind: "role_accepted", payload: { role: "guardian", invite_id: inv.id }, at: now });
+  // Phase 2: the Safe is deployed when the *second* guardian accepts (architecture
+  // A.1, §15 #12). Idempotent, and with no chain configured it only records that
+  // deployment is pending — so this is safe to run on every acceptance.
+  try {
+    const { triggerSafeDeployment } = await import("@/lib/summon/safe");
+    await triggerSafeDeployment(db, inv.entityId, { actor: userId, now });
+  } catch (err) {
+    // Never fail an acceptance because the chain path is unavailable; the
+    // summon status page retries and the event log records the pending state.
+    console.warn("[roles] safe deployment trigger skipped:", err instanceof Error ? err.message : err);
+  }
   const [entity] = await db.select({ name: schema.entities.name, slug: schema.entities.slug }).from(schema.entities).where(eq(schema.entities.id, inv.entityId)).limit(1);
   return { entity_id: inv.entityId, entity_name: entity?.name ?? inv.entityId, slug: entity?.slug ?? "" };
 }

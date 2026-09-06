@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
     "/e/[slug]/chat": ["./src/fixtures/status/**"],
     "/e/[slug]/how-i-work": ["./src/fixtures/status/**"],
     "/": ["./src/fixtures/status/**"],
+    // The summon flow renders the locked hard-rules block, and provisioning
+    // renders the profile template, by reading them at run time. Without these
+    // the files are absent from the serverless bundle and step 3 throws.
+    "/summon/[id]/[step]": ["../../profiles/templates/SOUL.hard-rules.md"],
+    "/api/admin/profiles": ["../../profiles/templates/*.md", "../../profiles/templates/*.tmpl"],
   },
   typedRoutes: false,
   poweredByHeader: false,

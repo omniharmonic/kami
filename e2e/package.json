@@ -1,0 +1,22 @@
+{
+  "name": "@kami/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kami end-to-end suite: the ADR-E13 disclosure invariant, the chat stream and its footer, pause → 423, the stale fixture, reduced motion, the no-token policy, axe accessibility, and ADR-E14 static-first rendering — all against the fake gateway and a fixture status.json, with no database and no GPU.",
+  "license": "Apache-2.0",
+  "author": "Benjamin Life (@omniharmonic)",
+  "type": "module",
+  "scripts": {
+    "test": "node ./scripts/run.mjs",
+    "test:no-build": "playwright test",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.20.1",
+    "axe-core": "4.13.0",
+    "typescript": "5.9.3"
+  }
+}
