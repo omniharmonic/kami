@@ -12,9 +12,12 @@ export type ReadFallbackOptions = { publicDir?: string; origin?: string | null }
 export async function readFallbackSvg(archetype: string, mood: string, opts: ReadFallbackOptions = {}): Promise<string | null> {
   const src = fallbackSrc(archetype, mood);
   const publicDir = opts.publicDir ?? path.join(process.cwd(), "public");
-  // The public dir is resolved at runtime (tests inject one); traced explicitly
-  // via next.config `outputFileTracingIncludes` for the OG route.
-  const file = path.join(publicDir, src);
+  // The public dir is resolved at runtime (tests inject one), so the tracer
+  // cannot see where this points and would otherwise pull the whole repository
+  // into the OG route's bundle. Opted out on both halves; the fallback SVGs are
+  // traced explicitly via next.config `outputFileTracingIncludes`, and the
+  // `opts.origin` fetch below is what actually serves them on Vercel.
+  const file = path.join(/* turbopackIgnore: true */ publicDir, src);
   try {
     return await fs.readFile(/* turbopackIgnore: true */ file, "utf8");
   } catch {

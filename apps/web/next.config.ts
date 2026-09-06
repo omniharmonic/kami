@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
     // the files are absent from the serverless bundle and step 3 throws.
     "/summon/[id]/[step]": ["../../profiles/templates/SOUL.hard-rules.md"],
     "/api/admin/profiles": ["../../profiles/templates/*.md", "../../profiles/templates/*.tmpl"],
+    // The OG card draws the archetype × mood fallback SVG. 104 KB in total, and
+    // reading it from disk is faster than the same-origin fetch it falls back to.
+    "/api/og/[slug]": ["./public/rigs/fallback/*.svg"],
   },
   typedRoutes: false,
   poweredByHeader: false,

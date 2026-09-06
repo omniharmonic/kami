@@ -55,15 +55,15 @@ export {
   joinOutcomeRows,
   loadAttestationsFromEas,
 } from "./eas.js";
+// The CLI (`./cli.js`, `kami-reputation-recompute`) is deliberately NOT
+// re-exported here. It reads files and queries EAS; a dynamic `readFile` in
+// this import graph makes Next trace the whole repository into the web app's
+// serverless bundle. Import `@kami/reputation/cli` when you want the tool.
 export {
   type JsonDiff,
   type RecomputeAux,
   type RecomputeResult,
-  USAGE,
-  UsageError,
   diffJson,
   formatDiff,
-  parseArgs,
   recomputeFromInputs,
-  run as runRecompute,
 } from "./recompute.js";

@@ -1,7 +1,7 @@
 {
   "name": "@kami/reputation",
   "version": "0.1.0",
-  "description": "reputation/v1 — a deterministic pure function over EAS ProposalOutcome attestations, plus the recompute CLI that reproduces the nightly file byte-for-byte.",
+  "description": "reputation/v1 \u2014 a deterministic pure function over EAS ProposalOutcome attestations, plus the recompute CLI that reproduces the nightly file byte-for-byte.",
   "license": "Apache-2.0",
   "author": "Benjamin Life (@omniharmonic)",
   "type": "module",
@@ -11,10 +11,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
     }
   },
   "bin": {
-    "kami-reputation-recompute": "./dist/recompute.js"
+    "kami-reputation-recompute": "./dist/cli.js"
   },
   "files": [
     "dist"
