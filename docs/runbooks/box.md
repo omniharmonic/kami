@@ -87,9 +87,17 @@ it back.
    project genuinely needs to move to a hosted upstream, it is a change to `gate.yaml`,
    `provenance` included, made deliberately and visible on the page within a heartbeat.
 4. **Bring up a replacement:** any machine with the same weights and the §12.5 flag set. The
-   architecture treats the model as a URL. In order: rent a pod by the hour; or start the gate in
-   `--passthrough` mode against a smaller local model for chat only, with the cron jobs left off;
-   or leave it asleep. All three are acceptable; the third is not a failure.
+   architecture treats the model as a URL. In order: rent a pod by the hour; or point the gate at a
+   smaller model, declaring it (`provenance`, and `upstream_model` if the name differs) so the page
+   says what is really answering; or leave it asleep. All three are acceptable, and the third is not
+   a failure — an entity that says "I'm asleep" is behaving exactly as designed.
+
+   **Never `--passthrough`.** An earlier version of this runbook suggested it for chat-only
+   operation. That was wrong: passthrough disables the fact-sheet guard, so the kami could utter any
+   number it liked, with the page still promising every number came from a reading. It is a
+   development flag for working on the UI without a model, and a production gate now refuses to
+   start with it set. A silent creek is a small problem; a fluent, unguarded one is the problem this
+   whole project exists to avoid.
 5. **On the replacement, before any traffic:** `./firewall.sh`, then confirm from outside the
    tailnet that `nmap -Pn <ip>` shows every port filtered. A hurried replacement box with an open
    port is a worse incident than the outage.
