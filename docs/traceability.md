@@ -373,6 +373,34 @@ than source lines, which is why they are the two goals with unambiguous verdicts
 
 ---
 
+---
+
+## 6. Fixed after the audit (`c9a47b2`)
+
+The audit's findings were acted on rather than filed. What changed, and what did not:
+
+| Audit finding | What was done | Now |
+|---|---|---|
+| CI job `contract` filtered `@kami/twin-mcp`, a name no package has, so it matched nothing and exited 0 | The job builds and tests `@bioregionaltwin/mcp` | The twin contract tests run in CI for the first time (25 tests) |
+| No `scripts/checks/*` ran in CI, including the keyless-treasury check | A `security` job runs `scripts/security-check.sh` | Five gates run on every push |
+| 30 Python tests in `profiles/templates/tests` sat outside `testpaths` | Added to `pyproject.toml` | Python suite is 268, up from 235 |
+| **The consultation gate did not gate**: `consultation_done_at` was a status field that no read path consulted, contradicting PRD §13 #4 and architecture A.1 | The needs job returns `withheld` and publishes no `status.json` without it; `/e/[slug]/*` returns 404 to the public and shows role-holders a banner | Enforced in both halves, with a test that seeds an unconsulted entity, asserts nothing is published, then records consultation and asserts the next run publishes |
+| `Platform.fail_closed` defaulted to `False` while `infra/box/gate.yaml.example` documented "fails closed" | The default is `True`; opting out is explicit | A guardian's pause survives an unreachable platform |
+| `GateConfig.passthrough` disables the guard with nothing stopping it in production | `assert_safe_for_environment` refuses to start when `KAMI_ENV=production` with `passthrough` on, or with the pause set failing open | Rule 1 is now structural against the operator too, not only against the model |
+| The "how I work" page named neither the model nor the guardians, two of the three things G7 requires | The page reads the serving model from the entity's own profile config, and lists accepted guardians | G7's page requirement is met; the timing halves of G3 and G8 remain unproven |
+
+**Deliberately not changed.** The stubbed attestation signer (`pending:<sha256>`) stays until Privy
+EIP-712 signing is wired, because a fake signature is worse than an honest placeholder. The
+placeholder UIDs in `infra/chain/state/` stay because that file is an example. The schema gaps in
+`docs/schema-gaps.md` stay worked around rather than migrated, since each one's SQL is written out
+and the decision is the owner's.
+
+**Unchanged by any of this:** no model has ever spoken. Every chat path runs against
+`HERMES_GATEWAY_URL=fake:`, and the ≥95 % hallucination probe has never met a real model. That is
+the single most important sentence in this document.
+
+---
+
 ## Appendix — the previous skeleton's claims, re-checked
 
 The version of this file this audit replaced carried a status column with values `building` and

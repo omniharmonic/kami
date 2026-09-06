@@ -14,6 +14,36 @@ Built by Benjamin Life ([@omniharmonic](https://github.com/omniharmonic)). Apach
 4. **No token, ever.** Not for governance, not for reputation, not for cosmetics. See [`docs/no-token.md`](docs/no-token.md).
 5. **The platform reads the twin like a browser does and never writes into it.** Separate repo; one published file contract plus a read-only MCP wrapper.
 
+## State of the build
+
+Every work package in `docs/planning/03-implementation-plan.md` is implemented and the whole suite
+is green. What that does and does not mean is set out honestly in
+[`docs/traceability.md`](docs/traceability.md), which maps each PRD goal to the assertion that
+proves it, and lists what is not proven.
+
+| Suite | Result |
+|---|---|
+| `apps/web` (Vitest, PGlite) | 69 files, 658 tests |
+| Python (`factguard`, `entity-gate`, `treasury-mcp`, `evals`) | 268 tests |
+| TypeScript packages | 410 tests across 36 files |
+| Twin MCP contract tests (fixture tree) | 25 tests |
+| End-to-end (Playwright, production build) | 55 passed, 1 skipped |
+| Production build · security gates | compiles · five gates green |
+
+**The one thing to know before believing any of it: no model has ever spoken.** Every chat path in
+this repository runs against a fake gateway. The fact-sheet guard is proven against a generated
+adversarial corpus of 204 turns; the ≥95 % hallucination probe in `evals/` has never met a real
+model, because that needs the GPU box in `infra/box/`. The same is true of the chain (no Safe has
+been deployed), the twin (this sandbox cannot reach `data.bioregionaltwin.org`, so every fixture is
+synthetic), Stripe, Privy and the Parachute vault. Each is behind an interface with a test that
+asserts against a fake, and `docs/traceability.md` §4 names every one.
+
+Three long-lead items gate a real launch, none of them code: a legal wrapper and counsel
+([`docs/legal/CHECKLIST.md`](docs/legal/CHECKLIST.md)), the commissioned Rive rigs
+([`rive/BRIEF.md`](rive/BRIEF.md)), and consultation with Nederland's Boulder Creek guardians and
+the relevant Tribal offices — which the platform now enforces as a publication gate, not a
+reminder.
+
 ## Repository layout
 
 ```
