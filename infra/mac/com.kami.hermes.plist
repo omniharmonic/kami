@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  com.kami.hermes — the Hermes gateway (agent runtime + cron), run by launchd on a Mac mini.
+
+  Start order matters: the gate must be up before Hermes, because a profile's model base_url
+  points at the gate (`http://127.0.0.1:8001/p/<slug>/v1`, never the upstream directly —
+  ADR-E04). launchd has no dependency graph, so bin/run-hermes.sh waits for the gate's
+  /healthz before exec'ing. A Hermes that starts first is not broken; it would just fail
+  requests until the gate came up, and waiting is quieter.
+
+  `install.sh` substitutes __KAMI_REPO__ and __KAMI_HOME__. No secret appears here.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kami.hermes</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>__KAMI_REPO__/infra/mac/bin/run-hermes.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__KAMI_HOME__</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>15</integer>
+
+  <key>StandardOutPath</key>
+  <string>__KAMI_HOME__/Library/Logs/kami/hermes.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__KAMI_HOME__/Library/Logs/kami/hermes.err.log</string>
+
+  <key>ProcessType</key>
+  <string>Interactive</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>KAMI_ENV_FILE</key>
+    <string>__KAMI_HOME__/.kami/kami.env</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+</dict>
+</plist>

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -234,6 +235,64 @@ def _run_check_upstream(ctx: Ctx, python: List[str]) -> Tuple[int, str, str]:
         out = proc.stdout.decode("utf-8", "replace").strip()
         err = proc.stderr.decode("utf-8", "replace").strip()
     return proc.returncode, out, err
+
+
+CHECK_LINE = re.compile(r"^\s{2}(?P<label>\S.*?)\s{2,}(?P<status>PASS|WARN|FAIL)\s{1,}(?P<detail>.*)$")
+
+_FIXES = {
+    "tool": (
+        "a provider whose model cannot return a well-formed tool_calls array cannot drive a kami — every number "
+        "it says has to come back from a tool result. Pick another model (see infra/mac/upstream-examples/)"
+    ),
+    "stream": (
+        "chat will wait for whole replies instead of streaming, and the guard cannot drop sentence by sentence as "
+        "they arrive. Check for a buffering proxy, or accept the slower feel"
+    ),
+    "usage": (
+        "the gate falls back to a chars/4 estimate, so the daily budget drifts (docs/verify.md #29)"
+    ),
+    "answer": (
+        "check the base URL, the key named by upstream_api_key_env, and that this Mac has outbound HTTPS"
+    ),
+}
+
+
+def _fix_for(label: str) -> str:
+    low = label.lower()
+    for key, text in _FIXES.items():
+        if key in low:
+            return text
+    return "run `python -m entity_gate.check_upstream --config apps/gate/gate.yaml` for its own wording"
+
+
+def _parse_check_upstream(blob: str) -> List[Step]:
+    """Turn the gate checker's report into doctor steps, verbatim in detail."""
+    steps: List[Step] = []
+    header = [line.strip() for line in blob.splitlines() if line.startswith("  ") and not CHECK_LINE.match(line)]
+    facts = " · ".join(
+        re.sub(r"\s{2,}", " ", h) for h in header if h and not h.startswith("entity-gate")
+    )
+    for line in blob.splitlines():
+        match = CHECK_LINE.match(line)
+        if not match:
+            continue
+        label = match.group("label").strip()
+        status = match.group("status")
+        detail = match.group("detail").strip()
+        step_id = "upstream." + re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_")
+        text = f"{label}: {detail}" if detail else label
+        if status == "PASS":
+            steps.append(ok(step_id, text))
+        elif "not attempted" in detail.lower():
+            # the checker stopped early; that is not checked, so do not colour it a warning
+            steps.append(skip(step_id, text, fix="fix the failure above first", doc=DOC))
+        elif status == "WARN":
+            steps.append(warn(step_id, text, fix=_fix_for(label), doc=DOC))
+        else:
+            steps.append(fail(step_id, text, fix=_fix_for(label), doc=DOC))
+    if steps and facts:
+        steps.insert(0, ok("upstream.check_upstream", f"entity_gate.check_upstream — {facts}"))
+    return steps
 
 
 # ---------------------------------------------------------------------------
@@ -502,49 +561,38 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
             )
         )
 
-    # The gate's own checker is the authority when it exists.
+    # The gate's own checker is the authority when it exists (apps/gate:
+    # `python -m entity_gate.check_upstream`). It probes the same four things
+    # from inside the gate's own config, so when it answers we report what it
+    # said rather than asking the provider twice.
     python = _python_with_entity_gate(ctx)
     if python:
         code, out, err = _run_check_upstream(ctx, python)
-        summary = (out or err).strip().splitlines()
-        head = " | ".join(line.strip() for line in summary[:4]) if summary else "(no output)"
-        parsed: Optional[Any] = None
-        try:
-            parsed = json.loads(out) if out.startswith("{") else None
-        except Exception:
-            parsed = None
-        detail = head if not parsed else json.dumps(parsed)[:400]
-        if code == 0:
-            result.steps.append(
-                ok("upstream.check_upstream", f"`python -m entity_gate.check_upstream` passed — {detail}")
-            )
-            result.steps.append(
-                ok(
-                    "upstream.roundtrip",
-                    "covered by the gate's own checker (run it directly for its detail)",
+        blob = out or err
+        parsed = _parse_check_upstream(blob)
+        if parsed:
+            result.steps.extend(parsed)
+            if code not in (0, 1):
+                result.steps.append(
+                    warn(
+                        "upstream.check_upstream",
+                        f"`entity_gate.check_upstream` exited {code}",
+                        fix="run it directly for the full output: "
+                        f"{' '.join(python)} -m entity_gate.check_upstream --config {ctx.gate_yaml_path}",
+                        doc="apps/gate/README.md",
+                    )
                 )
-            )
             return result
-        if code in (2, 124) and ("usage:" in err or "unrecognized" in err or not out):
-            result.steps.append(
-                warn(
-                    "upstream.check_upstream",
-                    f"`python -m entity_gate.check_upstream` did not run cleanly (exit {code}); "
-                    "falling back to this tool's own probes",
-                    fix="run it by hand to see why: "
-                    f"{' '.join(python)} -m entity_gate.check_upstream",
-                    doc="apps/gate/README.md",
-                )
+        result.steps.append(
+            warn(
+                "upstream.check_upstream",
+                f"`entity_gate.check_upstream` ran but its output could not be read (exit {code}); "
+                "falling back to this tool's own probes",
+                fix=f"run it directly: {' '.join(python)} -m entity_gate.check_upstream "
+                f"--config {ctx.gate_yaml_path}",
+                doc="apps/gate/README.md",
             )
-        else:
-            result.steps.append(
-                fail(
-                    "upstream.check_upstream",
-                    f"`python -m entity_gate.check_upstream` failed (exit {code}) — {detail}",
-                    fix="fix what it names before going further; the probes below repeat the same ground",
-                    doc="apps/gate/README.md",
-                )
-            )
+        )
 
     step, models = _probe_models(cfg)
     result.steps.append(step)

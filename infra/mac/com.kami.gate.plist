@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  com.kami.gate — the entity-gate, run by launchd on a Mac mini.
+
+  `install.sh` copies this to ~/Library/LaunchAgents/ with __KAMI_REPO__ and __KAMI_HOME__
+  replaced. Do not edit the installed copy: edit this one and re-run install.sh, so the file
+  under version control is always what is running.
+
+  No secret appears here. The gate's environment is read by bin/run-gate.sh from
+  ~/.kami/kami.env (chmod 600), which launchd never sees and `launchctl print` never shows.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.kami.gate</string>
+
+  <!-- A wrapper, not the binary: it loads the env file and execs. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>__KAMI_REPO__/infra/mac/bin/run-gate.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>__KAMI_REPO__</string>
+
+  <!-- Start at login and keep it up. KeepAlive true = restart on any exit, including a crash. -->
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <!-- Do not respawn faster than this; a crash loop should be visible in the log, not a fork bomb. -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+  <key>StandardOutPath</key>
+  <string>__KAMI_HOME__/Library/Logs/kami/gate.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__KAMI_HOME__/Library/Logs/kami/gate.err.log</string>
+
+  <!-- A long-running network service, not a batch job: normal scheduling, no I/O throttling. -->
+  <key>ProcessType</key>
+  <string>Interactive</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <!-- Only non-secret plumbing. Everything else comes from the env file. -->
+    <key>KAMI_ENV_FILE</key>
+    <string>__KAMI_HOME__/.kami/kami.env</string>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+</dict>
+</plist>

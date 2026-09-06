@@ -174,6 +174,15 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
         result.steps.append(
             warn("twin.conditions", f"generated_at {gen!r} could not be parsed", fix="", doc=DOC)
         )
+    elif age > CONDITIONS_FAIL_S and not base:
+        result.steps.append(
+            warn(
+                "twin.conditions",
+                detail + " — a fixture tree's timestamps are frozen, so this age means nothing",
+                fix="point TWIN_BASE_URL at the live tree before reading anything into the ages here",
+                doc=DOC,
+            )
+        )
     elif age > CONDITIONS_FAIL_S:
         result.steps.append(
             fail(

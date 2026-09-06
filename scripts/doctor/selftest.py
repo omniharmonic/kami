@@ -44,7 +44,11 @@ def main() -> int:
     # every check produces its "not configured" or "unreachable" wording.
     env.update(
         {
-            "KAMI_UPSTREAM_URL": "http://127.0.0.1:9",
+            # A positive control: the API key's value is planted inside a field
+            # the doctor definitely prints (the upstream base URL). If the
+            # redactor were a no-op this run would leak it, so this proves the
+            # test can fail rather than merely passing by never printing.
+            "KAMI_UPSTREAM_URL": "http://127.0.0.1:9/" + CANARIES["OPENAI_API_KEY"],
             "KAMI_GATE_URL": "http://127.0.0.1:9",
             "PLATFORM_URL": "http://127.0.0.1:9",
             "HERMES_GATEWAY_URL": "http://127.0.0.1:9",
@@ -72,12 +76,18 @@ def main() -> int:
             failures.append(f"the DATABASE_URL password leaked in `kami doctor {' '.join(mode)}` output")
         if not blob.strip():
             failures.append(f"`kami doctor {' '.join(mode)}` produced no output at all")
+        if "<redacted:" not in blob:
+            failures.append(
+                f"`kami doctor {' '.join(mode)}` printed no redaction marker — the planted key should have "
+                "appeared in the upstream URL and been masked; the redactor may not be running at all"
+            )
 
     if failures:
         for line in failures:
             print("FAIL " + line)
         return 1
     print(f"ok   {len(CANARIES)} canary secrets, text and JSON: none appeared in the output")
+    print("ok   a key planted inside a printed field came out as <redacted:…> (the test can fail)")
     print("ok   the DATABASE_URL password is masked separately from the URL")
     return 0
 
