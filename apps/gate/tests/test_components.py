@@ -42,13 +42,23 @@ async def test_pause_set_polls_platform_and_fails_closed_until_first_success():
     assert ps.state()["platform"] == ["x-creek"]
 
 
-async def test_pause_set_fail_open_by_default():
+async def test_pause_set_fails_closed_by_default():
+    """An unreachable platform must not silently un-pause an entity.
+
+    The default was fail-open, which contradicted architecture §12.5 and meant a
+    guardian's pause could be lost to a network blip. Opting out is explicit now.
+    """
+
     def handler(_r):
         raise httpx.ConnectError("down")
 
     ps = PauseSet([], Platform(pause_set_url="http://platform/pause"), _client_factory(handler))
     await ps.refresh_once()
-    assert ps.last_sync_ok is False and ps.is_paused("x") is False
+    assert ps.last_sync_ok is False and ps.is_paused("x") is True
+
+    opted_out = PauseSet([], Platform(pause_set_url="http://platform/pause", fail_closed=False), _client_factory(handler))
+    await opted_out.refresh_once()
+    assert opted_out.last_sync_ok is False and opted_out.is_paused("x") is False
 
 
 async def test_pause_set_poll_loop_runs():
@@ -125,3 +135,30 @@ def test_load_example_gate_yaml():
     assert cfg.budget_for("unknown").limits("cron") == (400000, 20000)
     assert cfg.concurrency.per_entity == 2 and cfg.concurrency.queue == 8
     assert cfg.passthrough is False and cfg.platform.poll_seconds == 30
+
+
+# --- a production gate refuses to run in a shape that cannot enforce rule 1 ---
+
+
+def test_production_refuses_passthrough():
+    from entity_gate.config import GateConfig, assert_safe_for_environment
+
+    cfg = GateConfig(passthrough=True)
+    assert_safe_for_environment(cfg, {})  # not production: fine
+    assert_safe_for_environment(cfg, {"KAMI_ENV": "development"})
+    with pytest.raises(ValueError, match="passthrough"):
+        assert_safe_for_environment(cfg, {"KAMI_ENV": "production"})
+
+
+def test_production_refuses_fail_open_pause_set():
+    from entity_gate.config import GateConfig, Platform, assert_safe_for_environment
+
+    cfg = GateConfig(platform=Platform(pause_set_url="https://kami.example/api/gate/pause-set", fail_closed=False))
+    with pytest.raises(ValueError, match="fail_closed"):
+        assert_safe_for_environment(cfg, {"KAMI_ENV": "production"})
+
+
+def test_fail_closed_is_the_default():
+    from entity_gate.config import Platform
+
+    assert Platform().fail_closed is True

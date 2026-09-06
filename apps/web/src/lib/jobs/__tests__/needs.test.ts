@@ -176,4 +176,30 @@ describe("the hourly needs job", () => {
     expect(n!.n).toBe(2);
     expect(first!.snapshotHash).not.toBe(out.results[0]!.snapshot_hash);
   });
+
+  it("withholds status.json until a steward records consultation, but still stores the snapshot", async () => {
+    // PRD §13 #4. Before this, consultation_done_at was a label on an admin
+    // screen: the page published regardless of whether anyone had been consulted.
+    const { db, entity, publisher } = await seedBoulderCreek({ slug: "unconsulted-creek", consultationDone: false });
+    dbs.push(db);
+    const out = await runNeedsJob({ db, twin: twinFromFixtures(), publisher, now: NOW, gpuOnline: true });
+
+    expect(out.results[0]!.status).toBe("withheld");
+    expect(out.results[0]!.reason).toBe("consultation_not_done");
+    expect(await publisher.get("entity/unconsulted-creek/status.json")).toBeNull();
+
+    // The record exists from day one; only the publication waits.
+    const [n] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(schema.needSnapshots)
+      .where(eq(schema.needSnapshots.entityId, entity.id));
+    expect(n!.n).toBe(1);
+
+    // Once a steward records it, the very next run publishes.
+    await db.update(schema.entities).set({ consultationDoneAt: new Date("2026-09-01T00:00:00Z") }).where(eq(schema.entities.id, entity.id));
+    const later = new Date(NOW.getTime() + 3600_000);
+    const after = await runNeedsJob({ db, twin: twinFromFixtures(undefined, () => later.getTime()), publisher, now: later, gpuOnline: true });
+    expect(after.results[0]!.status).toBe("published");
+    expect(await publisher.get("entity/unconsulted-creek/status.json")).not.toBeNull();
+  });
 });

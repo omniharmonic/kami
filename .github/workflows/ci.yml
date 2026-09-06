@@ -42,7 +42,11 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @kami/twin-mcp test:contract
+      # The package is named @bioregionaltwin/mcp (it is written to be lifted
+      # into the twin repo verbatim). Filtering @kami/twin-mcp matched nothing
+      # and exited 0, so this job was green without running anything.
+      - run: pnpm --filter @bioregionaltwin/mcp build
+      - run: pnpm --filter @bioregionaltwin/mcp test:contract
   evals-replay:
     name: 200-turn guard replay (no GPU)
     runs-on: ubuntu-latest
@@ -64,3 +68,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @kami/e2e exec playwright install --with-deps chromium
       - run: pnpm --filter @kami/e2e test
+  security:
+    name: security gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: bash scripts/security-check.sh

@@ -2,6 +2,8 @@
  * Page reads. Every function returns an honest empty value when Neon is
  * unset or unreachable (ADR-E14); the status file is the other source.
  */
+import fs from "node:fs/promises";
+import path from "node:path";
 import { cache } from "react";
 import { and, desc, eq, inArray, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { withDb } from "@/db/client";
@@ -236,4 +238,26 @@ export async function getConfigNumber(key: string, fallback: number): Promise<nu
     const v = r?.value;
     return typeof v === "number" && Number.isFinite(v) ? v : fallback;
   }, fallback);
+}
+
+/**
+ * The model actually serving a kami, read from its Hermes profile config so the
+ * public "how I work" page cannot claim a model that is not the one running
+ * (PRD G7 requires the page to name it). Returns null when no profile has been
+ * deployed yet, and the page says so rather than guessing.
+ */
+export async function servingModel(slug: string): Promise<{ name: string; reasoning_effort: string } | null> {
+  const roots = [process.env.KAMI_PROFILES_DIR, path.join(process.cwd(), "..", "..", "profiles"), path.join(process.cwd(), "profiles")];
+  for (const root of roots) {
+    if (!root) continue;
+    try {
+      const raw = await fs.readFile(path.join(root, slug, "config.yaml"), "utf8");
+      const name = /^\s*default:\s*(\S+)/m.exec(raw)?.[1];
+      const effort = /^\s*reasoning_effort:\s*(\S+)/m.exec(raw)?.[1];
+      if (name) return { name, reasoning_effort: effort ?? "low" };
+    } catch {
+      // try the next root
+    }
+  }
+  return null;
 }

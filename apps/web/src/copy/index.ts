@@ -193,6 +193,12 @@ export const people = {
   guardiansNote: "Guardians can pause me at any time; two are needed to wake me. I never speak for them or for any nation.",
 } as const;
 
+export const entityPage = {
+  /** Shown to role-holders viewing an entity whose consultation is not recorded. */
+  consultationPreview:
+    "Not public yet. This page is visible to you because you hold a role here. It becomes readable by anyone once a steward records that consultation with the relevant Tribal offices and local guardians has happened (PRD §13 #4).",
+} as const;
+
 export const siblings = {
   heading: "Siblings",
   empty: "No other kami share my anchor place yet.",
@@ -205,6 +211,14 @@ export const howIWork = {
   model: "Model",
   modelBody:
     "A small open-weights language model running on a single rented GPU, behind a gate that checks every sentence. No frontier model is on the hot path.",
+  /** G7: the page must name the model. Read from the entity's profile config so
+      the page cannot drift from what is actually serving. */
+  modelName: (name: string, effort: string) => `Currently: ${name}, reasoning effort ${effort}.`,
+  modelUnknown: "The serving model is not recorded for this kami yet. Until it is, this page will not name one.",
+  guardiansHeading: "Guardians",
+  guardiansBody:
+    "These people hold the keys and the pause switch. Any one of them can stop this kami within a minute; two are needed to wake it again, or to retire it.",
+  guardiansNone: "No guardians have accepted yet. Until at least two who are not the founder have, this kami cannot hold money.",
   guard: "The guard",
   guardBody:
     "Every number I utter must match a value that came back from a twin tool call in the same turn. Sentences that fail are withheld and counted; you see the count under the reply.",

@@ -27,7 +27,18 @@ export async function closeTestDb(db: TestDb): Promise<void> {
 /** Seed one entity (and the users it references) for tests that need FK targets. */
 export async function seedEntity(
   db: TestDb,
-  opts: { slug?: string; name?: string; archetype?: schema.Archetype; paused?: boolean } = {},
+  opts: {
+    slug?: string;
+    name?: string;
+    archetype?: schema.Archetype;
+    paused?: boolean;
+    /**
+     * Consultation is recorded by default, because a seeded entity stands in
+     * for a live one and an unconsulted entity is deliberately unpublishable
+     * (PRD §13 #4). Pass false to exercise that gate.
+     */
+    consultationDone?: boolean;
+  } = {},
 ) {
   const slug = opts.slug ?? "boulder-creek";
   const [row] = await db
@@ -39,6 +50,7 @@ export async function seedEntity(
       archetype: opts.archetype ?? "creek",
       hermesProfile: slug,
       pausedAt: opts.paused ? new Date() : null,
+      consultationDoneAt: opts.consultationDone === false ? null : new Date("2026-08-01T00:00:00Z"),
     })
     .returning();
   return row!;

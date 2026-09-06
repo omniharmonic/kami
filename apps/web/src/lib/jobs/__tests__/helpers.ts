@@ -74,12 +74,18 @@ export async function bumpGeneratedAt(dir: string, value: string): Promise<numbe
 
 export type SeededEntity = { db: TestDb; entity: typeof schema.entities.$inferSelect; binding: Binding; publisher: LocalDirPublisher; dataDir: string };
 
-export async function seedBoulderCreek(opts: { db?: TestDb; slug?: string; review?: "approved" | "pending_review"; paused?: boolean } = {}): Promise<SeededEntity> {
+export async function seedBoulderCreek(opts: { db?: TestDb; slug?: string; consultationDone?: boolean;
+  review?: "approved" | "pending_review"; paused?: boolean } = {}): Promise<SeededEntity> {
   const db = opts.db ?? (await createTestDb());
   const slug = opts.slug ?? "boulder-creek";
   const binding = await loadBoulderBinding();
   const bound: Binding = { ...binding, entity_id: `entity/${slug}` };
-  const row = await seedEntity(db, { slug, name: slug === "boulder-creek" ? "Boulder Creek" : slug, paused: opts.paused ?? false });
+  const row = await seedEntity(db, {
+    slug,
+    name: slug === "boulder-creek" ? "Boulder Creek" : slug,
+    paused: opts.paused ?? false,
+    ...(opts.consultationDone === undefined ? {} : { consultationDone: opts.consultationDone }),
+  });
   await db.insert(schema.entityBindings).values({
     entityId: row.id,
     bindingVersion: bound.binding_version,

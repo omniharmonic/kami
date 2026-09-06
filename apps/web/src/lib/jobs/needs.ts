@@ -233,7 +233,7 @@ export async function buildStatusFile(
 
 export type EntityNeedsResult = {
   slug: string;
-  status: "published" | "skipped" | "error";
+  status: "published" | "withheld" | "skipped" | "error";
   reason?: string;
   new_snapshot?: boolean;
   snapshot_id?: number | null;
@@ -341,6 +341,23 @@ async function runEntity(a: { db: DbOrTx; twin: TwinClient; publisher: Publisher
     anchor: binding.anchor,
     bindingVersion: current.version,
   });
+  // PRD §13 #4 and architecture A.1: an entity's page stays unpublished until a
+  // steward records that consultation happened. The snapshot is still computed
+  // and stored — the record should exist from day one — but nothing is written
+  // to the public bucket, so there is no page for anyone to read. Without this
+  // the field was a label on an admin screen and gated nothing.
+  if (entity.consultationDoneAt === null) {
+    return {
+      slug: entity.slug,
+      status: "withheld",
+      reason: "consultation_not_done",
+      new_snapshot: !unchanged,
+      snapshot_id: snapshotId,
+      snapshot_hash: file.snapshot_hash,
+      mood: published.mood,
+      stale_driving: published.stale_driving,
+    };
+  }
   const out = await publishStatus(entity.slug, file, a.publisher);
   return {
     slug: entity.slug,

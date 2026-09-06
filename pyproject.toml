@@ -13,7 +13,7 @@ members = ["apps/gate", "packages/factguard", "packages/treasury-mcp", "evals"]
 dev-dependencies = ["pytest>=9,<10", "pytest-asyncio>=1.4,<2", "ruff>=0.13"]
 
 [tool.pytest.ini_options]
-testpaths = ["apps/gate/tests", "packages/factguard/tests", "packages/treasury-mcp/tests", "evals/tests"]
+testpaths = ["apps/gate/tests", "packages/factguard/tests", "packages/treasury-mcp/tests", "evals/tests", "profiles/templates/tests"]
 asyncio_mode = "auto"
 
 [tool.ruff]

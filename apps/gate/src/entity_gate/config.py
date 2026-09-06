@@ -34,7 +34,13 @@ class Platform(BaseModel):
     token: str | None = None
     token_env: str | None = "KAMI_PLATFORM_TOKEN"
     poll_seconds: float = 30
-    fail_closed: bool = False
+    # Architecture §12.5: the gate "pulls the pause set and budgets from the
+    # platform and fails closed (refuses completions) if it cannot". A guardian
+    # who pauses an entity must not be silently overruled by a network blip, so
+    # the safe direction is the default: when a platform is configured and its
+    # pause set cannot be read, every slug reads as paused. Set false only for a
+    # deliberately offline box, and know what you are turning off.
+    fail_closed: bool = True
 
     def resolved_token(self) -> str | None:
         if self.token:
@@ -88,3 +94,29 @@ def load_config(path: str | Path | None, **overrides: Any) -> GateConfig:
             data = yaml.safe_load(fh) or {}
     data.update({k: v for k, v in overrides.items() if v is not None})
     return GateConfig.model_validate(data)
+
+
+def assert_safe_for_environment(config: "GateConfig", env: dict[str, str] | None = None) -> None:
+    """Refuse to start a production gate that cannot enforce its own rules.
+
+    ``passthrough`` skips the fact-sheet guard so the web app can be developed
+    without a model; a kami running that way could utter any number it liked.
+    ``fail_closed: false`` lets a pause be lost to a network error. Both are
+    legitimate locally and neither is legitimate in production, so the gate
+    refuses rather than running in a shape that quietly breaks rule 1.
+    """
+    import os as _os
+
+    e = env if env is not None else _os.environ
+    if e.get("KAMI_ENV", "").lower() not in {"production", "prod"}:
+        return
+    problems: list[str] = []
+    if config.passthrough:
+        problems.append("passthrough: true disables the fact-sheet guard")
+    if config.platform.pause_set_url and not config.platform.fail_closed:
+        problems.append("platform.fail_closed: false lets a guardian pause be lost to a network error")
+    if problems:
+        raise ValueError(
+            "refusing to start in production with: " + "; ".join(problems)
+            + ". Fix gate.yaml, or unset KAMI_ENV if this really is not production."
+        )

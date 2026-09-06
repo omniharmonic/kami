@@ -8,7 +8,7 @@ import sys
 import uvicorn
 
 from .app import create_app
-from .config import load_config
+from .config import assert_safe_for_environment, load_config
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -22,6 +22,7 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
     config = load_config(args.config, upstream_url=args.upstream, listen=args.listen,
                          passthrough=args.passthrough, events_dir=args.events_dir)
+    assert_safe_for_environment(config)
     app = create_app(config)
     uvicorn.run(app, host=config.listen_host, port=config.listen_port, log_level="info")
     return 0
