@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Board } from "@/components/Board";
+import { ConnectLink } from "@/components/connect/ConnectLink";
 import { Chat } from "@/components/Chat";
 import { HowIWorkLink } from "@/components/HowIWorkLink";
 import { Meters } from "@/components/Meters";
@@ -68,6 +69,7 @@ export default async function EntityPage({ params }: Props) {
       <People roles={people} entityId={entity.id} />
       <Siblings siblings={siblings} />
       <HowIWorkLink slug={entity.slug} />
+      <ConnectLink entity={{ id: entity.id, slug: entity.slug }} />
     </>
   );
 }

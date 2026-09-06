@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { landing } from "@/copy";
+import { connect as connectCopy, landing } from "@/copy";
 import { getDb } from "@/db/client";
 import { getSession } from "@/lib/session";
 import { EntitySoFar } from "@/components/summon/EntitySoFar";
@@ -465,8 +465,10 @@ export default async function SummonStep({ params, searchParams }: Props) {
           </ul>
         </li>
       </ul>
+      <p className="sunken">{connectCopy.nextStepHint}</p>
       <p style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-        <Link className="btn btn-primary" href={`/e/${completed.slug}`}>{summon.review.goToEntity}</Link>
+        <Link className="btn btn-primary" href={`/e/${completed.slug}/connect`}>{connectCopy.nextStep}</Link>
+        <Link className="btn" href={`/e/${completed.slug}`}>{summon.review.goToEntity}</Link>
         <Link className="btn" href={`/e/${completed.slug}/donate`}>{summon.fund.donateLink}</Link>
       </p>
       {session.user.platform_admin && !state.published ? (
