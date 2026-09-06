@@ -64,7 +64,7 @@ export default async function EntityPage({ params }: Props) {
       <PulseLog pulses={status?.pulses ?? []} />
       <Strategy strategy={strategy} />
       <Board bounties={bounties} proposals={proposals} summary={status?.board ?? null} entityId={entity.id} slug={entity.slug} />
-      <Treasury summary={status?.treasury ?? null} payouts={payouts} safeAddress={entity.safe_address} entityId={entity.id} />
+      <Treasury summary={status?.treasury ?? null} payouts={payouts} safeAddress={entity.safe_address} entityId={entity.id} slug={entity.slug} />
       <People roles={people} entityId={entity.id} />
       <Siblings siblings={siblings} />
       <HowIWorkLink slug={entity.slug} />

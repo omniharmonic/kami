@@ -13,6 +13,7 @@ import { getAddress, keccak256, parseAbi, parseUnits, stringToBytes, type Addres
 import type { Db } from "@/db/events";
 import { appendEntityEvent } from "@/db/events";
 import * as schema from "@/db/schema";
+import { recordPayoutForTax } from "@/lib/tax/forms";
 import { deleteConfig, getConfig, setConfig } from "@/lib/jobs/common";
 import { attest } from "@/lib/signing/attester";
 import { checkRelayerFloat, executeConfirmed, InsufficientConfirmations } from "@/lib/signing/relayer";
@@ -156,6 +157,11 @@ async function finalizeExecuted(db: Db, deps: TreasuryDeps, row: PendingRow, txH
         recipientUserId: ctx?.claim.userId ?? null,
       })
       .onConflictDoNothing();
+    // Running total for the 1099 threshold. Recorded on settlement, not on
+    // proposal, so a proposal that never executes never counts against anyone.
+    if (ctx?.claim.userId) {
+      await recordPayoutForTax(tx, ctx.claim.userId, now.getUTCFullYear(), Number(amount));
+    }
     if (ctx) await tx.update(schema.bounties).set({ status: "paid" }).where(eq(schema.bounties.id, ctx.bounty.id));
     await appendEntityEvent(tx, {
       entity_id: row.entity.id,

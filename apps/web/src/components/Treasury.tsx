@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { guardian, treasury } from "@/copy";
 import type { TreasurySummary } from "@/lib/status";
 import { getPendingSafeProposalCount } from "@/lib/governance/queries";
@@ -15,11 +16,13 @@ export async function Treasury({
   payouts,
   safeAddress,
   entityId,
+  slug,
 }: {
   summary: TreasurySummary | null;
   payouts: PayoutView[];
   safeAddress: string | null;
   entityId?: string;
+  slug?: string;
 }) {
   const addr = safeAddress ?? summary?.safe_address ?? null;
   const pending = entityId ? await getPendingSafeProposalCount(entityId) : (summary?.pending ?? 0);
@@ -46,6 +49,11 @@ export async function Treasury({
           <ul style={{ margin: 0 }}>{treasury.moneyCanDo.map((l) => <li key={l}>{l}</li>)}</ul>
           <p className="eyebrow" style={{ margin: "0.6rem 0 0.2rem" }}>What money cannot do</p>
           <ul style={{ margin: 0 }}>{treasury.moneyCannotDo.map((l) => <li key={l}>{l}</li>)}</ul>
+          {slug && (
+            <p style={{ margin: "0.6rem 0 0" }}>
+              <Link href={`/e/${slug}/donate`} className="btn tap">{treasury.give}</Link>
+            </p>
+          )}
         </details>
       </div>
       <h3 style={{ fontSize: "1rem", margin: "1rem 0 0.4rem" }}>{treasury.whatIDid}</h3>

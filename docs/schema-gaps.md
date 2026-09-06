@@ -22,6 +22,15 @@ Columns the build wanted that the architecture's Appendix B does not have. Each 
 | 11 | No `payouts.entity_id`; attribution runs `submissions → claims → bounties`. | The join. | `ALTER TABLE payouts ADD COLUMN entity_id text REFERENCES entities(id);` | Optional. It would simplify reconciliation. |
 | 12 | `evaluations.offchain_attestation` (`{uid, awarded_usdc?}`) and `bounties.prediction` are conventions, not constraints. | Zod at the edges, asserted in tests. | A `CHECK` on `jsonb_typeof`, or leave documented. | Optional. |
 
+## From the donation layer
+
+| # | Gap | Worked around by | Proposed SQL | Owner's call |
+|---|---|---|---|---|
+| 13 | `donations` has no `fee_source`, so a fee Stripe reported and a fee we estimated at 2.9 % + 30¢ are indistinguishable in the table. | The flag lives in the `donation.recorded` event payload. | `ALTER TABLE donations ADD COLUMN fee_source text;` | Worth doing — an estimated fee must never read as a measured one. |
+| 14 | `donations` has no sender address for the direct-USDC rail, so a "this was me" signature has nothing to verify against in the row. | `config.direct_donation.<id>` holds the transfer. | `ALTER TABLE donations ADD COLUMN from_address text;` | Worth doing before the first real direct donation. |
+| 15 | Nothing at the database level stops one incoming transfer being recorded twice. | `donations.id` is derived from the transaction hash and log index, so a repeat collides on the primary key. | `CREATE UNIQUE INDEX donations_chain_tx_hash_key ON donations (chain_tx_hash, id) WHERE chain_tx_hash IS NOT NULL;` | Worth doing. |
+| 16 | `entities` has no `archived_at`, so "archived after retirement" has nowhere to live. | `retired_at` plus a config marker and a `retire.archived` event. | `ALTER TABLE entities ADD COLUMN archived_at timestamptz;` | Optional; retirement is rare. |
+
 ## Two pause implementations
 
 `src/lib/governance/pause.ts` (used by the guardian screens) and `src/lib/jobs/pause.ts` (used by `POST /api/entities/[slug]/pause`, which the box scripts call) were written independently. They write compatible `pause_events` rows, so the two-guardian resume rule counts requests arriving by either path — the safety property holds. They differ in the `entity_events` kind spelling (`resume_requested` versus `resume.requested`) and in whether `actor` is a user id or a display label. Unify on one module before phase 2; the guardian-screen version is the fuller one.

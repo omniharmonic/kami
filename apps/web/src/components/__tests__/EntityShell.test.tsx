@@ -20,7 +20,7 @@ describe("EntityShell (ADR-E13 invariant)", () => {
     );
     const label = screen.getByTestId("disclosure");
     expect(label.textContent).toBe(LABEL);
-    const avatar = container.querySelector("img[role='img']")!;
+    const avatar = container.querySelector("img.avatar-fallback")!;
     const child = screen.getByTestId("child");
     // document order: avatar → label → children
     expect(avatar.compareDocumentPosition(label) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -51,7 +51,7 @@ describe("EntityShell (ADR-E13 invariant)", () => {
         <span />
       </EntityShell>,
     );
-    const img = container.querySelector("img[role='img']")!;
+    const img = container.querySelector("img.avatar-fallback")!;
     expect(img.getAttribute("aria-label")).toContain("I can't feel my gauge");
     expect(img.getAttribute("src")).toBe("/rigs/fallback/creek-asleep.svg");
   });

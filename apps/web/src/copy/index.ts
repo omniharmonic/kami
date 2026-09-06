@@ -318,7 +318,11 @@ export const forbiddenUrgency = [
   "urgent",
   "last chance",
   "hurry",
-  "only .* left",
+  // Scarcity, not the word "only": `.` matches everything on a single-line
+  // textContent, so an unanchored "only .* left" fired on any page with "only"
+  // somewhere before "left". Bounded to a few words, which is what scarcity
+  // copy actually looks like ("only 3 days left", "only two spots left").
+  "only [^.!?]{0,24}\\bleft\\b",
   "don't wait",
   "running out",
 ];

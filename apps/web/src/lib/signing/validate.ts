@@ -8,6 +8,7 @@ import { and, desc, eq, gte, inArray, isNull, lt, ne, sql } from "drizzle-orm";
 import { getAddress, isAddress, parseUnits, type Address, type Hex } from "viem";
 import type { DbOrTx } from "@/db/events";
 import * as schema from "@/db/schema";
+import { blockPayoutUntilForm } from "@/lib/tax/forms";
 import { getConfig } from "@/lib/jobs/common";
 
 export type RefusalCode =
@@ -24,7 +25,8 @@ export type RefusalCode =
   | "recipient_wallet_missing"
   | "duplicate_proposal"
   | "monthly_cap_exceeded"
-  | "second_attestation_required";
+  | "second_attestation_required"
+  | "tax_form_required";
 
 export type Refusal = { ok: false; code: RefusalCode; message: string; status: 404 | 409 | 422 | 423 };
 
@@ -160,6 +162,17 @@ export async function validatePayoutProposal(
     if (!evaluation.secondAttestationBy || evaluation.secondAttestationBy === evaluation.evaluatorId) {
       return refuse("second_attestation_required", `payouts of ${secondMin} USDC or more need a second evaluator's attestation`);
     }
+  }
+
+  // 10. a tax form when this payout would carry the recipient past the threshold.
+  //     A pure read; stands down entirely when config.tax_collector is "sponsor",
+  //     because the sponsor collects instead. Flag, not advice.
+  const tax = await blockPayoutUntilForm(db, user.id, Number(amount), now);
+  if (tax.blocked) {
+    return refuse(
+      "tax_form_required",
+      `a W-9/W-8 is needed first: this payout would take the recipient to $${tax.would_be_usd.toFixed(2)}, past the $${tax.threshold_usd.toFixed(2)} threshold`,
+    );
   }
 
   return {

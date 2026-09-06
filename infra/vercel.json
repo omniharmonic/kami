@@ -1,14 +1,53 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
-    { "path": "/api/cron/needs", "schedule": "0 * * * *" },
-    { "path": "/api/cron/commons", "schedule": "20 8 * * 1" },
-    { "path": "/api/cron/binding-check", "schedule": "30 9 * * *" },
-    { "path": "/api/cron/retention", "schedule": "45 9 * * *" },
-    { "path": "/api/cron/verify-chain", "schedule": "0 10 * * *" },
-    { "path": "/api/cron/safe-poll", "schedule": "* * * * *" },
-    { "path": "/api/cron/eas-timestamp", "schedule": "20 3 * * *" },
-    { "path": "/api/cron/reconcile", "schedule": "40 3 * * *" },
-    { "path": "/api/cron/reputation", "schedule": "10 4 * * *" }
+    {
+      "path": "/api/cron/needs",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/commons",
+      "schedule": "20 8 * * 1"
+    },
+    {
+      "path": "/api/cron/binding-check",
+      "schedule": "30 9 * * *"
+    },
+    {
+      "path": "/api/cron/retention",
+      "schedule": "45 9 * * *"
+    },
+    {
+      "path": "/api/cron/verify-chain",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/safe-poll",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/eas-timestamp",
+      "schedule": "20 3 * * *"
+    },
+    {
+      "path": "/api/cron/reconcile",
+      "schedule": "40 3 * * *"
+    },
+    {
+      "path": "/api/cron/reputation",
+      "schedule": "10 4 * * *"
+    },
+    {
+      "path": "/api/cron/donor-report",
+      "schedule": "0 6 1 * *"
+    },
+    {
+      "path": "/api/cron/passport",
+      "schedule": "50 4 * * *"
+    },
+    {
+      "path": "/api/cron/tier4-followup",
+      "schedule": "15 5 * * *"
+    }
   ]
 }
