@@ -12,6 +12,12 @@
  * So every route segment under `/e/[slug]` that renders entity content calls
  * `requireVisibleEntity` itself. `getEntityBySlug` is wrapped in React `cache`,
  * so the second call in a request is free.
+ *
+ * One residue is deliberate and left alone: `generateMetadata` still resolves,
+ * so a refused request's `<title>` carries the entity's display name. The
+ * requester already had to know the slug to ask, and slugs come from public
+ * place names, so this discloses nothing the URL did not. Everything with
+ * substance behind it — readings, guardians, bounties, treasury — is gated.
  */
 import { notFound } from "next/navigation";
 import { getEntityBySlug, type EntityView } from "@/lib/entities";

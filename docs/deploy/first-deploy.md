@@ -1,7 +1,13 @@
-# The first deploy — what is done, and the two things only you can do
+# The first deploy
 
-Written 2026-09-06, during the deploy. This is the live state of the hosted half,
-not a plan. `vercel.md` is the general procedure; this is the specific one.
+Written 2026-09-06, during the deploy, and updated when it went live. This is
+the state of the hosted half, not a plan. `vercel.md` is the general procedure;
+this is the specific one.
+
+**Live: https://kami-web-one.vercel.app** — Vercel project `kami-web`
+(`prj_fSbKysNQvRIsM9lYA0JL6k6BJiLx`), production branch
+`claude/kami-platform-setup-rqz7nf`, root directory `apps/web`. Every push to
+that branch deploys.
 
 ---
 
@@ -12,40 +18,50 @@ All three migrations are applied — 38 tables, 12 enums, 64 indexes, the evalua
 independence trigger and the two `entity_events` append-only triggers. Drizzle's
 `__drizzle_migrations` is populated with the real file hashes, so
 `pnpm --filter @kami/web db:migrate` from your machine is a no-op rather than a
-re-run.
+re-run. Reachability is proven end to end: the every-minute `safe-poll` cron
+returns 200, which it can only do after `authorizeCron` matches `CRON_SECRET`,
+`getDb()` returns a client, and a query against `safe_proposals` succeeds.
 
 **Boulder Creek is seeded.** One `entities` row, binding v1
 (`6f30dff8fe18…`, review `pending_review`), soul v1 on hard rules v1, and one
 hash-chained `entity_events` row (`entity.seeded`). It is **paused** and
-**not consulted** — which means its page 404s for the public and shows the
-preview banner to role-holders, exactly as PRD §13 #4 requires. Nothing about the
-consultation was faked; you have not had it yet.
+**not consulted** — so its page 404s for the public and shows the preview
+banner to role-holders, exactly as PRD §13 #4 requires. Nothing about the
+consultation was faked; you have not had it yet. This is why the landing page
+says "No kami are public yet".
 
-**`vercel.json` moved** to `apps/web/vercel.json`, the deployed project root,
+**The crons exist.** `apps/web/vercel.json` is at the deployed project root,
 which is the only directory Vercel reads it from. In `infra/` it was read by
-nobody and the twelve crons would silently not have existed.
+nobody.
+
+## Three things the first deploy taught us
+
+1. **Node.** Vercel reads `engines.node` and it overrides the project setting,
+   but only in `<major>.x` form. `">=22 <23"` was not recognised, Vercel used
+   Node 24, and pnpm — which does understand the range — refused the install.
+   Both tools were right. Vercel does not read `.nvmrc` at all.
+2. **Workspace packages.** The five `@kami/*` packages resolve to
+   `./dist/index.js`, `dist/` is gitignored, and `pnpm install` links workspace
+   packages without building them. The build command is now
+   `pnpm -w run build:packages && pnpm run build`, declared in `vercel.json`.
+   This never failed locally because `dist/` was already on disk.
+3. **The consultation gate leaked.** `GET /e/boulder-creek` answered 404 with
+   the page's whole RSC payload in the body — a layout's `notFound()` does not
+   stop a concurrently streaming page from rendering. Fixed in
+   `lib/entity-access.ts`; every segment now gates itself.
 
 ---
 
 ## What only you can do
 
-### 1. Create the Vercel project (about a minute)
+### ~~1. Create the Vercel project~~ — done
 
-The Vercel connector in this session can read your team and your 38 projects, but
-`POST /projects` comes back **403 `forbidden`**. The grant is read-and-deploy, not
-create. So:
+The Vercel MCP connector cannot create a project (`POST /projects` returns
+**403 `forbidden`**; the grant is read-and-deploy). It was created by hand. The
+connector can deploy to it, read its build logs and its runtime errors, so
+creation is the only blocked verb and it is now behind us.
 
-* **New Project** → import `omniharmonic/kami`
-* **Framework** Next.js (auto-detected)
-* **Root Directory** `apps/web` — this matters; it is why `vercel.json` lives there
-* **Production Branch** `claude/kami-platform-setup-rqz7nf` (the only branch that
-  exists; change it when you cut a `main`)
-* Node 22
-
-Once it exists I can deploy to it, read its build logs and its runtime errors
-through the connector — creation is the only blocked verb.
-
-### 2. Paste the environment
+### ~~2. Paste the environment~~ — done
 
 Project → Settings → Environment Variables → paste the block below into the bulk
 editor, all three environments. Every value here is real: the database is
