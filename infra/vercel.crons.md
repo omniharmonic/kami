@@ -1,4 +1,4 @@
-# `infra/vercel.json` — the cron table
+# `apps/web/vercel.json` — the cron table
 
 Vercel invokes each `path` with `Authorization: Bearer $CRON_SECRET`; every route in
 `apps/web/src/app/api/cron/*` checks it with a constant-time compare and answers 401 otherwise

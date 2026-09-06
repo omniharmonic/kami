@@ -21,12 +21,11 @@ The repo is a pnpm monorepo; the deployable app is `apps/web`.
   `SKIP_ENV_VALIDATION=1 next build`.
 * **Node version** 22, matching `.nvmrc` and `packageManager`.
 
-**Where `vercel.json` lives is a real decision, not a detail.** The source of truth is
-`infra/vercel.json`; Vercel reads `vercel.json` from the **deployed project root**, which is
-`apps/web` if you set the root directory as above. Copy or symlink it there as part of the
-deploy, and keep editing the copy in `infra/`. A `vercel.json` Vercel cannot find means the
-crons silently do not exist; a malformed one **fails the deployment**, which is the better
-failure. (*verify*, docs/verify.md #73.)
+**`vercel.json` lives at `apps/web/vercel.json`** — the deployed project root, which is where
+Vercel reads it. It used to sit in `infra/`, where nothing read it; a `vercel.json` Vercel
+cannot find means the crons silently do not exist, and the site looks fine while never waking.
+A malformed one **fails the deployment**, which is the better failure. There is nothing to
+copy at deploy time.
 
 Check: a preview deployment builds, and `https://<preview>/e/boulder-creek` renders — from
 the fixture status file, with no database, no gateway and no bucket.
