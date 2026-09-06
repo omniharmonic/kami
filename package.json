@@ -1,0 +1,23 @@
+{
+  "name": "kami",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Kami — AI voices for places, grounded in the Front Range Bioregional Twin. Reads the twin like a browser does; never writes into it.",
+  "license": "Apache-2.0",
+  "author": "Benjamin Life (@omniharmonic)",
+  "packageManager": "pnpm@10.33.0",
+  "engines": { "node": ">=22 <23", "pnpm": ">=10" },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "py:test": "uv run --all-packages pytest -q",
+    "ci": "pnpm typecheck && pnpm test && pnpm py:test"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "3.2.7",
+    "tsx": "4.23.13"
+  }
+}

@@ -1,0 +1,65 @@
+name: ci
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  web:
+    name: typecheck · vitest · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+        env:
+          SKIP_ENV_VALIDATION: "1"
+  gate:
+    name: pytest (factguard · gate · treasury-mcp · evals)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --all-packages
+      - run: uv run --all-packages pytest -q
+  contract:
+    name: twin MCP contract tests (fixture tree)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @kami/twin-mcp test:contract
+  evals-replay:
+    name: 200-turn guard replay (no GPU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --all-packages
+      - run: uv run --package kami-evals python -m evals.run_replay --ci
+  e2e:
+    name: playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @kami/e2e exec playwright install --with-deps chromium
+      - run: pnpm --filter @kami/e2e test

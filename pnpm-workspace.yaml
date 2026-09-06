@@ -1,0 +1,5 @@
+packages:
+  - apps/web
+  - packages/*
+  - profiles/scripts
+  - e2e
