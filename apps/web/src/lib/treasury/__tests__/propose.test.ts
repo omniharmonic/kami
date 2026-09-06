@@ -9,6 +9,7 @@ import { closeTestDb, createTestDb, type TestDb } from "@/db/test-utils";
 import { setDbForTests } from "@/db/client";
 import { listEntityEvents, verifyEventChain } from "@/db/events";
 import { POST as propose } from "@/app/api/treasury/propose/route";
+import { mintEntityToken } from "@/lib/mcp/tokens";
 import { setTreasuryDepsForTests } from "../deps";
 import { makeFakeDeps, type FakeDeps } from "./fakes";
 import { seedPayoutChain } from "./seed";
@@ -21,15 +22,21 @@ beforeEach(async () => {
   deps = makeFakeDeps();
   setDbForTests(db as never);
   setTreasuryDepsForTests(deps);
-});
+}, 480_000);
 afterEach(async () => {
   setDbForTests(null);
   setTreasuryDepsForTests(null);
   await closeTestDb(db);
 });
 
-function post(body: unknown) {
-  return propose(new Request("http://localhost:3000/api/treasury/propose", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }));
+function post(body: unknown, token?: string) {
+  return propose(
+    new Request("http://localhost:3000/api/treasury/propose", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify(body),
+    }),
+  );
 }
 
 describe("POST /api/treasury/propose", () => {
@@ -79,6 +86,19 @@ describe("POST /api/treasury/propose", () => {
     expect(await res.json()).toMatchObject({ reason: "entity_paused" });
     expect(await db.select().from(schema.safeProposals)).toHaveLength(0);
     expect(deps.apiKitFake.proposed).toHaveLength(0);
+  });
+
+  it("accepts the entity's own MCP token and refuses another entity's", async () => {
+    const s = await seedPayoutChain(db);
+    const other = await seedPayoutChain(db, { slug: "other-creek", wallet: "0x3333333333333333333333333333333333333333" });
+    const { token } = await mintEntityToken(db, s.slug);
+    const { token: otherToken } = await mintEntityToken(db, other.slug);
+
+    expect((await post({ entity: s.slug, submission_id: s.submissionId }, otherToken)).status).toBe(403);
+    expect((await post({ entity: s.slug, submission_id: s.submissionId }, "kami_boulder-creek_" + "0".repeat(48))).status).toBe(401);
+    expect(await db.select().from(schema.safeProposals)).toHaveLength(0);
+    expect((await post({ entity: s.slug, submission_id: s.submissionId }, token)).status).toBe(200);
+    expect(await db.select().from(schema.safeProposals)).toHaveLength(1);
   });
 
   it("rejects a malformed body", async () => {

@@ -2,6 +2,7 @@
  * Row seeds for the money-layer tests: one entity with a Safe, a guardian, a
  * claimant with a wallet, a bounty → claim → submission → evaluation chain.
  */
+import { eq } from "drizzle-orm";
 import { keccak256, stringToBytes } from "viem";
 import * as schema from "@/db/schema";
 import { seedEntity, seedUser, type TestDb } from "@/db/test-utils";
@@ -25,16 +26,9 @@ export async function seedPayoutChain(
 ) {
   const slug = opts.slug ?? "boulder-creek";
   const entity = await seedEntity(db, { slug, paused: opts.paused ?? false });
-  await db
-    .update(schema.entities)
-    .set({ safeAddress: SAFE, chainId: 84532, proposerAddress: null })
-    .where(schema.entities.id.name ? undefined : undefined);
-  await db.execute(
-    // drizzle `update ... where` with a plain eq is simpler, but the import is
-    // already heavy here; a direct SQL update keeps the seed short.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (await import("drizzle-orm")).sql`update entities set safe_address = ${SAFE}, chain_id = 84532 where id = ${entity.id}`,
-  );
+  // entities.safe_address is not unique in the schema, but give each seeded entity its own Safe anyway
+  const safe = slug === "boulder-creek" ? SAFE : (`0x${slug.replace(/[^0-9a-f]/g, "").padEnd(40, "c").slice(0, 40)}` as typeof SAFE);
+  await db.update(schema.entities).set({ safeAddress: safe, chainId: 84532 }).where(eq(schema.entities.id, entity.id));
 
   const claimant = await seedUser(db, `claimant-${slug}`);
   const evaluator = await seedUser(db, `evaluator-${slug}`);
@@ -42,7 +36,6 @@ export async function seedPayoutChain(
   const second = opts.secondAttestationBy === undefined ? await seedUser(db, `second-${slug}`) : null;
   const wallet = opts.wallet === undefined ? RECIPIENT : opts.wallet;
   if (wallet) {
-    const { eq } = await import("drizzle-orm");
     await db.update(schema.users).set({ walletAddress: wallet, passportScore: "25" }).where(eq(schema.users.id, claimant.id));
   }
   await db.insert(schema.entityRoles).values([
@@ -62,7 +55,7 @@ export async function seedPayoutChain(
     evidenceSpec: { photos: 2 },
     capUsdc: opts.capUsdc ?? "25.00",
     twinRefs: ["place/boulder-creek-orodell"],
-    specSha256: keccak256(stringToBytes(JSON.stringify(spec))).slice(2).length === 64 ? keccak256(stringToBytes(JSON.stringify(spec))) : "deadbeef",
+    specSha256: keccak256(stringToBytes(JSON.stringify(spec))),
     status: "in_review",
     createdAt: new Date("2026-08-01T00:00:00Z"),
   });

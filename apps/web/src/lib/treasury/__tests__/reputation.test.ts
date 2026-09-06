@@ -31,7 +31,7 @@ class MemoryPublisher implements Publisher {
 beforeEach(async () => {
   db = await createTestDb();
   deps = makeFakeDeps({ now: NOW, env: { KAMI_DATA_BASE_URL: "https://data.example/kami" } });
-});
+}, 480_000);
 afterEach(async () => {
   await closeTestDb(db);
 });

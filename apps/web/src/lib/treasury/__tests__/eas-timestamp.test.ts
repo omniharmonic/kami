@@ -20,7 +20,7 @@ const uid = (n: number) => `0x${n.toString(16).padStart(64, "0")}`;
 beforeEach(async () => {
   db = await createTestDb();
   deps = makeFakeDeps({ now: NOW });
-});
+}, 480_000);
 afterEach(async () => {
   await closeTestDb(db);
 });

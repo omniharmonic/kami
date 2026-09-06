@@ -105,6 +105,7 @@ export default async function AdminPage({ searchParams }: Props) {
       <p className="muted" style={{ marginTop: "0.5rem" }}>
         {cost === null ? copy.costNoRate : copy.costLine(data.tokens_7d_total, cost.toFixed(2))}
       </p>
+      <p className="faint" style={{ fontSize: "0.85rem" }}>{copy.usageUnit}</p>
 
       <h2 style={{ fontSize: "1.05rem", marginTop: "1.5rem" }}>{copy.tunnel}</h2>
       <p className={gpuStale ? "chip chip-stale" : "chip chip-live"} style={{ display: "inline-flex" }}>

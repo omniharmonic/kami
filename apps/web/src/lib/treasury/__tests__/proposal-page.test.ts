@@ -19,7 +19,7 @@ const user = (id: string, admin = false): SessionUser => ({ id, email: `${id}@ex
 beforeEach(async () => {
   db = await createTestDb();
   deps = makeFakeDeps({ now: NOW, env: { KAMI_EVIDENCE_BASE_URL: "https://evidence.example" } });
-});
+}, 480_000);
 afterEach(async () => {
   await closeTestDb(db);
 });

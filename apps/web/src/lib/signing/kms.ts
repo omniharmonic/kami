@@ -344,13 +344,13 @@ export class AwsKmsBackend implements KeyBackend {
   async getAddress(role: KeyRole): Promise<Address> {
     return this.#notConfigured(role);
   }
-  async signTypedData(role: KeyRole): Promise<Hex> {
+  async signTypedData(role: KeyRole, _typed: TypedDataDefinition): Promise<Hex> {
     return this.#notConfigured(role);
   }
-  async signTransaction(role: KeyRole): Promise<Hex> {
+  async signTransaction(role: KeyRole, _tx: TransactionSerializable): Promise<Hex> {
     return this.#notConfigured(role);
   }
-  async signMessage(role: KeyRole): Promise<Hex> {
+  async signMessage(role: KeyRole, _message: SignableMessage): Promise<Hex> {
     return this.#notConfigured(role);
   }
   toJSON() {

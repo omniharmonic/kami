@@ -17,7 +17,7 @@ beforeEach(async () => {
   db = await createTestDb();
   deps = makeFakeDeps({ now: NOW });
   clearBalanceCache();
-});
+}, 480_000);
 afterEach(async () => {
   await closeTestDb(db);
 });

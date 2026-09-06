@@ -170,8 +170,12 @@ describe("jsonTypedData", () => {
   it("keeps the hash intact through the JSON round trip", () => {
     const json = jsonTypedData(typed);
     expect(json.message.nonce).toBe("7");
-    expect(hashTypedData(typed)).toBe(
-      hashTypedData({ domain: typed.domain, types: typed.types as never, primaryType: "SafeTx", message: { nonce: BigInt(json.message.nonce as string) } }),
-    );
+    const roundTripped: TypedDataDefinition = {
+      domain: { chainId: 84532, verifyingContract: "0x1111111111111111111111111111111111111111" },
+      types: { SafeTx: [{ name: "nonce", type: "uint256" }] },
+      primaryType: "SafeTx",
+      message: { nonce: BigInt(json.message.nonce as string) },
+    };
+    expect(hashTypedData(typed)).toBe(hashTypedData(roundTripped));
   });
 });

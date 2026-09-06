@@ -21,7 +21,7 @@ const NOW = new Date("2026-09-06T12:00:00.000Z");
 beforeEach(async () => {
   db = await createTestDb();
   deps = makeFakeDeps({ now: NOW });
-});
+}, 480_000);
 afterEach(async () => {
   await closeTestDb(db);
 });

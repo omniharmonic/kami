@@ -44,7 +44,9 @@ export class GovernanceError extends Error {
     message?: string,
     public details?: Record<string, unknown>,
   ) {
-    super(message ?? code);
+    // The code is always in the message so a caught error is legible in logs
+    // and in tests, while `code` stays the machine-readable form.
+    super(message ? `${code}: ${message}` : code);
     this.name = "GovernanceError";
   }
 }

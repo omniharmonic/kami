@@ -8,7 +8,7 @@
 import { z } from "zod";
 import { getDb } from "@/db/client";
 import { json, slugOk } from "@/lib/jobs/common";
-import { authorizeMcp } from "@/lib/treasury/auth";
+import { authorizeMcpFor } from "@/lib/treasury/auth";
 import { getTreasuryDeps } from "@/lib/treasury/deps";
 import { proposePayout } from "@/lib/treasury/propose";
 
@@ -22,8 +22,6 @@ const bodySchema = z.object({
 });
 
 export async function POST(req: Request): Promise<Response> {
-  const denied = authorizeMcp(req);
-  if (denied) return denied;
   const db = getDb();
   if (!db) return json(503, { reason: "no_database" });
 
@@ -37,6 +35,10 @@ export async function POST(req: Request): Promise<Response> {
   if (!parsed.success) return json(400, { reason: "bad_request", detail: parsed.error.issues.map((i) => i.path.join(".")) });
   const slug = parsed.data.entity.replace(/^entity\//, "");
   if (!slugOk(slug)) return json(400, { reason: "bad_entity" });
+
+  // the token must be the one for this entity (or the shared secret, for now)
+  const auth = await authorizeMcpFor(req, db, slug);
+  if (auth instanceof Response) return auth;
 
   try {
     const out = await proposePayout(db, getTreasuryDeps(), { slug, submissionId: parsed.data.submission_id, actor: "treasury-mcp" });

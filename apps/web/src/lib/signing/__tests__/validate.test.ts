@@ -12,7 +12,7 @@ const NOW = new Date("2026-09-06T12:00:00.000Z");
 
 beforeEach(async () => {
   db = await createTestDb();
-});
+}, 480_000);
 afterEach(async () => {
   await closeTestDb(db);
 });
@@ -62,12 +62,16 @@ describe("validatePayoutProposal", () => {
   });
 
   it("refuses a non-succeeded evaluation", async () => {
-    for (const outcome of ["partial", "failed", "unverifiable"] as const) {
-      const fresh = await createTestDb();
-      const s = await seedPayoutChain(fresh, { outcome });
-      const v = await validatePayoutProposal(fresh, { slug: s.slug, submissionId: s.submissionId }, { now: NOW });
-      expect(v, outcome).toMatchObject({ ok: false, code: "evaluation_not_succeeded" });
-      await closeTestDb(fresh);
+    // one database, one entity per outcome (creating a PGlite per case is minutes of migrations)
+    const cases = [
+      { outcome: "partial" as const, slug: "partial-creek", wallet: `0x${"a".repeat(40)}` },
+      { outcome: "failed" as const, slug: "failed-creek", wallet: `0x${"b".repeat(40)}` },
+      { outcome: "unverifiable" as const, slug: "unverifiable-creek", wallet: `0x${"c".repeat(40)}` },
+    ];
+    for (const c of cases) {
+      const s = await seedPayoutChain(db, { slug: c.slug, outcome: c.outcome, wallet: c.wallet });
+      const v = await validatePayoutProposal(db, { slug: s.slug, submissionId: s.submissionId }, { now: NOW });
+      expect(v, c.outcome).toMatchObject({ ok: false, code: "evaluation_not_succeeded" });
     }
   });
 
@@ -91,10 +95,8 @@ describe("validatePayoutProposal", () => {
     expect(v.ok).toBe(true);
     if (v.ok) expect(v.amountUsdc).toBe("10.00");
 
-    const other = await createTestDb();
-    const over = await seedPayoutChain(other, { offchain: { uid: `0x${"3".repeat(64)}`, awarded_usdc: "40.00" } });
-    expect(await validatePayoutProposal(other, { slug: over.slug, submissionId: over.submissionId }, { now: NOW })).toMatchObject({ ok: false, code: "amount_over_cap", status: 422 });
-    await closeTestDb(other);
+    const over = await seedPayoutChain(db, { slug: "over-cap-creek", wallet: `0x${"d".repeat(40)}`, offchain: { uid: `0x${"3".repeat(64)}`, awarded_usdc: "40.00" } });
+    expect(await validatePayoutProposal(db, { slug: over.slug, submissionId: over.submissionId }, { now: NOW })).toMatchObject({ ok: false, code: "amount_over_cap", status: 422 });
   });
 
   it("refuses a duplicate proposal for the same submission", async () => {

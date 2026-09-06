@@ -106,7 +106,7 @@ describe("cron deliveries", () => {
     const badTier1 = { ...good, title: "Tier one, no prediction", verification_tier: 1, prediction: null };
     const out = await handleHermesDelivery(db, { id: "evt_b", job: "weekly-bounties", slug: "bounty-creek", output: { bounties: [good, badTier1] }, kami_guard: "held" }, { now: NOW });
     expect(out).toMatchObject({ ok: true, replay: false, job: "weekly-bounties" });
-    const stored = (out as { stored: { drafted: Array<{ status: string }>; rejected: Array<{ code: string }> } }).stored;
+    const stored = (out as unknown as { stored: { drafted: Array<{ status: string }>; rejected: Array<{ code: string }> } }).stored;
     expect(stored.drafted).toHaveLength(1);
     expect(stored.drafted[0]!.status).toBe("held_by_guard");
     expect(stored.rejected[0]!.code).toBe("invalid_spec");

@@ -44,7 +44,7 @@ async function handle(req: Request): Promise<Response> {
     vault = env.PARACHUTE_ENTITIES_VAULT;
   }
   try {
-    const report = await runCommonsSync({ db: dry ? db : db, store, vault, ...(slug ? { slug } : {}), ...(env ? { commonsBase: env.COMMONS_FRONT_RANGE_BASE_URL } : {}) });
+    const report = await runCommonsSync({ db, store, vault, ...(slug ? { slug } : {}), ...(env ? { commonsBase: env.COMMONS_FRONT_RANGE_BASE_URL } : {}) });
     return json(report.counts.failed ? 207 : 200, { job: "commons", dry, ...report });
   } catch (err) {
     console.error("[cron/commons]", err);

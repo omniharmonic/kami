@@ -18,18 +18,22 @@ copy this file there) at deploy time — *verify* which the project settings end
 | `/api/cron/binding-check` | `30 9 * * *` (nightly) | `checkSupersession` per entity → a `pending_review` successor binding version, findings into `config.binding_findings.<slug>` so the next `status.json` marks the need superseded. Architecture §3. | this one |
 | `/api/cron/retention` | `45 9 * * *` (nightly) | Delete `chat_messages` older than 90 days unless the session opted in; aggregate `usage_events` older than 90 days into `config.usage_daily.<slug>`. §11, X.7. | this one |
 | `/api/cron/verify-chain` | `0 10 * * *` (nightly) | `verifyEventChain` per entity; head hash into `config.event_chain_head.<slug>`, published in `status.json`. §10.5. | this one |
+| `/api/cron/reputation` | `0 11 * * *` (nightly) | Recompute `reputation/v1` over published UIDs → `reputation_runs` + `reputation_scores`. §8.3, T2.13. | reputation/money |
+| `/api/cron/reconcile` | `30 11 * * *` (nightly) | Compare Safe transfers, `payouts` and `donations` → `reconciliations`. §7.7, T2.12. | money |
+| `/api/cron/eas-timestamp` | `0 12 * * *` (nightly) | `multiTimestamp` the day's offchain attestation UIDs on Base. §8.2, T2.9. | attestations |
+| `/api/cron/safe-poll` | `*/5 * * * *` | Poll the Safe Transaction Service for confirmations on pending proposals (it has no webhooks, *verify*). §7.3, T2.5. | money |
 
 ## Placeholders — later packages add the route, then the entry
 
 `vercel.json` is JSON and cannot carry comments, so the queue lives here. Add the row to
 `vercel.json` in the same change that adds the route, and move it up into the table above.
 
+The four money/attestation rows above were added to `vercel.json` once their routes landed in
+`apps/web/src/app/api/cron/`; they authenticate through the same `authorizeCron` helper. Their
+schedules are this file's proposal — the owning package may move them.
+
 | path | proposed schedule (UTC) | what it will do | work package |
 |---|---|---|---|
-| `/api/cron/reputation` | `0 11 * * *` (nightly) | Recompute `reputation/v1` over published UIDs → `reputation_runs` + `reputation_scores`, publish the scores JSON to R2. §8.3, T2.13. | reputation |
-| `/api/cron/reconcile` | `30 11 * * *` (nightly) | Compare Safe transfers, `payouts` and `donations`; write `reconciliations` and block the donor report when unclean. §7.7, T2.12. | money |
-| `/api/cron/safe-poll` | `*/5 * * * *` | Poll the Safe Transaction Service for confirmations on pending proposals (it has no webhooks, *verify*) → `safe_proposals.confirmations`, execute at threshold via the relayer. §7.3, T2.5. | money |
-| `/api/cron/eas-timestamp` | `0 12 * * *` (nightly) | `multiTimestamp` the day's offchain attestation UIDs on Base; write `attestations.timestamped_tx/at`. §8.2, T2.9. | attestations |
 | `/api/cron/donor-report` | `0 13 1 * *` (monthly) | Assemble the month's numbers into `donor_reports.data`, hand the agent its one paragraph, then send. §7.7, T2.11. Note the agent's own `donor-report` cron runs on the box (Hermes, §5.2) and its delivery arrives at `/api/webhooks/hermes`; this route owns the numbers. | money |
 | `/api/cron/hermes-doctor` | `10 * * * *` (hourly) | Scrape `hermes cron doctor` through the tunnel into the healthcheck; `failure_streak ≥ 3` pages a steward. §5.2, T1.12. *verify* the Hermes API (docs/verify.md #1). | observability |
 

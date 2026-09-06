@@ -20,7 +20,7 @@ export type EvidenceSummary = {
 };
 
 const URL_RE = /\b(?:[a-z][a-z0-9+.-]*:\/\/|www\.)[^\s<>"')\]]+/gi;
-const BARE_DOMAIN_RE = /\b[a-z0-9-]+(?:\.[a-z0-9-]+)+\.(?:com|org|net|io|xyz|co|info|biz|app|dev|me|ru|cn|eth|link|top|site|online)\b(?:\/[^\s]*)?/gi;
+const BARE_DOMAIN_RE = /\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|org|net|io|xyz|co|info|biz|app|dev|me|ru|cn|eth|link|top|site|online)\b(?:\/[^\s]*)?/gi;
 
 // C0/C1 controls (except plain whitespace, collapsed later), zero-width and
 // bidi characters, and the BOM — never let them into a prompt. Built from code
