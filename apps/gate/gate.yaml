@@ -1,0 +1,34 @@
+# entity-gate configuration (architecture §5.4, §5.7, ADR-E12; plan T0.4/T0.10)
+upstream_url: http://127.0.0.1:8000        # vLLM
+listen: 127.0.0.1:8001
+admin_secret_env: GATE_ADMIN_SECRET        # env var holding the X-Gate-Admin shared secret
+passthrough: false                         # true = skip the guard (UI dev). Never skips pause.
+tz: America/Denver
+
+default_budget:                            # §5.7: B2's estimate × 1.5
+  prompt_tokens_per_day: 800000
+  output_tokens_per_day: 40000
+  cron_prompt_tokens_per_day: 400000       # separate bucket so chat cannot starve the weekly job
+  cron_output_tokens_per_day: 20000
+
+budgets:                                   # per-slug overrides
+  boulder-creek:
+    prompt_tokens_per_day: 800000
+    output_tokens_per_day: 40000
+    cron_prompt_tokens_per_day: 400000
+
+concurrency:
+  per_entity: 2
+  queue: 8
+
+paused: []                                 # seed pause list; admin pushes and the platform poll add to it
+
+platform:
+  pause_set_url: null                      # e.g. https://kami.example/api/gate/pause-set
+  token_env: KAMI_PLATFORM_TOKEN
+  poll_seconds: 30
+  fail_closed: false                       # true: refuse all completions if the pause set cannot be fetched
+
+gazetteer_path: null                       # JSON {"places": [...], "species": [...]} from id/index.json + commons titles
+events_dir: ./events                       # append-only usage_events.jsonl / guard_events.jsonl
+upstream_timeout_s: 120

@@ -32,3 +32,6 @@ Carried from PRD Appendix C and architecture Appendix D. Tick as confirmed; cite
 | 26 | Pinned container tags in `infra/box/.env.example` (cloudflared 2025.8.1, otel-collector-contrib 0.135.0, tailscale v1.86.2, uv 0.9.5) | WP5 | open | |
 | 27 | `UV_PROJECT=/opt/kami/treasury-mcp` so the template's verbatim `uv run treasury-mcp` resolves inside the Hermes container | WP5/WP10 | open | |
 | 28 | `PLATFORM_URL` production value (no platform domain decided) | owner | open | dev default `http://127.0.0.1:3000` |
+| 29 | vLLM emits `usage` in the final streamed chunk with `stream_options.include_usage` (gate falls back to a chars/4 estimate) | WP4 → box | open | |
+| 30 | Platform pause-set endpoint shape consumed by the gate (`{"paused": [slug…]}`, bearer `KAMI_PLATFORM_TOKEN`) | WP7 | open | align when `/api/gate/pause-set` lands |
+| 31 | `KAMI_ENTITY_CONFIG:` system-message convention (platform-injected caps/guardian names the guard admits as atoms) | WP5/WP7 | open | |

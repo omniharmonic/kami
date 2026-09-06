@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kami-factguard"
+version = "0.1.0"
+description = "Fact-sheet matcher: every number an entity utters must match an atom from a tool result of the same turn (ADR-E04)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Benjamin Life" }]
+dependencies = []
+
+[project.scripts]
+factguard = "factguard.__main__:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/factguard"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kami-gate"
+version = "0.1.0"
+description = "entity-gate: OpenAI-compatible streaming reverse proxy between Hermes and vLLM with the fact-sheet guard, pause, budgets and concurrency (ADR-E04, ADR-E12)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Benjamin Life" }]
+dependencies = [
+  "kami-factguard",
+  "starlette==1.6.0",
+  "httpx==0.28.1",
+  "uvicorn==0.52.4",
+  "pydantic==2.13.5",
+  "pyyaml==6.0.3",
+]
+
+[project.scripts]
+entity-gate = "entity_gate.__main__:main"
+
+[tool.uv.sources]
+kami-factguard = { workspace = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/entity_gate"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

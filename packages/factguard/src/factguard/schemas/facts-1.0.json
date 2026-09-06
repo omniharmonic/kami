@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://data.bioregionaltwin.org/schema/facts-1.0.json",
+  "title": "Fact sheet (facts-1.0)",
+  "description": "The set of atoms a text may cite. Emitted by the twin MCP (get_entity_status, get_place, ...) and by the twin's briefing generator; consumed by factguard. A number a model utters must match one of these atoms in the same turn.",
+  "type": "object",
+  "required": ["schema_version", "as_of", "atoms"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "as_of": { "type": "string", "format": "date-time", "description": "When the fact sheet was assembled; weekday words in replies resolve against this instant in America/Denver." },
+    "tree_generated_at": { "type": ["string", "null"], "format": "date-time" },
+    "source_tool": { "type": ["string", "null"], "description": "MCP tool name that produced these atoms" },
+    "atoms": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object", "required": ["kind", "value"], "additionalProperties": false,
+            "properties": {
+              "kind": { "const": "number" },
+              "value": { "type": "number" },
+              "unit": { "type": ["string", "null"], "description": "UCUM, e.g. [ft_i]3/s, Cel, [in_i], [acr_us].[ft_i], %, ug/m3, ppb, mg/L, uS/cm, m, ft, s" },
+              "property": { "type": ["string", "null"], "description": "twin property, e.g. discharge, stage, swe, reservoir_fill, pm25, dm" },
+              "place_id": { "type": ["string", "null"], "pattern": "^[a-z_]+/[a-z0-9-]+$" },
+              "time": { "type": ["string", "null"], "format": "date-time", "description": "the reading's time; REQUIRED in the same sentence when stale is true" },
+              "stale": { "type": "boolean", "default": false },
+              "staleness_s": { "type": ["number", "null"] },
+              "source_id": { "type": ["string", "null"] },
+              "forecast": { "type": "boolean", "default": false },
+              "label": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object", "required": ["kind", "value"], "additionalProperties": false,
+            "properties": {
+              "kind": { "const": "time" },
+              "value": { "type": "string", "format": "date-time" },
+              "role": { "type": ["string", "null"], "description": "reading_time | valid_until | as_of | period_end | deadline" },
+              "place_id": { "type": ["string", "null"] },
+              "property": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object", "required": ["kind", "id", "name"], "additionalProperties": false,
+            "properties": {
+              "kind": { "const": "place" },
+              "id": { "type": "string", "pattern": "^[a-z_]+/[a-z0-9-]+$" },
+              "name": { "type": "string" },
+              "aliases": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          {
+            "type": "object", "required": ["kind", "name"], "additionalProperties": false,
+            "properties": {
+              "kind": { "const": "species" },
+              "name": { "type": "string" },
+              "scientific": { "type": ["string", "null"] },
+              "note_path": { "type": ["string", "null"], "description": "commons note the species came from (this turn)" }
+            }
+          },
+          {
+            "type": "object", "required": ["kind", "value", "of"], "additionalProperties": false,
+            "properties": {
+              "kind": { "const": "count" },
+              "value": { "type": "integer", "minimum": 0 },
+              "of": { "type": "string", "description": "what was counted, e.g. children, members, stale_readings, alerts" },
+              "place_id": { "type": ["string", "null"] }
+            }
+          },
+          {
+            "type": "object", "required": ["kind", "name", "value"], "additionalProperties": false,
+            "properties": {
+              "kind": { "const": "enum" },
+              "name": { "type": "string", "description": "e.g. drought_class, flood_category, source_status, mood" },
+              "value": { "type": ["string", "integer"] },
+              "place_id": { "type": ["string", "null"] }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
