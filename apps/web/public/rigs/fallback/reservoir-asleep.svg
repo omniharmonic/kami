@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="240" height="240" role="img" aria-hidden="true">
+<title>reservoir — asleep (placeholder)</title>
+<circle cx="60" cy="60" r="54" fill="#bdbdbd" stroke="#9a9a9a" stroke-width="4"/>
+<path d="M30 46 q10 -6 20 0" fill="none" stroke="#1d1d1d" stroke-width="3" stroke-linecap="round"/>
+<path d="M70 44 q10 -6 20 0" fill="none" stroke="#1d1d1d" stroke-width="3" stroke-linecap="round" transform="translate(0,0)"/>
+<path d="M30 60 h20" fill="none" stroke="#1d1d1d" stroke-width="3" stroke-linecap="round" transform="translate(14,0)"/>
+<text x="92" y="30" font-family="system-ui, sans-serif" font-size="14" fill="#1d1d1d">zz</text>
+<text x="60" y="108" text-anchor="middle" font-family="system-ui, sans-serif" font-size="8" fill="#1d1d1d">reservoir · asleep</text>
+</svg>
