@@ -17,8 +17,13 @@ The repo is a pnpm monorepo; the deployable app is `apps/web`.
 * **Framework preset** Next.js. **Root Directory** `apps/web`.
 * **Install command** `pnpm install --frozen-lockfile` (run from the repo root — Vercel does
   this when the root directory is set and `pnpm-workspace.yaml` is detected).
-* **Build command** the default (`next build`). For a build without secrets,
-  `SKIP_ENV_VALIDATION=1 next build`.
+* **Build command** `pnpm -w run build:packages && next build`, declared in
+  `apps/web/vercel.json` so it is committed rather than typed into a dashboard.
+  The first half is not optional: the five `@kami/*` workspace packages resolve
+  to `./dist/index.js`, `dist/` is gitignored, and `pnpm install` links workspace
+  packages without building them — so on a fresh clone `next build` cannot resolve
+  `@kami/binding` and friends. It works locally only because `dist/` is already
+  there. For a build without secrets, `SKIP_ENV_VALIDATION=1`.
 * **Node version** 22 — set by `engines.node` in `package.json`, which Vercel reads and
   which **overrides the project setting**. It must be written in Vercel's form,
   `"22.x"`; a semver range like `">=22 <23"` is not recognised, so Vercel falls
