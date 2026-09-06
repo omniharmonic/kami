@@ -21,6 +21,7 @@ import {
   getStatusCached,
   getStrategy,
 } from "@/lib/entities";
+import { requireVisibleEntity } from "@/lib/entity-access";
 
 export const revalidate = 60;
 
@@ -42,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /** PRD §6.1 order: avatar + disclosure (layout) → chat → rings → strategy → board → treasury → people → siblings → how I work. */
 export default async function EntityPage({ params }: Props) {
   const { slug } = await params;
-  const entity = (await getEntityBySlug(slug))!;
+  const { entity } = await requireVisibleEntity(slug);
   const status = await getStatusCached(slug);
   const [strategy, bounties, proposals, payouts, people, siblings] = await Promise.all([
     getStrategy(entity.id),

@@ -8,6 +8,7 @@ import { FormMessage } from "@/components/governance/FormMessage";
 import { bountyDetail as copy, bountyStatusLabel, errors, evidence as evidenceCopy, proposalsPage, tierLabel } from "@/copy";
 import { MAX_FILES_PER_SUBMISSION, MAX_FILE_BYTES } from "@/lib/evidence/storage";
 import { getEntityBySlug } from "@/lib/entities";
+import { requireVisibleEntity } from "@/lib/entity-access";
 import { getBountyDetail, viewerIsEvaluator, type DetailSubmission } from "@/lib/governance/queries";
 import { getSession } from "@/lib/session";
 
@@ -68,7 +69,7 @@ function SummaryTable({ s }: { s: DetailSubmission }) {
 export default async function BountyPage({ params, searchParams }: Props) {
   const { slug, id } = await params;
   const sp = await searchParams;
-  const entity = await getEntityBySlug(slug);
+  const { entity } = await requireVisibleEntity(slug);
   if (!entity) notFound();
   const session = await getSession();
   const bounty = await getBountyDetail(id, session?.user.id ?? null);

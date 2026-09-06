@@ -6,6 +6,7 @@ import { EvidenceSpecSummary } from "@/components/governance/EvidenceSpecSummary
 import { FormMessage } from "@/components/governance/FormMessage";
 import { board as boardCopy, bountyStatusLabel, errors, proposalsPage as copy } from "@/copy";
 import { getEntityBySlug } from "@/lib/entities";
+import { requireVisibleEntity } from "@/lib/entity-access";
 import { getBoard, type BoardBounty } from "@/lib/governance/queries";
 import { getSession } from "@/lib/session";
 
@@ -54,7 +55,7 @@ function BountyLine({ b, slug }: { b: BoardBounty; slug: string }) {
 export default async function ProposalsPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const sp = await searchParams;
-  const entity = await getEntityBySlug(slug);
+  const { entity } = await requireVisibleEntity(slug);
   if (!entity) notFound();
   const board = await getBoard(entity.id);
   const session = await getSession();

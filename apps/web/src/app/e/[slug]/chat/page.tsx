@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Chat } from "@/components/Chat";
 import { chat as copy, errors } from "@/copy";
 import { getEntityBySlug, getStatusCached } from "@/lib/entities";
+import { requireVisibleEntity } from "@/lib/entity-access";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ChatPage({ params }: Props) {
   const { slug } = await params;
-  const entity = (await getEntityBySlug(slug))!;
+  const { entity } = await requireVisibleEntity(slug);
   const status = await getStatusCached(slug);
   return (
     <section className="section" aria-labelledby="chat-h" style={{ minHeight: "60dvh" }}>

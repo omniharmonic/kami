@@ -17,6 +17,7 @@ import { directDonationTarget } from "@/lib/donations/direct";
 import { donationsEnv } from "@/lib/donations/env";
 import { DEFAULT_MAX_USD, DEFAULT_MIN_USD } from "@/lib/donations/stripe";
 import { getEntityBySlug } from "@/lib/entities";
+import { requireVisibleEntity } from "@/lib/entity-access";
 import { getConfig } from "@/lib/jobs/common";
 import { getTreasuryDeps } from "@/lib/treasury/deps";
 
@@ -34,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function DonatePage({ params, searchParams }: Props) {
   const { slug } = await params;
   const sp = await searchParams;
-  const entity = await getEntityBySlug(slug);
+  const { entity } = await requireVisibleEntity(slug);
   if (!entity) notFound();
 
   const deps = getTreasuryDeps();

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { howIWork as copy, errors, humanDuration } from "@/copy";
 import { getBinding, getEntityBySlug, getGuardDropRate, getPauseDrills, getPeople, getSoul } from "@/lib/entities";
+import { requireVisibleEntity } from "@/lib/entity-access";
 import { servingProvenance, type Provenance } from "@/lib/provenance";
 import { getSession } from "@/lib/session";
 
@@ -43,7 +44,7 @@ function placementSentence(p: Provenance): string | null {
 
 export default async function HowIWorkPage({ params }: Props) {
   const { slug } = await params;
-  const entity = (await getEntityBySlug(slug))!;
+  const { entity } = await requireVisibleEntity(slug);
   const [soul, binding, drills, dropRate, session, people, provenance] = await Promise.all([
     getSoul(entity.id),
     getBinding(entity.id),
