@@ -6,6 +6,9 @@
   "license": "Apache-2.0",
   "author": "Benjamin Life (@omniharmonic)",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

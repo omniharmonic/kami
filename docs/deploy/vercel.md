@@ -19,7 +19,15 @@ The repo is a pnpm monorepo; the deployable app is `apps/web`.
   this when the root directory is set and `pnpm-workspace.yaml` is detected).
 * **Build command** the default (`next build`). For a build without secrets,
   `SKIP_ENV_VALIDATION=1 next build`.
-* **Node version** 22, matching `.nvmrc` and `packageManager`.
+* **Node version** 22 — set by `engines.node` in `package.json`, which Vercel reads and
+  which **overrides the project setting**. It must be written in Vercel's form,
+  `"22.x"`; a semver range like `">=22 <23"` is not recognised, so Vercel falls
+  through to the build image's default (Node 24 as of this writing) and then pnpm —
+  which *does* understand the range — refuses the install with
+  `ERR_PNPM_UNSUPPORTED_ENGINE`. Both the repo root and `apps/web` declare it,
+  since Vercel reads the manifest at the root directory and pnpm installs from
+  the workspace root. **Vercel does not read `.nvmrc`** (it reads `.node-version`),
+  so the `.nvmrc` here is for nvm and CI only.
 
 **`vercel.json` lives at `apps/web/vercel.json`** — the deployed project root, which is where
 Vercel reads it. It used to sit in `infra/`, where nothing read it; a `vercel.json` Vercel
