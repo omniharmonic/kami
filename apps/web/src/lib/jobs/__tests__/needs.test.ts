@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { desc, eq, sql } from "drizzle-orm";
 import type { HealthSnapshot } from "@kami/needs";
 import { closeTestDb, type TestDb } from "@/db/test-utils";
@@ -8,6 +8,11 @@ import { runNeedsJob, specsFromBinding, loadCurrentBinding } from "../needs";
 import { precheck } from "../precheck";
 import { setConfig } from "../common";
 import { bumpGeneratedAt, cleanupTmpDirs, copyFixtureTree, FIXTURE_TREE, NOW, readPublishedStatus, seedBoulderCreek, twinFromFixtures } from "./helpers";
+
+// Each case builds a fresh PGlite database and runs every migration; on a box
+// running several suites at once that can outlast the shared 60 s default.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
+
 
 const dbs: TestDb[] = [];
 afterAll(async () => {

@@ -1,10 +1,15 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { closeTestDb, type TestDb } from "@/db/test-utils";
 import * as schema from "@/db/schema";
 import { handleHermesDelivery, parseBountyOutput, signHermes, verifyHermesSignature } from "../hermes";
 import { setConfig } from "../common";
 import { NOW, seedBoulderCreek } from "./helpers";
+
+// Each case builds a fresh PGlite database and runs every migration; on a box
+// running several suites at once that can outlast the shared 60 s default.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
+
 
 const SECRET = "hermes-webhook-secret";
 const dbs: TestDb[] = [];

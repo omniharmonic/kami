@@ -31,9 +31,34 @@ describe("copy", () => {
     const re = new RegExp(copy.forbiddenUrgency.join("|"), "i");
     for (const s of allStrings) expect(s, s).not.toMatch(re);
   });
-  it("never mentions a token except to refuse one", () => {
-    for (const s of allStrings.filter((x) => /token/i.test(x))) {
-      expect(s).toMatch(/no token|scam|not for|not.*token|magic|link/i);
+  // The rule (PRD §2, §13 #8) is about a *crypto* token: the product never
+  // offers, promises, prices or governs by one. The word itself is ordinary
+  // English elsewhere — model usage tokens on the admin dashboard, magic-link
+  // and API tokens in auth copy — so the test names the speculative senses
+  // rather than the substring, and allows any of them inside a refusal.
+  const SPECULATIVE = [
+    /\btokenomics\b/i,
+    /\bairdrop/i,
+    /\b(?:our|the|a|its|kami'?s)\s+token\b/i,
+    /\btoken\s+(?:sale|launch|price|holders?|supply|swap)\b/i,
+    /\b(?:governance|reputation|utility|community)\s+token\b/i,
+    /\$KAMI\b/,
+    /\bbuy\b[^.]{0,40}\btokens?\b/i,
+  ];
+  const REFUSAL = /no token|never issue|scam|not a (?:crypto )?token|nothing here is a crypto token/i;
+
+  it("never offers, prices or governs by a crypto token", () => {
+    for (const s of allStrings) {
+      const speculative = SPECULATIVE.find((rx) => rx.test(s));
+      if (speculative && !REFUSAL.test(s)) {
+        throw new Error(
+          `copy string matches ${speculative} without refusing it: ${JSON.stringify(s)}`,
+        );
+      }
     }
+  });
+
+  it("says plainly somewhere that there is no token", () => {
+    expect(allStrings.some((s) => REFUSAL.test(s))).toBe(true);
   });
 });

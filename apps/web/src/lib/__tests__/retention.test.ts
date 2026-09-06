@@ -1,9 +1,14 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { closeTestDb, createTestDb, seedEntity, type TestDb } from "@/db/test-utils";
 import * as schema from "@/db/schema";
 import { getConfig } from "../jobs/common";
 import { runRetention, RETENTION_DAYS } from "../retention";
+
+// Each case builds a fresh PGlite database and runs every migration; on a box
+// running several suites at once that can outlast the shared 60 s default.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
+
 
 const NOW = new Date("2026-09-06T06:00:00Z");
 const days = (n: number) => new Date(NOW.getTime() - n * 86400_000);

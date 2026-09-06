@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { desc, eq } from "drizzle-orm";
@@ -11,6 +11,11 @@ import { runVerifyChain } from "../verify-chain";
 import { getConfig } from "../common";
 import { runNeedsJob } from "../needs";
 import { cleanupTmpDirs, copyFixtureTree, NOW, readPublishedStatus, seedBoulderCreek, twinFromFixtures } from "./helpers";
+
+// Each case builds a fresh PGlite database and runs every migration; on a box
+// running several suites at once that can outlast the shared 60 s default.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
+
 
 const dbs: TestDb[] = [];
 afterAll(async () => {

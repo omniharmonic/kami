@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
 import { closeTestDb, createTestDb, seedEntity, seedUser, type TestDb } from "@/db/test-utils";
 import * as schema from "@/db/schema";
@@ -6,6 +6,11 @@ import { verifyEventChain } from "@/db/events";
 import { applyPause, PauseError, resumeRequesters } from "../pause";
 import { pauseSet, recordHeartbeat } from "../gate";
 import { gpuOnline, getConfig } from "../common";
+
+// Each case builds a fresh PGlite database and runs every migration; on a box
+// running several suites at once that can outlast the shared 60 s default.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
+
 
 const NOW = new Date("2026-09-06T06:00:00Z");
 const dbs: TestDb[] = [];

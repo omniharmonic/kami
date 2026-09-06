@@ -2,10 +2,15 @@
  * Route-level checks that do not need Next's request context: the cron bearer,
  * the gate secret, the admin token and the config store's wire shape.
  */
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { closeTestDb, type TestDb } from "@/db/test-utils";
 import { authorizeCron, isAdminToken, isGateSecret, jobsEnv, claimConfigKey, getConfig, listConfig, setConfig } from "../common";
 import { NOW, seedBoulderCreek } from "./helpers";
+
+// Each case builds a fresh PGlite database and runs every migration; on a box
+// running several suites at once that can outlast the shared 60 s default.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
+
 
 const dbs: TestDb[] = [];
 afterAll(async () => {
