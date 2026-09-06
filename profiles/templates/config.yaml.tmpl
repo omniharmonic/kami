@@ -1,0 +1,48 @@
+# Hermes profile config — rendered by profiles/scripts/deploy-profile.ts. Do not hand-edit on the box.
+# Source of truth: docs/planning/02-technical-architecture.md §5.1 (verbatim, with placeholders).
+# Placeholders: {{slug}} {{model}} {{gate_url}} {{platform_url}} {{twin_base_url}} {{paused}}
+model:
+  default: {{model}}
+  provider: custom
+  base_url: {{gate_url}}          # the gate, never vLLM directly (ADR-E04)
+  context_length: 65536
+  reasoning_effort: low
+agent:
+  # verify: exact Hermes v0.21.0 toolset names, including `delegate` (docs/verify.md #1).
+  # Hermes has no allowlist mode (PRD §8.2): everything not needed is disabled here,
+  # and every MCP server below carries an include list.
+  disabled_toolsets: [terminal, browser, web, file, image, email, sms, kanban, delegate]
+memory:
+  memory_enabled: true
+  write_approval: true            # PRD §4.5: memory writes need steward approval
+skills:
+  write_approval: true            # PRD §4.5: skill writes need steward approval
+  guard_agent_created: true
+mcp_servers:
+  twin:
+    type: stdio
+    command: npx
+    args: ["-y", "@bioregionaltwin/mcp", "--tree", "{{twin_base_url}}", "--binding", "./binding.json"]
+    tools:
+      include: [get_entity_status, get_alerts, get_reading_history, get_place, explain, get_health, compare_to_normal]
+  treasury:
+    type: stdio
+    command: uv
+    args: ["run", "treasury-mcp", "--entity", "{{slug}}"]   # holds no key (ADR-E05)
+    tools:
+      include: [get_balance, list_pending, propose_bounty_payout]
+  platform:
+    type: http
+    url: {{platform_url}}/mcp
+    headers:
+      Authorization: "Bearer ${PLATFORM_MCP_TOKEN}"          # from the profile .env, per entity, scoped
+    tools:
+      include: [get_needs_snapshot, get_entity_config, list_open_bounties, draft_bounty, list_submissions, read_evidence_summary, post_update, get_strategy, get_attestation_summary]
+cron:
+  model: {{model}}
+  max_parallel_jobs: 2            # verify: whether this applies across profiles in multiplexed mode (PRD App. C #1)
+approval:
+  dangerous_commands: true
+# Written by deploy-profile when the entity is paused (architecture §5.9) so a gateway restart
+# does not resurrect it. Enforcement lives at the gate; this is belt and braces. verify: the key Hermes honours.
+paused: {{paused}}

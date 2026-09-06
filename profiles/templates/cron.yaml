@@ -1,0 +1,78 @@
+# The five cron jobs per entity (architecture §5.2; PRD §4.7), in a neutral YAML.
+# deploy-profile.ts turns each job into one `hermes cron add` call (see profiles/scripts/src/lib/cron.ts).
+#
+# Mapping to the Hermes v0.21.0 CLI — *verify* every flag against `hermes cron add --help` on a live install
+# (docs/verify.md #1). The mapping below is the plan, not a confirmed contract:
+#
+#   name              → --name <name>
+#   schedule          → --schedule "<5-field cron>"       (evaluated in `timezone`; → --tz <IANA tz>)
+#   prompt            → the positional prompt argument
+#   pre_script        → --pre-script <absolute path>      (a script that prints {"wakeAgent": bool} on stdout;
+#                                                          Hermes skips the LLM when wakeAgent is false)
+#   toolsets          → --toolsets <comma list>            (mcp:<server> names; everything else stays disabled)
+#   continuity        → --continuity                       (the job resumes its own previous session)
+#   context_from      → --context-from <job>[,<job>]       (reads the named jobs' recent output into context)
+#   skill             → --skill <name>
+#   reasoning_effort  → --reasoning-effort low|medium|high
+#   model_override    → --model <name>                     (applied ONLY when deploy-profile is given
+#                                                          --large-model and vLLM serves that model; otherwise the
+#                                                          profile default from config.yaml `cron.model` is used)
+#   every job         → --profile <slug>                   (or `-staging` suffixed slug on --staging)
+#   paused profile    → --disabled                         (verify; the gate is the real enforcement, ADR-E12)
+#
+# Budgets: cron requests draw from `cron_prompt_tokens_per_day` in gate.yaml, separate from chat (§5.7).
+version: 1
+timezone: America/Denver
+jobs:
+  - name: pulse
+    schedule: "0 * * * *"
+    pre_script: skills/entity-steward/scripts/pulse_precheck.py
+    toolsets: [mcp:twin, mcp:platform]
+    reasoning_effort: low
+    prompt: >-
+      Run one pulse exactly as skills/entity-steward/SKILL.md describes under "How a pulse works":
+      call get_needs_snapshot, then get_entity_status, read the deltas[] the platform returned, and only
+      if a delta is notable write at most 80 words that use nothing but numbers from those two tool
+      results. Then call post_update with kind "pulse", the snapshot_id, and the text (or no text).
+      Do not compute mood or needs yourself; they arrive computed.
+
+  - name: daily-reflection
+    schedule: "30 6 * * *"
+    continuity: true
+    reasoning_effort: low
+    prompt: >-
+      Write one short reflection (under 120 words) on what changed in the last 24 hours and what you are
+      watching, using only numbers from tool results in this run (get_needs_snapshot, get_entity_status,
+      get_alerts). If nothing changed, say so in one sentence. Post it with post_update kind "reflection".
+
+  - name: weekly-bounties
+    schedule: "0 9 * * 1"
+    continuity: true
+    skill: entity-steward
+    model_override: qwen3.8-27b      # only when a card allows (ADR-E03); see mapping above
+    reasoning_effort: medium
+    prompt: >-
+      Draft this week's bounties as skills/entity-steward/SKILL.md describes under "Weekly bounty drafting":
+      read get_strategy, get_needs_snapshot, get_attestation_summary and list_open_bounties; draft at most
+      three structured bounties with draft_bounty, each in the PRD §7.6 shape; a tier-1 bounty must carry a
+      prediction; do not draft a tier-1 bounty whose verification depends on a source that is critical.
+
+  - name: quarterly-strategy
+    schedule: "0 9 1 1,4,7,10 *"
+    context_from: [weekly-bounties]
+    model_override: qwen3.8-27b
+    reasoning_effort: high
+    prompt: >-
+      Write the quarterly strategy memo as skills/entity-steward/SKILL.md describes under "Quarterly memo":
+      three things you are trying to change and how each will show in a reading, citing attestation UIDs
+      from get_attestation_summary and outcomes of your own past predictions, right or wrong. Post it with
+      post_update kind "strategy".
+
+  - name: donor-report
+    schedule: "0 9 1 * *"
+    reasoning_effort: low
+    prompt: >-
+      Write the one narrative paragraph of the monthly donor report as skills/entity-steward/SKILL.md
+      describes under "Donor-report paragraph". Every number must come from the report script's tool result
+      in this run; no urgency language; say what the money did and what it could not do. Post it with
+      post_update kind "donor_report".

@@ -1,0 +1,137 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { parse as parseYaml } from "yaml";
+import { describe, expect, it } from "vitest";
+
+import { buildPlan, parseArgs, writeBuild } from "../src/deploy-profile.js";
+import { PROFILES_DIR } from "../src/lib/paths.js";
+import { assertNoChainKey, bindingYamlToJson, TemplateError } from "../src/lib/config.js";
+
+const BC = path.join(PROFILES_DIR, "boulder-creek");
+const FIXTURE_BINDING = path.join(import.meta.dirname, "fixtures", "binding.yaml");
+const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), "kami-deploy-"));
+
+describe("deploy-profile plan", () => {
+  it("dry-run reproduces the committed Boulder Creek goldens", () => {
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir: tmp() });
+    expect(plan.files.get("SOUL.md")).toBe(fs.readFileSync(path.join(BC, "SOUL.md"), "utf8"));
+    expect(plan.files.get("config.yaml")).toBe(fs.readFileSync(path.join(BC, "config.yaml"), "utf8"));
+    expect(plan.paused).toBe(false);
+    expect(plan.deploySlug).toBe("boulder-creek");
+    // .env has only the two keys
+    const envKeys = plan.files.get(".env")!.split("\n").filter((l) => l && !l.startsWith("#")).map((l) => l.split("=")[0]);
+    expect(envKeys).toEqual(["PLATFORM_MCP_TOKEN", "KAMI_ENTITY_SLUG"]);
+    // no binding.yaml in the repo yet (owned by another package) → warning, not failure, in dry-run
+    expect(plan.warnings.some((w) => w.includes("binding"))).toBe(true);
+    expect(plan.files.has("binding.json")).toBe(false);
+  });
+
+  it("config.yaml points at the gate, not vLLM, and includes exactly the §5.1 tool lists", () => {
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir: tmp() });
+    const cfg = parseYaml(plan.files.get("config.yaml")!) as any;
+    expect(cfg.model.base_url).toBe("http://127.0.0.1:8001/p/boulder-creek/v1");
+    expect(cfg.model.default).toBe("qwen3.5-9b");
+    expect(cfg.model.context_length).toBe(65536);
+    expect(cfg.memory.write_approval).toBe(true);
+    expect(cfg.skills.write_approval).toBe(true);
+    expect(cfg.skills.guard_agent_created).toBe(true);
+    expect(cfg.cron.max_parallel_jobs).toBe(2);
+    expect(cfg.mcp_servers.twin.tools.include).toEqual([
+      "get_entity_status", "get_alerts", "get_reading_history", "get_place", "explain", "get_health", "compare_to_normal",
+    ]);
+    expect(cfg.mcp_servers.treasury.tools.include).toEqual(["get_balance", "list_pending", "propose_bounty_payout"]);
+    expect(cfg.mcp_servers.treasury.args).toEqual(["run", "treasury-mcp", "--entity", "boulder-creek"]);
+    expect(cfg.mcp_servers.platform.tools.include).toHaveLength(9);
+    expect(cfg.mcp_servers.platform.headers.Authorization).toBe("Bearer ${PLATFORM_MCP_TOKEN}");
+    expect(cfg.agent.disabled_toolsets).toContain("delegate");
+  });
+
+  it("--staging suffixes the slug everywhere it matters", () => {
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, staging: true, stateDir: tmp() });
+    expect(plan.deploySlug).toBe("boulder-creek-staging");
+    const cfg = parseYaml(plan.files.get("config.yaml")!) as any;
+    expect(cfg.model.base_url).toBe("http://127.0.0.1:8001/p/boulder-creek-staging/v1");
+    expect(cfg.mcp_servers.treasury.args.at(-1)).toBe("boulder-creek-staging");
+    expect(plan.files.get(".env")).toContain("KAMI_ENTITY_SLUG=boulder-creek-staging");
+    expect(plan.remoteProfileDir).toBe("/opt/data/profiles/boulder-creek-staging");
+    // the SOUL is the same soul — the voice does not change for staging
+    expect(plan.files.get("SOUL.md")).toBe(fs.readFileSync(path.join(BC, "SOUL.md"), "utf8"));
+  });
+
+  it("state/paused (or --paused) writes paused: true and disables the cron adds", () => {
+    const stateDir = tmp();
+    fs.writeFileSync(path.join(stateDir, "paused"), "2026-09-06T00:00:00Z guardian-a\n");
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir });
+    expect(plan.paused).toBe(true);
+    expect((parseYaml(plan.files.get("config.yaml")!) as any).paused).toBe(true);
+    expect(plan.files.get("state/paused")).toBeDefined();
+    expect(plan.remoteCommands.filter((c) => c.includes(" cron add ")).every((c) => c.includes("--disabled"))).toBe(true);
+    const viaFlag = buildPlan({ slug: "boulder-creek", dryRun: true, paused: true, stateDir: tmp() });
+    expect(viaFlag.paused).toBe(true);
+  });
+
+  it("renders binding.json from a binding.yaml and refuses geometry", () => {
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir: tmp(), bindingFile: FIXTURE_BINDING, platformMcpToken: "t" });
+    const binding = JSON.parse(plan.files.get("binding.json")!);
+    expect(binding.entity_id).toBe("entity/boulder-creek");
+    expect(binding.members).toHaveLength(3);
+    expect(plan.warnings).toEqual([]);
+    expect(() => bindingYamlToJson('schema_version: "1.0"\nentity_id: e\narchetype: creek\nmembers: []\nboundary: {type: Polygon, coordinates: [[0,0]]}\n')).toThrow(TemplateError);
+    expect(() => bindingYamlToJson("archetype: creek\n")).toThrow(TemplateError);
+  });
+
+  it("emits five remove+add cron pairs, the rsync over Tailscale, and a reload", () => {
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir: tmp(), host: "gpu-box", largeModel: "qwen3.8-27b" });
+    const adds = plan.remoteCommands.filter((c) => c.includes(" cron add "));
+    expect(adds).toHaveLength(5);
+    expect(adds.map((c) => /--name '([^']+)'/.exec(c)![1])).toEqual([
+      "pulse", "daily-reflection", "weekly-bounties", "quarterly-strategy", "donor-report",
+    ]);
+    expect(adds[0]).toContain("--pre-script '/opt/data/profiles/boulder-creek/skills/entity-steward/scripts/pulse_precheck.py'");
+    expect(adds[0]).toContain("--toolsets 'mcp:twin,mcp:platform'");
+    expect(adds[2]).toContain("--model 'qwen3.8-27b'");
+    expect(adds[3]).toContain("--schedule '0 9 1 1,4,7,10 *'");
+    expect(adds[3]).toContain("--context-from 'weekly-bounties'");
+    expect(plan.rsyncCommand[0]).toBe("rsync");
+    expect(plan.rsyncCommand.at(-1)).toBe("gpu-box:~/.hermes/profiles/boulder-creek/");
+    expect(plan.rsyncCommand).toContain("state/");
+    expect(plan.remoteCommands.some((c) => c.includes("reload"))).toBe(true);
+    expect(plan.remoteCommands.at(-1)).toContain("cron doctor");
+  });
+
+  it("without --large-model the 27B override is not applied", () => {
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir: tmp() });
+    expect(plan.remoteCommands.some((c) => c.includes("--model"))).toBe(false);
+  });
+
+  it("writeBuild lays out the profile directory with the skill copied in", () => {
+    const stateDir = tmp();
+    const out = path.join(stateDir, "build");
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir, bindingFile: FIXTURE_BINDING });
+    writeBuild(plan, out);
+    for (const f of ["SOUL.md", "config.yaml", ".env", "binding.json", "skills/entity-steward/SKILL.md",
+      "skills/entity-steward/scripts/pulse_precheck.py", "skills/entity-steward/references/needs-model.md",
+      "skills/entity-steward/references/templates.md"]) {
+      expect(fs.existsSync(path.join(out, f)), f).toBe(true);
+    }
+  });
+
+  it("refuses to render anything that looks like a chain key (X.1)", () => {
+    expect(() => assertNoChainKey(".env", "PLATFORM_MCP_TOKEN=abc\nSAFE_PRO" + "POSER_KEY=x\n")).toThrow(TemplateError);
+    expect(() => assertNoChainKey("x", "0x" + "ab".repeat(32))).toThrow(TemplateError);
+    expect(() => assertNoChainKey("x", "PLATFORM_MCP_TOKEN=abc")).not.toThrow();
+  });
+
+  it("requires PLATFORM_MCP_TOKEN and a binding outside dry-run", () => {
+    expect(() => buildPlan({ slug: "boulder-creek", stateDir: tmp(), platformMcpToken: "" })).toThrow(/PLATFORM_MCP_TOKEN/);
+    expect(() => buildPlan({ slug: "boulder-creek", stateDir: tmp(), platformMcpToken: "t" })).toThrow(/binding/);
+  });
+
+  it("parses the CLI flags", () => {
+    const o = parseArgs(["boulder-creek", "--dry-run", "--host", "box", "--staging", "--paused", "--large-model", "qwen3.8-27b"]);
+    expect(o).toMatchObject({ slug: "boulder-creek", dryRun: true, host: "box", staging: true, paused: true, largeModel: "qwen3.8-27b" });
+    expect(() => parseArgs([])).toThrow(/usage/);
+    expect(() => parseArgs(["x", "--bogus"])).toThrow(/unknown flag/);
+  });
+});

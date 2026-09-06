@@ -1,0 +1,37 @@
+# entity-gate configuration (apps/gate reads this). Copy to gate.yaml on the box. Architecture §5.4, §5.7; T3.3.
+# Inside the compose network the upstream is the vllm service; the container listens on all interfaces but the
+# host publishes 127.0.0.1:8001 only.
+upstream_url: http://vllm:8000
+listen: 0.0.0.0:8001
+passthrough: false                 # true only for UI work on a dev machine (§12.1); never on the box
+
+# Per-entity daily budgets (tokens). Defaults from §5.7: 800k prompt / 40k output (B2's estimate × 1.5);
+# cron draws from its own prompt budget so chat cannot starve the weekly job.
+budgets:
+  boulder-creek:
+    prompt_tokens_per_day: 800000
+    output_tokens_per_day: 40000
+    cron_prompt_tokens_per_day: 400000
+  boulder-creek-staging:
+    prompt_tokens_per_day: 200000
+    output_tokens_per_day: 10000
+    cron_prompt_tokens_per_day: 100000
+
+# Per-entity concurrency: 2 in flight, queue 8, else 429 with `ahead` (§5.4). Global concurrency is vLLM's
+# --max-num-seqs, sized to the KV budget (README, capacity).
+concurrency:
+  per_entity: 2
+  queue: 8
+
+# Static pause list — the phase-0 switch (T0.10). The platform's pause set (below) and POST /admin/pause/<slug>
+# add to it at run time. A slug listed here is refused (423) even if the platform says otherwise.
+paused: []
+
+# The platform's pause set, polled every 30 s (§5.9). If unreachable the gate FAILS CLOSED (§12.5 step 2).
+platform:
+  pause_set_url: https://<platform>/api/gate/pause-set
+  token: ${GATE_PLATFORM_TOKEN}
+  poll_seconds: 30
+
+# Where usage_events / guard_events are spooled before the batched write to Neon (§5.4).
+events_dir: /var/lib/kami/gate

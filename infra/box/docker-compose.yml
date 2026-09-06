@@ -1,0 +1,158 @@
+# Kami GPU box — architecture §12.3, §12.5; plan T0.2, T0.3.
+# Every published port is loopback-only. Nothing here holds a chain key. Copy .env.example → .env first.
+#
+#   vllm    127.0.0.1:8000  Qwen/Qwen3.5-9B behind an OpenAI-compatible API
+#   gate    127.0.0.1:8001  entity-gate: pause · budget · concurrency · fact guard · usage (apps/gate)
+#   hermes  127.0.0.1:8642  Hermes gateway, multiplexed profiles, API server (host network so the profile
+#                           base_url http://127.0.0.1:8001/p/<slug>/v1 resolves to the gate)
+#   tunnel                  cloudflared (active) or tailscale (commented) — §10.3 *verify* which fits the
+#                           owner's existing twin tunnel; Tailscale on the HOST is assumed for SSH/deploy regardless
+#   otel                    OpenTelemetry collector, logs spans to stdout (§5.8)
+
+name: kami-box
+
+services:
+  vllm:
+    image: vllm/vllm-openai:${VLLM_IMAGE_TAG:?set VLLM_IMAGE_TAG in .env}
+    container_name: kami-vllm
+    restart: unless-stopped
+    # §12.5 step 1 — *verify* the exact flag set and vllm#42021 on this model (README, "vllm#42021 check").
+    command: >
+      --model ${VLLM_MODEL:-Qwen/Qwen3.5-9B}
+      --served-model-name ${VLLM_SERVED_NAME:-qwen3.5-9b}
+      --host 0.0.0.0 --port 8000
+      --max-model-len 65536
+      --enable-auto-tool-choice --tool-call-parser hermes
+      --reasoning-parser qwen3
+      --enable-prefix-caching
+      --max-num-seqs ${VLLM_MAX_NUM_SEQS:-8}
+      --gpu-memory-utilization ${VLLM_GPU_MEM_UTIL:-0.92}
+      --download-dir /opt/models
+    environment:
+      HF_HOME: /opt/models/hf
+      HF_HUB_OFFLINE: ${HF_HUB_OFFLINE:-0}
+      VLLM_LOGGING_LEVEL: ${VLLM_LOGGING_LEVEL:-INFO}
+    volumes:
+      - ${MODELS_DIR:-/opt/models}:/opt/models
+    ports:
+      - "127.0.0.1:8000:8000"
+    ipc: host
+    shm_size: "16gb"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 20
+      start_period: 300s
+
+  gate:
+    build:
+      context: ../../apps/gate
+    container_name: kami-gate
+    restart: unless-stopped
+    depends_on:
+      vllm:
+        condition: service_healthy
+    # gate.yaml carries upstream_url (http://vllm:8000), listen (0.0.0.0:8001 inside the container), budgets,
+    # concurrency, paused[], platform{pause_set_url, token, poll_seconds}, events_dir — see gate.yaml.example.
+    command: ["entity-gate", "--config", "/etc/kami/gate.yaml"]
+    environment:
+      GATE_ADMIN_SECRET: ${GATE_ADMIN_SECRET:?set GATE_ADMIN_SECRET in .env}
+      GATE_PLATFORM_TOKEN: ${GATE_PLATFORM_TOKEN:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel:4318
+      OTEL_SERVICE_NAME: entity-gate
+    volumes:
+      - ./gate.yaml:/etc/kami/gate.yaml:ro
+      - gate-events:/var/lib/kami/gate
+    ports:
+      - "127.0.0.1:8001:8001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8001/healthz || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 10
+
+  hermes:
+    build:
+      context: .
+      dockerfile: hermes.Dockerfile
+      args:
+        HERMES_IMAGE_TAG: ${HERMES_IMAGE_TAG:-v0.21.0}   # *verify* exact tag (docs/verify.md #1)
+    container_name: kami-hermes
+    restart: unless-stopped
+    depends_on:
+      gate:
+        condition: service_healthy
+    # Host network: profiles talk to the gate at 127.0.0.1:8001 exactly as config.yaml says, and the API
+    # server binds 127.0.0.1:8642 itself (API_SERVER_HOST). No `ports:` block — nothing is published.
+    network_mode: host
+    environment:
+      HERMES_HOME: /opt/data
+      API_SERVER_ENABLED: "true"
+      API_SERVER_HOST: 127.0.0.1           # *verify* the env name; the goal is loopback-only 8642
+      API_SERVER_PORT: "8642"
+      API_SERVER_KEY: ${API_SERVER_KEY:?set API_SERVER_KEY in .env}
+      # gateway.multiplex_profiles: true lives in hermes.config.yaml (mounted below) — *verify* key path
+      UV_PROJECT: /opt/kami/treasury-mcp    # so `uv run treasury-mcp` in a profile resolves the workspace package
+      PLATFORM_URL: ${PLATFORM_URL:-}
+      TWIN_BASE_URL: ${TWIN_BASE_URL:-https://data.bioregionaltwin.org}
+      KAMI_PULSE_CONTACT: ${KAMI_PULSE_CONTACT:-}
+      TZ: America/Denver
+    volumes:
+      - ${HERMES_HOME:-~/.hermes}:/opt/data
+      - ./hermes.config.yaml:/opt/data/config.yaml:ro
+      - ../../packages/treasury-mcp:/opt/kami/treasury-mcp:ro
+    command: ["hermes", "gateway", "start"]   # *verify* subcommand (architecture §12.5 step 3)
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS -H \"Authorization: Bearer $$API_SERVER_KEY\" http://127.0.0.1:8642/v1/models || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  # --- tunnel: exposes ONLY 127.0.0.1:8642 to the Vercel origin (§10.3). Pick one. -------------------------
+  tunnel:
+    image: cloudflare/cloudflared:${CLOUDFLARED_IMAGE_TAG:-2025.8.1}
+    container_name: kami-tunnel
+    restart: unless-stopped
+    network_mode: host
+    command: ["tunnel", "--no-autoupdate", "run", "--token", "${CLOUDFLARED_TUNNEL_TOKEN:?set CLOUDFLARED_TUNNEL_TOKEN in .env}"]
+    # Route in the Cloudflare dashboard: gw.<host> → http://127.0.0.1:8642, protected by a Cloudflare Access
+    # service token that only the Vercel origin holds (*verify* vs Tailscale ACLs, docs/verify.md #16).
+  #
+  # tunnel:                                            # Tailscale alternative (tailnet-only API server).
+  #   image: tailscale/tailscale:${TAILSCALE_IMAGE_TAG:-v1.86.2}
+  #   container_name: kami-tunnel
+  #   restart: unless-stopped
+  #   network_mode: host
+  #   cap_add: [NET_ADMIN]
+  #   environment:
+  #     TS_AUTHKEY: ${TS_AUTHKEY:?set TS_AUTHKEY in .env}
+  #     TS_STATE_DIR: /var/lib/tailscale
+  #     TS_EXTRA_ARGS: --advertise-tags=tag:kami-box --hostname=kami-box
+  #     TS_SERVE_CONFIG: /config/serve.json     # serve 127.0.0.1:8642 on the tailnet only; ACL: Vercel egress node → :8642
+  #   volumes:
+  #     - tailscale-state:/var/lib/tailscale
+  #     - ./tailscale-serve.json:/config/serve.json:ro
+  #     - /dev/net/tun:/dev/net/tun
+
+  otel:
+    image: otel/opentelemetry-collector-contrib:${OTEL_IMAGE_TAG:-0.135.0}
+    container_name: kami-otel
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
+    # No published ports: the gate reaches it on the compose network (http://otel:4318).
+    # If vLLM's Prometheus endpoint should be scraped, the collector pulls http://vllm:8000/metrics (see config).
+
+volumes:
+  gate-events:
+  tailscale-state:

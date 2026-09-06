@@ -1,0 +1,22 @@
+# Test fixture only — the real profiles/boulder-creek/binding.yaml is owned by packages/binding.
+schema_version: "1.0"
+binding_version: 1
+entity_id: entity/boulder-creek
+archetype: creek
+anchor: place/boulder-creek-near-orodell-co
+stream_id: null
+commons_handle: wiki/places/named/boulder-creek
+members:
+  - { id: place/boulder-creek-near-orodell-co, role: main_stem_gauge }
+  - { id: place/niwot, role: snotel }
+  - { id: place/gross-reservoir, role: reservoir }
+watersheds: [watershed/huc10-1019000504, watershed/huc10-1019000505]
+reach_ids: []
+boundary:
+  geometry_urls: [https://data.bioregionaltwin.org/geom/watershed/huc10-1019000504.geojson]
+needs:
+  - { need: flow, property: discharge, places: [place/boulder-creek-near-orodell-co], agg: single }
+  - { need: storage, property: reservoir_fill, places: [place/gross-reservoir], agg: single }
+  - { need: snow, property: swe, places: [place/niwot], agg: single }
+  - { need: drought, property: dm, places: [], agg: max_intersecting }
+frozen_at: 2026-09-06T00:00:00Z

@@ -1,0 +1,48 @@
+# Minimal OpenTelemetry collector for the box (architecture §5.8): receive OTLP from the gate, scrape vLLM's
+# Prometheus endpoint, and log everything to stdout. No remote exporter — add one deliberately later.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: vllm
+          scrape_interval: 30s
+          static_configs:
+            - targets: ["vllm:8000"]
+
+processors:
+  batch:
+    timeout: 5s
+  attributes/redact:
+    actions:
+      # never let a prompt or completion body leave the gate's own logs
+      - key: gen_ai.prompt
+        action: delete
+      - key: gen_ai.completion
+        action: delete
+
+exporters:
+  debug:
+    verbosity: normal
+    sampling_initial: 5
+    sampling_thereafter: 50
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [attributes/redact, batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [batch]
+      exporters: [debug]
+    logs:
+      receivers: [otlp]
+      processors: [attributes/redact, batch]
+      exporters: [debug]

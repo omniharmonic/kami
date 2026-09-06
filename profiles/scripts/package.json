@@ -1,0 +1,25 @@
+{
+  "name": "@kami/profile-scripts",
+  "version": "0.1.0",
+  "description": "Renders and deploys Hermes entity profiles (SOUL.md, config.yaml, .env, binding.json, cron) to the GPU box; pauses and resumes an entity at the gate, the platform and Hermes; runs the quarterly pause drill.",
+  "license": "Apache-2.0",
+  "author": "Benjamin Life (@omniharmonic)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "deploy-profile": "tsx src/deploy-profile.ts",
+    "pause": "tsx src/pause.ts",
+    "pause-drill": "tsx src/pause-drill.ts"
+  },
+  "dependencies": {
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

@@ -1,0 +1,14 @@
+# Global Hermes config for the Kami box (mounted read-only at $HERMES_HOME/config.yaml).
+# Per-entity settings live in each profile's own config.yaml (profiles/templates/config.yaml.tmpl).
+# *verify* every key path against the Hermes v0.21.0 docs (hermes-agent.nousresearch.com); docs/verify.md #1.
+gateway:
+  multiplex_profiles: true        # one gateway process serves every ~/.hermes/profiles/<slug>/ (ADR-E02)
+  tick_seconds: 60                # the cron tick; a pause lands within one tick (§5.9)
+api_server:
+  enabled: true
+  host: 127.0.0.1
+  port: 8642
+  # key from API_SERVER_KEY in the environment; never written here
+  profile_path_prefix: /p         # verify: per-profile routing /p/<profile>/v1/… in multiplexed mode
+cron:
+  max_parallel_jobs: 2
