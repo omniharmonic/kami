@@ -94,7 +94,7 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
                 "platform.state",
                 "no PLATFORM_MCP_TOKEN in the environment, so the entity's own door was not tried",
                 fix="mint one on the platform (admin → profiles) and put it in the profile's .env and in "
-                "infra/mac/kami.env; it is what the pulse precheck and the treasury MCP authenticate with",
+                "~/.kami/kami.env; it is what the pulse precheck and the treasury MCP authenticate with",
                 doc=DOC,
             )
         )
@@ -166,7 +166,7 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
                 fail(
                     "platform.pause_set",
                     "the platform refused this GATE_ADMIN_SECRET — the gate and the platform hold different values",
-                    fix="set the same value in the Vercel project (GATE_ADMIN_SECRET) and in infra/mac/kami.env, "
+                    fix="set the same value in the Vercel project (GATE_ADMIN_SECRET) and in ~/.kami/kami.env, "
                     "then restart the gate. Until they match, a guardian's pause never reaches the box",
                     doc=DOC,
                 )

@@ -101,12 +101,12 @@ describe("R2Publisher", () => {
   it("is unconfigured without credentials and PUTs with the cache class when configured", async () => {
     expect(r2EnvFrom({} as NodeJS.ProcessEnv)).toBeNull();
     const env = r2EnvFrom({ R2_ACCOUNT_ID: "acct", R2_ACCESS_KEY_ID: "k", R2_SECRET_ACCESS_KEY: "s" } as unknown as NodeJS.ProcessEnv)!;
-    expect(env.R2_BUCKET).toBe("entities-data");
+    expect(env.R2_BUCKET).toBe("kami-data");
     const sent: Array<Record<string, unknown>> = [];
     const fake = { send: async (cmd: { input: Record<string, unknown> }) => { sent.push(cmd.input); return { ETag: '"e"' }; } };
     const p = new R2Publisher(env, fake as never);
     const out = await p.put("entity/x/status.json", "{}", { contentType: "application/json", cacheControl: CACHE_CONTROL.latest });
     expect(out.etag).toBe('"e"');
-    expect(sent[0]).toMatchObject({ Bucket: "entities-data", Key: "entity/x/status.json", CacheControl: CACHE_CONTROL.latest, ContentType: "application/json" });
+    expect(sent[0]).toMatchObject({ Bucket: "kami-data", Key: "entity/x/status.json", CacheControl: CACHE_CONTROL.latest, ContentType: "application/json" });
   });
 });

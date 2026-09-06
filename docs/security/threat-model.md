@@ -201,9 +201,17 @@ files per submission. Gate: 2 concurrent completions per entity, queue of 8, the
 `Retry-After`; a per-entity daily token budget; **fails closed** — it refuses completions when it
 cannot reach the platform to read the pause set.
 
-**Egress.** The box talks to the twin, the platform, and its own model. The platform talks to Neon,
-R2, Stripe, Resend, an RPC endpoint, the Safe service and EAS. Nothing sends chat text to a
-third-party model provider; there is no frontier model on the hot path.
+**Egress.** The box talks to the twin, the platform, and its model. The platform talks to Neon, R2,
+Stripe, Resend, an RPC endpoint, the Safe service and EAS.
+
+Whether chat text leaves for a third-party model provider **depends on how the gate is configured,
+and is not something this document can assert**. `provenance.placement` is required — the gate will
+not start without it — and is reported to the platform and rendered on each entity's public page.
+`owned` and `rented` mean the model runs on a machine the project controls and no conversation
+reaches a model vendor. `hosted` means it does, under that vendor's terms, and the page says so.
+The first entity runs `hosted` while the owner's hardware is pending (ERRATA row 7). Treat the
+reported provenance as the answer; treat any prose claiming otherwise, including this paragraph, as
+out of date.
 
 ---
 

@@ -44,7 +44,52 @@ export type GateConfig = {
   paused: string[];
   platform: { pause_set_url: string; token: string; poll_seconds: number };
   events_dir: string;
+  provenance: GateProvenance;
 };
+
+/**
+ * Where the model actually runs. The gate requires this and refuses to start
+ * without it, because the public "how I work" page renders it rather than
+ * asserting anything about inference. The platform therefore cannot invent a
+ * default: it can only pass on what an operator has declared, which is why
+ * `gateConfig` throws rather than guessing `owned`.
+ */
+export type GateProvenance = {
+  placement: "owned" | "rented" | "hosted";
+  provider: string;
+  model?: string;
+  note?: string;
+};
+
+export class ProvenanceNotDeclared extends Error {
+  constructor() {
+    super(
+      "cannot generate gate.yaml: nobody has declared where the model runs. " +
+        "Set the config key `gate.provenance` to " +
+        '{"placement": "owned" | "rented" | "hosted", "provider": "...", "model": "..."} ' +
+        "— for example {\"placement\":\"hosted\",\"provider\":\"OpenAI\"} while running on a " +
+        "hosted API, or {\"placement\":\"owned\",\"provider\":\"vLLM on the DGX Spark\"} once the " +
+        "hardware is running. The platform will not guess this: the page tells people where their " +
+        "words go, and a guess there would be a lie.",
+    );
+    this.name = "ProvenanceNotDeclared";
+  }
+}
+
+const PLACEMENTS = new Set(["owned", "rented", "hosted"]);
+
+function provenanceFrom(raw: unknown): GateProvenance {
+  if (!raw || typeof raw !== "object") throw new ProvenanceNotDeclared();
+  const r = raw as Record<string, unknown>;
+  const placement = typeof r.placement === "string" ? r.placement : "";
+  if (!PLACEMENTS.has(placement)) throw new ProvenanceNotDeclared();
+  const provider = typeof r.provider === "string" && r.provider.trim() ? r.provider.trim() : "";
+  if (!provider) throw new ProvenanceNotDeclared();
+  const out: GateProvenance = { placement: placement as GateProvenance["placement"], provider };
+  if (typeof r.model === "string" && r.model.trim()) out.model = r.model.trim();
+  if (typeof r.note === "string" && r.note.trim()) out.note = r.note.trim();
+  return out;
+}
 
 export type GateOptions = {
   upstream_url?: string;
@@ -52,6 +97,7 @@ export type GateOptions = {
   platform_url?: string;
   poll_seconds?: number;
   events_dir?: string;
+  provenance?: GateProvenance;
   /** include a `<slug>-staging` budget per entity (the preview profiles) */
   staging?: boolean;
 };
@@ -63,6 +109,7 @@ const GATE_CONFIG_KEYS = {
   listen: "gate.listen",
   events: "gate.events_dir",
   poll: "gate.poll_seconds",
+  provenance: "gate.provenance",
 } as const;
 
 function positiveInt(v: unknown, fallback: number): number {
@@ -135,6 +182,7 @@ export async function gateConfig(db: DbOrTx, opts: GateOptions = {}): Promise<Ga
       poll_seconds: positiveInt(opts.poll_seconds ?? concurrencyRaw["poll_seconds"], 30),
     },
     events_dir: opts.events_dir ?? (await getConfig<string>(db, GATE_CONFIG_KEYS.events)) ?? "/var/lib/kami/gate",
+    provenance: opts.provenance ?? provenanceFrom(await getConfig<unknown>(db, GATE_CONFIG_KEYS.provenance)),
   };
 }
 

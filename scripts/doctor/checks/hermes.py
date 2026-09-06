@@ -105,7 +105,7 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
                         "hermes.gateway",
                         f"{url}{path} refused the API server key",
                         fix="HERMES_API_SERVER_KEY here must equal the gateway's API_SERVER_KEY (and the value in "
-                        "the Vercel project). Fix infra/mac/kami.env and restart Hermes",
+                        "the Vercel project). Fix ~/.kami/kami.env and restart Hermes",
                         doc=DOC,
                     )
                 )

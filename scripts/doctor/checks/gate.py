@@ -159,7 +159,13 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
         result.steps.append(ok("gate.passthrough", f"guard active (passthrough false, per {source})"))
 
     # ---- provenance --------------------------------------------------------
-    provenance = ctx.gate("provenance")
+    # The running gate is the authority (it serves `provenance` on /healthz and pushes the
+    # same document to the platform); gate.yaml is the fallback when an older gate is running.
+    provenance = body.get("provenance")
+    provenance_from = "the running gate"
+    if not isinstance(provenance, dict) or not provenance:
+        provenance = ctx.gate("provenance")
+        provenance_from = "gate.yaml"
     if not isinstance(provenance, dict) or not provenance:
         result.steps.append(
             fail(
@@ -187,7 +193,7 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
             result.steps.append(
                 ok(
                     "gate.provenance",
-                    f"placement {placement}" + (f" ({extra})" if extra else ""),
+                    f"placement {placement}" + (f" ({extra})" if extra else "") + f", per {provenance_from}",
                     provenance=provenance,
                 )
             )
@@ -223,7 +229,7 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
                     "gate.budgets",
                     f"the gate refused the admin secret ({state.why()})",
                     fix="the value in your environment is not the value the gate is running with — fix "
-                    "infra/mac/kami.env and restart the gate, or unset it here",
+                    "~/.kami/kami.env and restart the gate, or unset it here",
                     doc=DOC,
                 )
             )

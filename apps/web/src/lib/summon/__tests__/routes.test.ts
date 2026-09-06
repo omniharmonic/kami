@@ -175,6 +175,9 @@ describe("the admin endpoints the box fetches", () => {
 
   it("serves gate.yaml as YAML for the box and JSON for /admin", async () => {
     currentSession = { ...session, user: { ...session.user, platform_admin: true } };
+    // The gate refuses to start without knowing where its model runs, so the
+    // generator refuses to emit a file that lacks it (see provisioning tests).
+    await setConfig(db, "gate.provenance", { placement: "owned", provider: "vLLM on the GPU box", model: "qwen3.5-9b" });
     const res = await gateRoute(url("/api/admin/gate?platform_url=https://kami.test"));
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toContain("text/yaml");

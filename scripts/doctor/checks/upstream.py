@@ -308,7 +308,7 @@ def _probe_models(cfg: UpstreamConfig) -> Tuple[Step, List[str]]:
                 "upstream.auth",
                 f"the provider refused the key ({resp.why()})",
                 fix=f"check ${cfg.key_env or 'the API key variable'} — regenerate it at the provider and put it in the "
-                "file your launchd plist loads (infra/mac/kami.env), then `launchctl kickstart -k gui/$UID/com.kami.gate`",
+                "file your launchd plist loads (~/.kami/kami.env), then `launchctl kickstart -k gui/$UID/com.kami.gate`",
                 doc=DOC,
             ),
             [],
@@ -544,7 +544,7 @@ def run(ctx: Ctx, prior: Dict[str, CheckResult]) -> CheckResult:
             skip(
                 "upstream.auth",
                 f"no API key in the environment for {provider}",
-                fix="put the key in the file the launchd plist loads (infra/mac/kami.env, chmod 600) and name that "
+                fix="put the key in the file the launchd plist loads (~/.kami/kami.env, chmod 600) and name that "
                 "variable in gate.yaml as `upstream_api_key_env`. Never inline a key in gate.yaml",
                 doc=DOC,
             )

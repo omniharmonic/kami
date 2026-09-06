@@ -17,7 +17,7 @@ import { listEntityEvents } from "@/db/events";
 import { closeTestDb, createTestDb, seedUser, type TestDb } from "@/db/test-utils";
 import { getConfig, setConfig } from "@/lib/jobs/common";
 import { verifyEntityToken } from "@/lib/mcp/tokens";
-import { BUDGET_DEFAULTS, CONCURRENCY_DEFAULTS, gateConfig, renderGateYaml, STAGING_DIVISOR } from "../gate";
+import { BUDGET_DEFAULTS, CONCURRENCY_DEFAULTS, gateConfig, ProvenanceNotDeclared, renderGateYaml, STAGING_DIVISOR } from "../gate";
 import { ProvisionError, provisionEntity } from "../provision";
 
 const REPO_ROOT = path.resolve(process.cwd(), "..", "..");
@@ -186,6 +186,8 @@ describe("gate.yaml is generated, never hand-written", () => {
     await seedFullEntity("paused-creek", { paused: true });
     await seedFullEntity("retired-creek", { retired: true });
 
+    // Placement is declared, never guessed: the generator throws without it.
+    await setConfig(db, "gate.provenance", { placement: "owned", provider: "vLLM on the GPU box", model: "qwen3.5-9b" });
     const config = await gateConfig(db, { platform_url: "https://kami.test" });
     const example = parseYaml(readFileSync(GATE_EXAMPLE, "utf8")) as Record<string, unknown>;
 
@@ -227,6 +229,8 @@ describe("gate.yaml is generated, never hand-written", () => {
   });
 
   it("renders a YAML file that parses back to the same config", async () => {
+    // Placement is declared, never guessed: the generator throws without it.
+    await setConfig(db, "gate.provenance", { placement: "owned", provider: "vLLM on the GPU box", model: "qwen3.5-9b" });
     const config = await gateConfig(db, { platform_url: "https://kami.test" });
     const yaml = renderGateYaml(config, new Date("2026-09-06T12:00:00Z"));
     expect(yaml.startsWith("# entity-gate configuration — GENERATED")).toBe(true);
@@ -261,3 +265,33 @@ describe("no chain key may enter a profile", () => {
     await db.update(schema.entities).set({ retiredAt: new Date() }).where(eq(schema.entities.id, id));
   });
 });
+
+describe("the platform never guesses where the model runs", () => {
+  async function clearDeclaration() {
+    await db.delete(schema.config).where(eq(schema.config.key, "gate.provenance"));
+  }
+
+  it("refuses to generate a gate.yaml when nobody has declared it", async () => {
+    await clearDeclaration();
+    // The gate requires provenance.placement and will not start without it, so a
+    // generated file lacking one is a file that cannot run. Failing here, naming
+    // the config key, beats shipping a config that dies on the box.
+    await expect(gateConfig(db, { platform_url: "https://kami.test" })).rejects.toBeInstanceOf(ProvenanceNotDeclared);
+  });
+
+  it("passes on a declaration once it exists, and renders it into the file", async () => {
+    await setConfig(db, "gate.provenance", { placement: "hosted", provider: "OpenAI", model: "gpt-4o" });
+    const hosted = await gateConfig(db, { platform_url: "https://kami.test" });
+    expect(hosted.provenance).toEqual({ placement: "hosted", provider: "OpenAI", model: "gpt-4o" });
+    expect(renderGateYaml(hosted)).toContain("placement: hosted");
+  });
+
+  it("refuses a malformed declaration rather than coercing it", async () => {
+    for (const bad of [{ placement: "somewhere", provider: "x" }, { placement: "owned" }, { provider: "OpenAI" }, "owned", 7]) {
+      await setConfig(db, "gate.provenance", bad as never);
+      await expect(gateConfig(db, { platform_url: "https://kami.test" })).rejects.toBeInstanceOf(ProvenanceNotDeclared);
+    }
+    await clearDeclaration();
+  });
+});
+

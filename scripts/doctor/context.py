@@ -29,7 +29,11 @@ SECRET_NAME = re.compile(
 
 # Files that may hold configuration, relative to the repo root. Later files do
 # not override earlier ones, and none of them override the real environment.
-ENV_FILES = (".env", ".env.local", "apps/web/.env.local", "infra/mac/kami.env", "infra/box/.env")
+# `infra/mac/kami.env` is deliberately NOT here: .gitignore covers `.env` and
+# `.env.*`, not `*.env`, so a secret file at that path would be tracked. The
+# Mac's env file lives at ~/.kami/kami.env, read below, outside the repo.
+ENV_FILES = (".env", ".env.local", "apps/web/.env.local", "infra/box/.env")
+HOME_ENV_FILES = ("~/.kami/kami.env",)
 
 
 class Secrets:
@@ -227,8 +231,9 @@ def build_context(slug: str, timeout: float = 20.0, environ: Optional[Dict[str, 
     files_read: List[str] = []
     notes: List[str] = []
 
-    for rel in ENV_FILES:
-        path = root / rel
+    candidates_env: List[tuple] = [(rel, root / rel) for rel in ENV_FILES]
+    candidates_env += [(rel, Path(rel).expanduser()) for rel in HOME_ENV_FILES]
+    for rel, path in candidates_env:
         if not path.is_file():
             continue
         try:

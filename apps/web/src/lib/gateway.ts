@@ -33,6 +33,29 @@ export type GatewayResult =
 
 export type GatewayRequest = { slug: string; messages: ChatMessage[]; user?: string; signal?: AbortSignal };
 
+/**
+ * The tunnel in front of Hermes may be protected by Cloudflare Access, which
+ * authenticates with a service-token pair rather than a bearer token. Without
+ * these headers, turning Access on would make every chat request fail and the
+ * site would render "I'm asleep" forever, with nothing in the logs to say why —
+ * a failure that looks exactly like a box being off. Both variables are
+ * optional; unset, this is the plain bearer request it always was.
+ */
+function tunnelHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+    accept: "text/event-stream",
+    authorization: `Bearer ${env.HERMES_API_SERVER_KEY ?? ""}`,
+  };
+  const id = process.env.CF_ACCESS_CLIENT_ID;
+  const secret = process.env.CF_ACCESS_CLIENT_SECRET;
+  if (id && secret) {
+    headers["CF-Access-Client-Id"] = id;
+    headers["CF-Access-Client-Secret"] = secret;
+  }
+  return headers;
+}
+
 export async function chatCompletion(req: GatewayRequest, baseUrl: string = env.HERMES_GATEWAY_URL): Promise<GatewayResult> {
   if (baseUrl.startsWith("fake:")) return fakeGateway(req, baseUrl.slice("fake:".length));
   const url = `${baseUrl.replace(/\/$/, "")}/p/${encodeURIComponent(req.slug)}/v1/chat/completions`;
@@ -40,11 +63,7 @@ export async function chatCompletion(req: GatewayRequest, baseUrl: string = env.
   try {
     res = await fetch(url, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        accept: "text/event-stream",
-        authorization: `Bearer ${env.HERMES_API_SERVER_KEY ?? ""}`,
-      },
+      headers: tunnelHeaders(),
       body: JSON.stringify({ model: req.slug, messages: req.messages, stream: true, user: req.user }),
       signal: req.signal ?? AbortSignal.timeout(60_000),
       cache: "no-store",

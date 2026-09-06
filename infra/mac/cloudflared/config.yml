@@ -1,0 +1,32 @@
+# cloudflared — one tunnel, one hostname, one service. Nothing else is exposed.
+#
+# Install to ~/.cloudflared/config.yml (see README.md in this directory for the five
+# commands). Replace <TUNNEL-UUID> and gw.example.com with your own; keep the shape.
+#
+# Why a tunnel at all: this Mac is on a home network behind NAT. cloudflared makes an
+# OUTBOUND connection to Cloudflare and requests come back down it, so there is no inbound
+# port to forward, no firewall hole, and no address for a scanner to find. Never open a
+# router port "just to test something" — the tunnel is the test.
+
+tunnel: <TUNNEL-UUID>
+credentials-file: /Users/<you>/.cloudflared/<TUNNEL-UUID>.json
+
+# Be a good citizen of the Mac's power settings: keep the connection alive rather than
+# reconnecting constantly, and do not retry so aggressively that a sleeping upstream looks
+# like a flood.
+originRequest:
+  connectTimeout: 10s
+  keepAliveTimeout: 90s
+  noHappyEyeballs: true
+
+ingress:
+  # The Hermes gateway — the only thing the internet may reach. The platform posts
+  # POST /p/<slug>/v1/chat/completions here with `Authorization: Bearer $HERMES_API_SERVER_KEY`.
+  - hostname: gw.example.com
+    service: http://127.0.0.1:8642
+
+  # Everything else, including any hostname that resolves here by accident, is refused.
+  # There is deliberately NO rule for 127.0.0.1:8001 (the gate) or 127.0.0.1:8000 (a local
+  # model server): the gate's admin endpoints are loopback-only by design, and a model server
+  # on the public internet is somebody else's free GPU.
+  - service: http_status:404

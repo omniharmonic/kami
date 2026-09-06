@@ -1,0 +1,46 @@
+# LM Studio on the Mac mini — the local alternative, and the shape the DGX Spark will take.
+#
+# Same four keys, different values. LM Studio serves an OpenAI-compatible API on
+# 127.0.0.1:1234 and ignores the key, so there is no `upstream_api_key_env` at all — and the
+# placement is `owned`, because the machine is the project's.
+#
+# Before this is worth trying: load the model in LM Studio with **tool use enabled** and a
+# context of at least 64k (Hermes refuses less, ADR-E03). Small local builds are exactly where
+# the tool-call check fails, and it is better to learn that from check_upstream than from a
+# visitor's chat window.
+
+# ---- upstream ---------------------------------------------------------------------------
+upstream_url: http://127.0.0.1:1234
+upstream_api_key_env: null               # LM Studio ignores it
+upstream_headers: {}
+upstream_model: qwen3.5-9b-instruct      # *verify* (docs/verify.md #75): whatever
+                                         # `curl http://127.0.0.1:1234/v1/models` calls it
+request_timeout_s: 300                   # a Mac mini prefills a 64k context slowly
+
+# ---- provenance --------------------------------------------------------------------------
+provenance:
+  placement: owned
+  provider: "LM Studio on a Mac mini"
+  model: qwen3.5-9b-instruct
+  slug: boulder-creek
+  note: "Local inference on the project's own Mac mini."
+
+# ---- the platform ------------------------------------------------------------------------
+platform:
+  base_url: https://<your-deployment>.vercel.app
+  pause_set_url: https://<your-deployment>.vercel.app/api/gate/pause-set
+  token_env: KAMI_PLATFORM_TOKEN
+  poll_seconds: 30
+  fail_closed: true
+
+passthrough: false
+
+# What to expect, honestly: a 9B-class model on a Mac mini is slow at 64k and weaker at tool
+# calling than a frontier API. That is not a reason to avoid it — it is the configuration the
+# project is actually aiming at, and the number that matters (the hallucination probe, PRD G1)
+# can only be measured on a model of this class. Measure it here or on the Spark; a good
+# number from a frontier API says nothing about it.
+#
+#   uv run --package kami-gate python -m entity_gate.check_upstream --config ~/.kami/gate.yaml
+#   uv run --package kami-evals python -m kami_evals.live \
+#     --endpoint http://127.0.0.1:8001/p/boulder-creek/v1 --model qwen3.5-9b-instruct --limit 40

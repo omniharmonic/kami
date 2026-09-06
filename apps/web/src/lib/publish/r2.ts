@@ -5,7 +5,7 @@
  *
  * Env (read here, not in `src/env.ts`): `R2_ACCOUNT_ID` (or `R2_ENDPOINT`),
  * `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` (default
- * `entities-data`, plan T0.6).
+ * `kami-data`, plan T0.6).
  */
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { z } from "zod";
@@ -16,7 +16,7 @@ export const r2EnvSchema = z.object({
   R2_ENDPOINT: z.string().url().optional(),
   R2_ACCESS_KEY_ID: z.string().min(1),
   R2_SECRET_ACCESS_KEY: z.string().min(1),
-  R2_BUCKET: z.string().min(1).default("entities-data"),
+  R2_BUCKET: z.string().min(1).default("kami-data"),
 });
 
 export type R2Env = z.infer<typeof r2EnvSchema>;

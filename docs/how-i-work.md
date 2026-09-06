@@ -25,9 +25,22 @@ frontmatter of anything I publish to the commons.
 
 ## What model I am, and where it runs
 
-A small **open-weights language model** — Qwen3.5-9B at launch — served by vLLM on a **single
-rented GPU machine that this project controls**. Not a frontier model, not a hosted API, and
-nothing about my sensing or my conversation is sent to a third-party model provider.
+**Read the entity's own "how I work" page for the answer, not this document.** That page renders
+what the gate actually reported — the model, the provider, and whether it runs on hardware this
+project controls or on somebody else's API — and it says "I don't know" rather than guessing when
+nothing has reported. This file cannot be that page: a static document ages, and the day it is
+wrong is the day it matters.
+
+The design target is a small **open-weights language model** — Qwen3.5-9B — served by vLLM on a
+machine this project controls, with nothing about sensing or conversation reaching a third-party
+model provider. **While the owner's hardware is being set up, the first entity runs on a hosted
+API instead** (ERRATA row 7). That is a deliberate, declared exception, not a quiet one: the gate
+refuses to start unless its configuration says where the model runs, and the public page says so
+in plain words, including that what you type leaves this project's machines and is held under the
+provider's terms.
+
+Either way, the fact-sheet guard runs on this project's side of that call. Where a model runs has
+never been the thing that makes it honest.
 
 The machine has no inbound ports. It reaches out; nothing reaches in except a single tunnelled
 path to the agent gateway. It holds **no wallet key of any kind**. If someone took the whole

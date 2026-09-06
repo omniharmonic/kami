@@ -1,0 +1,50 @@
+# OpenAI — the worked path for the first entity, while the DGX Spark is being set up.
+#
+# Copy these blocks over the matching ones in apps/gate/gate.yaml (or keep this file as
+# ~/.kami/gate.yaml and point the gate at it with KAMI_GATE_YAML). Everything else in
+# gate.yaml — budgets, concurrency, crisis, events_dir — stays as it is.
+#
+# The key is NEVER here. `upstream_api_key_env` names the variable; the value lives in
+# ~/.kami/kami.env, which only bin/run-gate.sh reads. A literal `upstream_api_key:` is
+# refused at load, and so is an Authorization header hidden in `upstream_headers`.
+#
+# Be clear-eyed about what this is: a hosted frontier model on the hot path is the one thing
+# PRD §3 rules out by name. It is here as a declared, time-boxed measure (ERRATA row 7), and
+# the only reason it is acceptable is that it announces itself — `placement: hosted` reaches
+# /healthz, the platform, and the public "how I work" page. Nothing is softened anywhere.
+
+# ---- upstream ---------------------------------------------------------------------------
+upstream_url: https://api.openai.com     # the gate appends /v1/chat/completions
+upstream_api_key_env: OPENAI_API_KEY     # the NAME of the variable, never the key
+upstream_headers: {}                     # or OpenAI-Organization / OpenAI-Project if you use them
+upstream_model: gpt-4o                   # *verify* (docs/verify.md #74): use an id that
+                                         # `curl https://api.openai.com/v1/models` lists today
+request_timeout_s: 300                   # a hosted API queues and rate-limits; a timeout reads
+                                         # to a visitor as the kami being asleep
+
+# ---- provenance: what the public page will say -------------------------------------------
+provenance:
+  placement: hosted                      # owned | rented | hosted — required, no default
+  provider: OpenAI
+  model: gpt-4o
+  slug: boulder-creek                    # this gate serves exactly one entity
+  note: "Running on a hosted API while the project's own hardware is being set up."
+
+# ---- the platform ------------------------------------------------------------------------
+platform:
+  base_url: https://<your-deployment>.vercel.app
+  pause_set_url: https://<your-deployment>.vercel.app/api/gate/pause-set
+  token_env: KAMI_PLATFORM_TOKEN
+  poll_seconds: 30
+  fail_closed: true                      # a guardian's pause must not be lost to a network blip
+
+# ---- the guard ---------------------------------------------------------------------------
+passthrough: false                       # never true anywhere a visitor can reach
+
+# Check it before starting anything:
+#   uv run --package kami-gate python -m entity_gate.check_upstream --config ~/.kami/gate.yaml
+#   bash scripts/kami-doctor --only upstream,gate
+#
+# Any other OpenAI-compatible provider is these same four keys with different values — which
+# is exactly what makes the swap to the Spark a config change and not a migration:
+#   upstream_url: http://127.0.0.1:8000, upstream_api_key_env: null, placement: owned, restart.

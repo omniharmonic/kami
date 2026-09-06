@@ -150,8 +150,9 @@ as `HERMES_GATEWAY_URL` in Vercel).
 Config comes from three places, in this order of precedence:
 
 1. the process environment;
-2. `.env` files next to the repo — `.env`, `.env.local`, `apps/web/.env.local`,
-   `infra/mac/kami.env`, `infra/box/.env` — which never override a real environment variable;
+2. `.env` files — `.env`, `.env.local`, `apps/web/.env.local`, `infra/box/.env` inside the
+   repo, and `~/.kami/kami.env` outside it (where the Mac's launchd agents read theirs) —
+   none of which ever overrides a real environment variable;
 3. `gate.yaml`, found at `$KAMI_GATE_YAML`, `apps/gate/gate.yaml`, `infra/mac/gate.yaml`,
    `~/.kami/gate.yaml` or `infra/box/gate.yaml`.
 
