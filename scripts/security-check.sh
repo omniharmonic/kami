@@ -22,6 +22,7 @@ run_check() {
     no-public-secrets)    bash "$CHECKS/no-public-secrets.sh" ;;
     no-chain-keys)        bash "$CHECKS/no-chain-keys.sh" ;;
     no-tracked-env)       bash "$CHECKS/no-tracked-env.sh" ;;
+    no-ignored-source)    bash "$CHECKS/no-ignored-source.sh" ;;
     treasury-mcp-keyless) node "$CHECKS/treasury-mcp-keyless.mjs" ;;
     profiles-no-chain-keys) bash "$ROOT/infra/box/tests/test_no_chain_keys.sh" ;;
     verify-markers)       node "$CHECKS/verify-markers.mjs" ;;
@@ -29,13 +30,14 @@ run_check() {
   esac
 }
 
-ALL="no-public-secrets no-chain-keys no-tracked-env treasury-mcp-keyless profiles-no-chain-keys verify-markers"
+ALL="no-public-secrets no-chain-keys no-tracked-env no-ignored-source treasury-mcp-keyless profiles-no-chain-keys verify-markers"
 
 describe() {
   case "$1" in
     no-public-secrets)      echo "no secret in a NEXT_PUBLIC_* variable or under any public/ dir (§10.2)" ;;
     no-chain-keys)          echo "no chain-key-shaped string outside .env.example and declared-ephemeral fixtures (X.1)" ;;
     no-tracked-env)         echo "no .env file tracked or staged by git (X.1)" ;;
+    no-ignored-source)      echo "no source file is excluded from the repo by .gitignore — it would work locally and 404 in production" ;;
     treasury-mcp-keyless)   echo "the treasury MCP declares no signing dependency and has three tools (ADR-E05)" ;;
     profiles-no-chain-keys) echo "no chain key in profiles/ or on the box — infra/box/tests/test_no_chain_keys.sh, reused not copied" ;;
     verify-markers)         echo "every docs/planning *verify* marker has a docs/verify.md row (REPORT ONLY, never fails)" ;;

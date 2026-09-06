@@ -16,7 +16,15 @@ __pycache__/
 .wrangler/
 playwright-report/
 test-results/
-state/
+# Operational state at the repo root only. This rule used to be an unanchored
+# `state/`, which cost two files: it swallowed
+# apps/web/src/app/api/entities/[slug]/state/route.ts — a live API route the
+# treasury MCP calls to check whether an entity is paused — and, because git
+# never descends into an excluded *directory*, it also silenced the working
+# `state/* + !state/config.example.json` pair in infra/chain/.gitignore. Both
+# files existed on every developer's disk and in no clone. scripts/checks/
+# no-ignored-source.sh now fails the build on the next one.
+/state/
 *.log
 .DS_Store
 /data-local/

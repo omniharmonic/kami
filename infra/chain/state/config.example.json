@@ -1,0 +1,18 @@
+{
+  "eas.attestation.EntityRegistered.boulder-creek": "0x<uid>",
+  "eas.schema.BountyCompleted": "0x<uid>",
+  "eas.schema.BountyPosted": "0x<uid>",
+  "eas.schema.EntityRegistered": "0x<uid>",
+  "eas.schema.ProposalOutcome": "0x<uid>",
+  "eas.schema.ReputationSnapshot": "0x<uid>",
+  "hats.tree.boulder-creek.Evaluator": "<hatId decimal>",
+  "hats.tree.boulder-creek.Guardian": "<hatId decimal>",
+  "hats.tree.boulder-creek.Steward": "<hatId decimal>",
+  "hats.tree.boulder-creek.VerifiedContributor": "<hatId decimal>",
+  "hats.tree.boulder-creek.topHat": "<hatId decimal>",
+  "hats.tree.platform.topHat": "<hatId decimal>",
+  "roles.boulder-creek.enableTxHash": "0x<safeTxHash>",
+  "roles.boulder-creek.module": "0x<address>",
+  "safe.boulder-creek.address": "0x<address>",
+  "safe.boulder-creek.proposer": "0x<address>"
+}
