@@ -1,0 +1,20 @@
+{
+  // Cloudflare Worker for the hosted twin MCP (Streamable HTTP, stateless).
+  // Checked in for the twin operator; never deployed from the Kami repo (ADR-E15).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "bioregionaltwin-mcp",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-08-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // "routes": [{ "pattern": "mcp.bioregionaltwin.org/*", "zone_name": "bioregionaltwin.org" }],
+  "vars": {
+    "TREE_BASE_URL": "https://data.bioregionaltwin.org",
+    "CONTACT": "contact@bioregionaltwin.org",
+    "BINDING_ORIGINS": ""
+  },
+  // Secrets (wrangler secret put): API_KEYS — comma-separated keys for the higher tier.
+  // Rate limiting: the in-memory bucket in worker.ts is per isolate. Replace with a
+  // Workers Rate Limiting binding when available on the plan (*verify*):
+  // "ratelimits": [{ "name": "RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 60, "period": 60 } }],
+  "observability": { "enabled": true }
+}

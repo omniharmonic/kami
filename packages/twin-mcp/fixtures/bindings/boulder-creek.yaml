@@ -1,0 +1,44 @@
+# Place-set binding for Boulder Creek — architecture §3, frozen against fixtures/public.
+schema_version: "1.0"
+binding_version: 3
+entity_id: entity/boulder-creek
+archetype: creek
+anchor: place/boulder-creek-near-orodell-co
+stream_id: null                              # place/boulder-creek when the twin mints stream places (TW-4)
+commons_handle: wiki/places/named/boulder-creek
+members:
+  - { id: place/boulder-creek-near-orodell-co, role: main_stem_gauge }
+  - { id: place/boulder-creek-co-below-broadway-st, role: main_stem_gauge }
+  - { id: place/boulder-creek-at-north-75th-st-near-boulder-co, role: main_stem_gauge }
+  - { id: place/boulder-creek-at-mouth-near-longmont-co, role: main_stem_gauge }
+  - { id: place/niwot, role: snotel }
+  - { id: place/lake-eldora, role: snotel }
+  - { id: place/university-camp-2, role: snotel }
+  - { id: place/gross-reservoir, role: reservoir }
+  - { id: place/leggett-valmont-reservoir, role: reservoir }
+  - { id: place/south-boulder-cr-at-forebay-nr-eldorado-springs-co, role: water_quality }
+  - { id: place/boulder-cu-2102-athens-st, role: air }
+  - { id: place/boulder-municipal-airport, role: weather }
+watersheds:
+  - watershed/huc10-1019000504
+  - watershed/huc10-1019000505
+  - watershed/huc10-1019000506
+  - watershed/huc10-1019000507
+reach_ids: []                                # nhdplusid strings from network/reaches.geojson (when published)
+boundary:                                    # URLs only; the platform stores no geometry
+  geometry_urls:
+    - https://data.bioregionaltwin.org/geom/watershed/huc10-1019000504.geojson
+    - https://data.bioregionaltwin.org/geom/watershed/huc10-1019000505.geojson
+    - https://data.bioregionaltwin.org/geom/watershed/huc10-1019000506.geojson
+    - https://data.bioregionaltwin.org/geom/watershed/huc10-1019000507.geojson
+needs:
+  - { need: flow,    property: discharge,        places: [place/boulder-creek-near-orodell-co], agg: single }
+  - { need: storage, property: reservoir_fill,   places: [place/gross-reservoir], agg: single }
+  - { need: snow,    property: swe,              places: [place/niwot], agg: single }
+  - { need: water,   property: dissolved_oxygen, places: [place/south-boulder-cr-at-forebay-nr-eldorado-springs-co], agg: single }
+  - { need: air,     property: pm25,             places: [place/boulder-cu-2102-athens-st], agg: mean_24h }
+  - { need: drought, property: dm,               places: [],  agg: max_intersecting }   # from latest/drought.geojson
+membership_rule: "watershed name contains 'Boulder Creek' + props.cdwr_stream_gnis_id == '00178354'"
+frozen_at: 2026-09-06T00:00:00Z
+reviewed_by: user_01J0000000000000000000FIX
+twin_index_etag: "\"fx-index\""

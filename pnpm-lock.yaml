@@ -32,6 +32,9 @@ importers:
       '@kami/binding':
         specifier: workspace:*
         version: link:../../packages/binding
+      '@kami/chain':
+        specifier: workspace:*
+        version: link:../../infra/chain
       '@kami/needs':
         specifier: workspace:*
         version: link:../../packages/needs

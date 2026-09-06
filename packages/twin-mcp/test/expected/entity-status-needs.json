@@ -1,0 +1,126 @@
+[
+  {
+    "need": "flow",
+    "property": "discharge",
+    "place_id": "place/boulder-creek-near-orodell-co",
+    "agg": "single",
+    "value": 15.4,
+    "unit": "[ft_i]3/s",
+    "time": "2026-09-04T20:15:00Z",
+    "stale": true,
+    "staleness_s": 117900,
+    "source_id": "cdss.telemetry",
+    "source_status": "critical",
+    "week": {
+      "min": 14.33,
+      "max": 18.56,
+      "trend": "falling"
+    },
+    "percentile_por": null,
+    "label": "Discharge"
+  },
+  {
+    "need": "storage",
+    "property": "reservoir_fill",
+    "place_id": "place/gross-reservoir",
+    "agg": "single",
+    "value": 72,
+    "unit": "%",
+    "time": "2026-09-06T04:45:00Z",
+    "stale": false,
+    "staleness_s": 900,
+    "source_id": "derived.fill",
+    "source_status": "ok",
+    "week": {
+      "min": 72,
+      "max": 75,
+      "trend": "falling"
+    },
+    "percentile_por": null,
+    "label": "Reservoir fill"
+  },
+  {
+    "need": "snow",
+    "property": "swe",
+    "place_id": "place/niwot",
+    "agg": "single",
+    "value": 0,
+    "unit": "[in_i]",
+    "time": "2026-09-02T06:00:00Z",
+    "stale": true,
+    "staleness_s": 342000,
+    "source_id": "nrcs.awdb",
+    "source_status": "warning",
+    "week": {
+      "min": 0,
+      "max": 0,
+      "trend": "flat"
+    },
+    "percentile_por": null,
+    "label": "Snow water equivalent"
+  },
+  {
+    "need": "water",
+    "property": "dissolved_oxygen",
+    "place_id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+    "agg": "single",
+    "value": 7.8,
+    "unit": "mg/L",
+    "time": "2026-09-06T04:45:00Z",
+    "stale": false,
+    "staleness_s": 900,
+    "source_id": "usgs.ogcapi.latest",
+    "source_status": "ok",
+    "week": {
+      "min": 7.72,
+      "max": 7.88,
+      "trend": "rising"
+    },
+    "percentile_por": null,
+    "label": "Dissolved oxygen"
+  },
+  {
+    "need": "air",
+    "property": "pm25",
+    "place_id": "place/boulder-cu-2102-athens-st",
+    "agg": "mean_24h",
+    "value": 2.91,
+    "unit": "ug/m3",
+    "time": "2026-09-04T06:00:00Z",
+    "stale": true,
+    "staleness_s": 169200,
+    "source_id": "epa.airnow",
+    "source_status": "critical",
+    "week": {
+      "min": 0.5,
+      "max": 5.82,
+      "trend": "falling"
+    },
+    "percentile_por": null,
+    "label": "PM2.5: Good",
+    "n": 25,
+    "note": "mean of 25 points in the 24 h ending 2026-09-04T06:00:00Z"
+  },
+  {
+    "need": "drought",
+    "property": "dm",
+    "place_id": null,
+    "agg": "max_intersecting",
+    "value": 1,
+    "unit": null,
+    "time": "2026-09-01T06:00:00Z",
+    "stale": false,
+    "staleness_s": 428400,
+    "source_id": "usdm.current",
+    "source_status": "ok",
+    "week": null,
+    "percentile_por": null,
+    "label": "Drought class: D1 · Moderate drought",
+    "place_ids": [
+      "watershed/huc10-1019000504",
+      "watershed/huc10-1019000505",
+      "watershed/huc10-1019000506",
+      "watershed/huc10-1019000507"
+    ]
+  }
+]

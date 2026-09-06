@@ -49,3 +49,7 @@ Carried from PRD Appendix C and architecture Appendix D. Tick as confirmed; cite
 | 43 | Zodiac Roles v2 mastercopy `0x9646fDAD06d3e24444381f44362a3B0eB343D337`, ModuleProxyFactory `0x000000000000aDdB49795b0f9bA5BC298cDda236`; condition-tree encoding and CREATE2 proxy derivation against the Roles SDK | WP10 → T3.5 | open | `evaluateConditions` is a local model, not the contract |
 | 44 | Safe: `addSafeDelegate` requires the delegator (owner) signature — confirmed by api-kit 5.0.3 types; `api.safe.global` now requires `SAFE_API_KEY`; Safe Allowance module on Base `0xAA46…091C`, none on Base Sepolia | WP10 | partly confirmed | |
 | 45 | `@ethereum-attestation-service/eas-sdk` 2.10.0 ESM build breaks under native Node (`lodash` named import); loaded via its CJS build in `infra/chain/src/eas-sdk.ts` | WP10 | confirmed | re-check on SDK upgrade |
+| 46 | `User-Agent` contact address `contact@bioregionaltwin.org` for the twin MCP | WP1 → twin operator | open | |
+| 47 | Transport: `@modelcontextprotocol/sdk` 1.30.0 `WebStandardStreamableHTTPServerTransport` for the Worker; `@modelcontextprotocol/server` 2.0.0 not adopted | WP1 | decided | revisit when the twin publishes |
+| 48 | Workers Rate Limiting binding availability; `ajv` uses `new Function` (forbidden on Workers) — swap `@cfworker/json-schema` for `resolve_entity` with `binding_url` before deploying the Worker | WP1 → twin deploy | open | |
+| 49 | Real WBD HUC-10/12 codes and shapes for Boulder Creek (fixture rectangles are synthetic; see row 32) | WP1/WP2 → live tree | open | |

@@ -1,0 +1,48 @@
+{
+  "name": "@bioregionaltwin/mcp",
+  "version": "0.1.0",
+  "description": "Read-only MCP server over the Front Range Bioregional Twin's published tree (data.bioregionaltwin.org). A pure function of static files: no database, no origin, no write path.",
+  "license": "Apache-2.0",
+  "author": "Front Range Bioregional Twin contributors",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "bioregionaltwin-mcp": "./dist/stdio.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/*": "./schemas/*"
+  },
+  "files": [
+    "dist",
+    "schemas",
+    "README.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "test:contract": "vitest run test/contract.test.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "refresh-fixtures": "tsx scripts/refresh-fixtures.ts && tsx scripts/write-expected.ts",
+    "embed-schemas": "tsx scripts/embed-schemas.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "yaml": "2.9.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260906.1",
+    "@types/node": "22.20.1",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7",
+    "wrangler": "4.129.0"
+  }
+}
