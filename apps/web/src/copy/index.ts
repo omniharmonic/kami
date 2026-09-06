@@ -693,3 +693,243 @@ export const govErrors: Record<string, string> = {
   hat_required: "Your role carries a Hat that could not be verified on chain.",
   generic: "Something went wrong on our side.",
 };
+
+/**
+ * The connect on-ramp — `/e/[slug]/connect` (PRD §4.5, §5 J1; architecture
+ * §6.2). Written for someone who is technically fluent and has never seen this
+ * system: each block says what a thing *is* before it says what to do with it,
+ * and names what breaks when it is got wrong.
+ *
+ * Two things this copy may never imply. First, that the platform can see or
+ * control the agent: it cannot: it can see only what an agent does when it
+ * calls a tool, which is why every status line is worded as arrival, not as
+ * health. Second, that a token can be recovered: the platform stores a hash, so
+ * a token that is not copied is gone, and the honest instruction is to mint
+ * another one.
+ */
+export const connect = {
+  link: "Connect a brain",
+  linkHint: "Only people with a role on this kami see this link.",
+  /** The step after summoning: a kami exists, and nothing is speaking for it yet. */
+  nextStep: "Connect your agent",
+  nextStepHint:
+    "Your kami exists, and nothing is speaking for it yet. The connect page gives you the endpoint, a scoped credential, the tool list and a bundle with its soul in it — for Hermes, for Claude Code, or for an agent you wrote yourself.",
+  title: (name: string) => `Connect an agent to ${name}`,
+  intro:
+    "This kami is a place on the platform: a binding to real gauges, a soul, a treasury, a page. It is not an agent. To give it a voice you point an agent you run at the platform's MCP endpoint with a bearer token scoped to this entity, and hand it the soul below. Any MCP-capable agent will do.",
+  cannotSee:
+    "The platform cannot see your agent, start it, stop it, or reach into the machine it runs on. Everything on this page is either something you copy out of here, or a record of something your agent did when it called a tool.",
+  roleSteward: "You hold the steward role for this kami.",
+  roleCreator: "You created this kami.",
+  roleAdmin: "You are a platform admin.",
+  roleGuardian:
+    "You hold the guardian role for this kami. You can read everything here; minting and rotating tokens stays with the steward and the creator, because each token is a live credential for this entity's write tools.",
+  noDb: "The database is not configured, so this page cannot show a bearer token, a bundle, or a status.",
+  paused: "This kami is paused. Its tools still list, but the gate refuses model traffic for it until two guardians wake it.",
+
+  tabs: {
+    label: "Connection path",
+    any: "Any MCP client",
+    anyHint: "The general path: an endpoint, a bearer token, a config file, a bundle. This is what the platform is.",
+    hermes: "Hermes",
+    hermesHint: "One worked example of the same thing, with the profile, crons and commands this project runs on its own box.",
+  },
+
+  // --- 1. what do I point my agent at? -------------------------------------
+  endpoint: {
+    heading: "1 · Where to point it",
+    what:
+      "One HTTP endpoint speaks MCP for every kami on this platform. Which kami you are talking to is decided entirely by which token you send: it carries the slug in the clear and is scoped to that entity and nothing else.",
+    endpointLabel: "MCP endpoint",
+    slugLabel: "Entity slug",
+    transport: "Transport: Streamable HTTP, stateless. No session id, JSON responses. Send your token as an Authorization header on every request.",
+    headerLabel: "Authorization header",
+    rate: "600 requests an hour per token. Over that you get a 429 with a retry-after; nothing is lost and nothing is punished.",
+  },
+
+  // --- the token -----------------------------------------------------------
+  token: {
+    heading: "The bearer token",
+    what:
+      "A bearer token scoped to this entity: `kami_<slug>_` and 48 hex characters of random. The platform stores only a sha256 of it, so it can check one but can never show you one again.",
+    noneYet: "No bearer token has been minted for this kami yet. Nothing can connect until one is.",
+    mint: "Mint a bearer token",
+    mintConsequence: "It is shown once, on this page, and then never again. Copy it into your agent's environment before you leave.",
+    existsHeading: "A bearer token exists",
+    mintedAt: (iso: string) => `Minted ${iso}.`,
+    age: (duration: string) => `${duration} old.`,
+    prefixLabel: "Prefix",
+    fingerprintLabel: "Fingerprint",
+    fingerprintWhat: "The first eight characters of the stored sha256 — enough to tell two tokens apart in a runbook, useless as a credential.",
+    wasRotated: "This token replaced an earlier one.",
+    shownOnceHeading: "Copy this now",
+    shownOnce:
+      "This is the only time this token will ever be displayed. It is not stored anywhere you can read it back. If you lose it, mint another one — which invalidates this one.",
+    copied: "Copied",
+    copy: "Copy",
+    hide: "I have copied it — hide",
+    hiddenAgain: "It is no longer on screen. Mint another one if you did not copy it.",
+    rotate: "Rotate this token",
+    rotateWarningHeading: "Rotating breaks the running agent",
+    rotateWarning:
+      "Minting again overwrites the stored hash. The one your agent is using now stops working on the next request — it will start getting 401s, and its pulses and drafts will stop arriving, until you put the new value in its environment and restart it.",
+    rotateConfirm: "I understand this stops the agent that is running now",
+    rotateGo: "Rotate anyway",
+    rotateCancel: "Cancel",
+    rotated: "Rotated. The previous token no longer works.",
+    minted: "Minted.",
+    cannotMint: "Minting and rotating are done by the steward or the creator of this kami.",
+    envHint: (tokenVar: string, slugVar: string, slug: string) =>
+      `Your agent reads it from its environment as ${tokenVar}, alongside ${slugVar}=${slug}. Keep it out of version control; it is a credential for this entity's write tools.`,
+  },
+
+  // --- 2. what can my agent do? --------------------------------------------
+  tools: {
+    heading: "2 · What it can do once connected",
+    what:
+      "Two MCP servers, listed here straight from their registries rather than written out by hand, so this page cannot drift from the code an agent actually talks to.",
+    platformHeading: "The platform MCP — nine tools",
+    platformWhat:
+      "Scoped to this entity by your token. It is how the agent learns what the platform has computed (needs, mood, caps, guardians) and how anything it writes reaches the page.",
+    twinHeading: (n: number) => `The twin MCP — ${n} tools`,
+    twinWhat:
+      "The Front Range Bioregional Twin's read-only server over its published tree. It runs on your machine over stdio, needs no credential from us, and reads the twin exactly as a browser does. No coordinate ever comes out of it.",
+    twinPackage: (pkg: string) => `Run it with npx ${pkg}; point it at the tree and at binding.json from the bundle.`,
+    read: "reads",
+    write: "changes something",
+    readWhat: "Returns data. Calling it twice changes nothing.",
+    writeWhat: "Writes to the platform: it appears on the page and in this kami's audit log.",
+    noneListed: "The tool registry could not be read, so nothing is listed. That is a fault on this page, not a statement about the servers.",
+    factRule:
+      "One rule cuts across all of them: every number the agent says has to have come back from a tool result in the same turn. The guard in front of the model drops sentences that carry numbers it cannot match, so a well-behaved agent calls a tool before it speaks.",
+    hermesIncluded: (n: number, total: number) => `The Hermes profile this project deploys includes ${n} of these ${total}.`,
+    includedLabel: "in the Hermes profile",
+  },
+
+  // --- 3. what is the brain supposed to be? --------------------------------
+  soul: {
+    heading: "3 · What this kami's brain is supposed to be",
+    what:
+      "SOUL.md is the agent's instructions, in two halves. The hard rules are the platform's, identical for every kami, and cannot be edited here or anywhere else. The voice block is this kami's own — at most three sentences, written when it was summoned, telling the agent how to sound and nothing else.",
+    hardRulesHeading: (version: number) => `Hard rules, version ${version} — locked`,
+    hardRulesWhat: "Rendered read-only. There is no code path in this app that writes them, and the gate enforces the parts of them a machine can check.",
+    voiceHeading: (version: number) => `Voice block, soul v${version}`,
+    voiceMissing: "This kami has no soul row yet, so there is nothing to render and no bundle to build.",
+    ifYouChange:
+      "If you edit the hard rules in your copy, you are running something else. Say so plainly; do not present it as this kami.",
+  },
+
+  bundle: {
+    heading: "The bundle",
+    what:
+      "One archive with everything an agent needs, rendered from the same database rows and templates the deploy path uses — so a bundle and a deployed profile cannot disagree about what this kami is.",
+    contains: "What is in it",
+    download: "Download the bundle (.zip)",
+    downloadHint: (filename: string) => `${filename} — a few tens of kilobytes of text.`,
+    view: "Show the files instead",
+    noToken:
+      "Your token is deliberately not in the bundle. mcp.json and .env.example carry the environment expansion, not a value, because a bundle is a file people email themselves and paste into issues.",
+    provenance: (binding: number | null, review: string, soulV: number, rules: number) =>
+      `Rendered from binding v${binding ?? "—"} (${review}), soul v${soulV}, hard rules v${rules}.`,
+    bindingPending:
+      "This binding has not been approved by a steward yet. The bundle renders anyway, but the hourly job does not compute a snapshot until it is, so the agent's needs calls will find nothing.",
+    unavailable: "The bundle cannot be built yet.",
+  },
+
+  // --- 4. is it working? ---------------------------------------------------
+  status: {
+    heading: "4 · Is it working?",
+    what:
+      "Six things the platform can honestly report. Each is either not set up, set up and waiting, or seen at a time. None of them is a health check on your agent — the platform has no way to run one.",
+    refreshing: "Checking every few seconds.",
+    refreshFailed: "The status check did not answer. It will try again; nothing is wrong with your agent because of this.",
+    lastChecked: (iso: string) => `Last checked ${iso}.`,
+    stateWaiting: "waiting",
+    stateSeen: "seen",
+    stateNotConfigured: "not set up",
+    seenAt: (iso: string, ago: string) => `${iso} · ${ago} ago`,
+    signals: {
+      token: {
+        label: "A bearer token exists",
+        waiting: "No token has been minted.",
+        notConfigured: "Mint one above. Nothing else on this list can happen first.",
+        seen: "Minted. This says nothing about whether anything has used it.",
+      },
+      mcp_call: {
+        label: "That token has been used",
+        waiting: "It exists and no request has arrived with it yet. Start your agent, or call tools/list by hand to prove the path.",
+        notConfigured: "Nothing has been minted yet, so there is nothing to have been used.",
+        seen: "A request authenticated with this token arrived. This is the moment the connection is real.",
+        note: "Recorded by the rate limiter, which runs on every authenticated request — reads included. It does not record which tool was called.",
+      },
+      mcp_tool: {
+        label: "A tool changed something",
+        waiting: "Nothing has been written yet. Read-only calls never appear here, so an agent can be perfectly healthy and this line can stay empty for hours.",
+        notConfigured: "Nothing has been minted yet.",
+        seen: "The most recent write reaching the platform.",
+        tool: (name: string) => `via ${name}`,
+      },
+      pulse: {
+        label: "A pulse has been posted",
+        waiting: "No pulse yet. A pulse is the agent's hourly heartbeat: it looks, and speaks only if something changed. Nothing changing is the common and correct outcome, so silence here is not a fault — but a first pulse is how you know the loop runs.",
+        notConfigured: "No pulse yet.",
+        seen: "The last pulse stored.",
+        spoke: "it wrote something",
+        silent: "it looked and stayed quiet",
+      },
+      gate: {
+        label: "The gate is reporting",
+        waiting: "A profile on disk names a model, but the gate itself has not reported. That names a request for a model, not a measurement of one.",
+        notConfigured: "Nothing has reported where the model runs. Until something does, the public page says it does not know, rather than guessing.",
+        seen: "The proxy in front of the model reported where it runs.",
+        note: "This is about the model serving chat, not about your agent. An agent can be connected while this stays empty.",
+      },
+      chat: {
+        label: "The chat path is configured",
+        waiting: "A gateway is configured and the box has not said hello yet.",
+        notConfigured: "HERMES_GATEWAY_URL is unset or 'fake:', so the public chat answers from a fake gateway. Set it to a real gateway to make the chat path live.",
+        seen: "The box's last heartbeat.",
+      },
+    } as Record<string, { label: string; waiting: string; notConfigured: string; seen: string; note?: string; tool?: (name: string) => string; spoke?: string; silent?: string }>,
+  },
+
+  // --- the Hermes worked example -------------------------------------------
+  hermes: {
+    heading: "Hermes — one worked example",
+    what:
+      "Hermes is the agent runtime this project runs on its own box. Nothing above changes for it: it is an MCP client like any other, and it reads the same endpoint, the same token and the same soul. What is extra is the profile format, the five cron jobs, and the deploy script that renders them.",
+    configHeading: "config.yaml",
+    configWhat:
+      "Rendered from profiles/templates/config.yaml.tmpl for this entity. The model base URL points at the gate, never at vLLM directly — the gate is what enforces budgets, the pause set and the fact guard.",
+    envHeading: ".env",
+    envWhat: "Two variables, written with mode 600 next to the profile. No chain key may ever live in a profile directory: the agent never signs.",
+    cronHeading: "The five cron jobs",
+    cronWhat: "Rendered from profiles/templates/cron.yaml into one hermes cron add call each. Times are America/Denver.",
+    commandsHeading: "Copy-paste",
+    commandsWhat: "From docs/deploy/first-entity.md, checkpoint 2. Run them from the repository root on the machine that will host the agent.",
+    commands: (slug: string) => [
+      `export PLATFORM_MCP_TOKEN=…        # the value shown once above`,
+      `pnpm --filter @kami/profile-scripts run deploy-profile ${slug} --dry-run`,
+      `pnpm --filter @kami/profile-scripts run deploy-profile ${slug} --host localhost`,
+      `bash infra/mac/install.sh --only hermes`,
+      `bash scripts/kami-doctor --only hermes`,
+      `hermes cron run pulse --profile ${slug}     # the first pulse`,
+    ],
+    jobsLabel: "job",
+    scheduleLabel: "schedule",
+    unverified:
+      "The Hermes CLI flags below are this repository's plan, not a confirmed contract — they are unverified against a live install (docs/verify.md #1, #25). If a subcommand does not exist on your Hermes, that is a question to answer, not a bug to chase.",
+    provisionNote:
+      "The platform can also render and push this profile for you: POST /api/admin/profiles with this slug. That path mints its own, which rotates the one on this page.",
+  },
+
+  errors: {
+    forbidden: "You do not hold a role on this kami.",
+    not_found: "There is no kami at that address.",
+    no_db: "The database is not configured.",
+    no_binding: "This kami has no approved binding row yet, so there is nothing to bind an agent to.",
+    no_soul: "This kami has no soul row yet.",
+    confirm_required: "Rotating needs the confirmation box ticked first.",
+    generic: "Something went wrong on our side. Nothing was changed.",
+  } as Record<string, string>,
+} as const;
