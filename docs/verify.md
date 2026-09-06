@@ -28,3 +28,7 @@ Carried from PRD Appendix C and architecture Appendix D. Tick as confirmed; cite
 | 22 | Nederland guardians / Tribal offices | owner conversation | open | gates public launch |
 | 23 | Season snowline nudge thresholds (`RUNOFF_SNOWLINE_M` 2400 m, `FREEZE_SNOWLINE_M` 2000 m) in `packages/needs/src/season.ts` | WP3 | open | first guess; date decides, snowline only nudges edges |
 | 24 | Placeholder DO / pm25 / snow values and times in `packages/needs/test/fixtures/boulder-creek-2026-09-06.json` | WP3 → WP16 | open | replace with the twin-mcp fixture tree values once WP1 lands |
+| 25 | Hermes image name/tag (`nousresearch/hermes-agent:v0.21.0` vs `v2026.8.31`); `hermes cron add/remove/run/doctor` flag names mapped in `profiles/templates/cron.yaml`; reload without restart; `POST /api/jobs/pause`; `paused:` profile key; `gateway.multiplex_profiles` key path; API server env names; unprivileged image user | WP5 → T0.3 on the box | open | runbook table in `infra/box/README.md` |
+| 26 | Pinned container tags in `infra/box/.env.example` (cloudflared 2025.8.1, otel-collector-contrib 0.135.0, tailscale v1.86.2, uv 0.9.5) | WP5 | open | |
+| 27 | `UV_PROJECT=/opt/kami/treasury-mcp` so the template's verbatim `uv run treasury-mcp` resolves inside the Hermes container | WP5/WP10 | open | |
+| 28 | `PLATFORM_URL` production value (no platform domain decided) | owner | open | dev default `http://127.0.0.1:3000` |
