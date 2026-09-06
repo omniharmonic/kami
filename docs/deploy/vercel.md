@@ -17,7 +17,7 @@ The repo is a pnpm monorepo; the deployable app is `apps/web`.
 * **Framework preset** Next.js. **Root Directory** `apps/web`.
 * **Install command** `pnpm install --frozen-lockfile` (run from the repo root — Vercel does
   this when the root directory is set and `pnpm-workspace.yaml` is detected).
-* **Build command** `pnpm -w run build:packages && next build`, declared in
+* **Build command** `pnpm -w run build:packages && pnpm run build`, declared in
   `apps/web/vercel.json` so it is committed rather than typed into a dashboard.
   The first half is not optional: the five `@kami/*` workspace packages resolve
   to `./dist/index.js`, `dist/` is gitignored, and `pnpm install` links workspace

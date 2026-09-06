@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm -w run build:packages && next build",
+  "buildCommand": "pnpm -w run build:packages && pnpm run build",
   "crons": [
     {
       "path": "/api/cron/needs",
