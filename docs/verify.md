@@ -15,7 +15,7 @@ Carried from PRD Appendix C and architecture Appendix D. Tick as confirmed; cite
 | 9 | EAS `multiTimestamp`; GraphQL endpoint for Base | WP10/WP12 | open | |
 | 10 | Hats `isWearerOfHat`; Human Passport v2 scale | WP11 | open | |
 | 11 | Privy limits/pricing; EIP-712 from embedded wallets | WP11 | open | |
-| 12 | Better Auth 1.7 magic-link plugin; Neon Auth fallback | WP6 | open | better-auth 1.7.3 on npm |
+| 12 | Better Auth 1.7 magic-link plugin; Neon Auth fallback | WP6 | **confirmed (sandbox)** | better-auth@1.7.3: `better-auth/plugins/magic-link`, `better-auth/adapters/drizzle`, `hooks.before` sees the raw body; `apps/web/src/lib/__tests__/auth.test.ts` signs in, verifies, and checks the 30-day cookie against PGlite. Not yet exercised against Resend or a browser |
 | 13 | Stripe USDC payout availability; stablecoin checkout fee | WP11 | open | |
 | 14 | Coinbase off-ramp; gasless USDC scope | WP11 | open | |
 | 15 | Rive plan tiers/licence; data-binding API | WP8 | open | @rive-app/react-canvas 4.34.1 |
@@ -35,3 +35,12 @@ Carried from PRD Appendix C and architecture Appendix D. Tick as confirmed; cite
 | 29 | vLLM emits `usage` in the final streamed chunk with `stream_options.include_usage` (gate falls back to a chars/4 estimate) | WP4 → box | open | |
 | 30 | Platform pause-set endpoint shape consumed by the gate (`{"paused": [slug…]}`, bearer `KAMI_PLATFORM_TOKEN`) | WP7 | open | align when `/api/gate/pause-set` lands |
 | 31 | `KAMI_ENTITY_CONFIG:` system-message convention (platform-injected caps/guardian names the guard admits as atoms) | WP5/WP7 | open | |
+| 23 | Next 16 `proxy.ts` (renamed middleware) rewriting `POST /e/[slug]/chat` → `/api/e/[slug]/chat`; a page and a route handler cannot share a segment | WP6 | open | `PROXY_FILENAME = 'proxy'` in next@16.3.4 constants; rewrite preserves method+body per Next docs — confirm on a Vercel preview |
+| 24 | `CREATE ROLE kami_app` from the migration on Neon (owner role has CREATEROLE?) | WP6 | open | migration 0002 is guarded with IF NOT EXISTS; the append-only trigger holds regardless of role |
+| 25 | SB 243 reminder cadence (`config.reminder_every_turns`, default 12) for minors | WP6 / counsel | open | counted by the web app in `chat_sessions.turns` |
+| 26 | Gate `event: toolcalls` payload shape `{calls: [{tool, place_id, time, source_id, stale, source_status?}], guard_dropped}` as assumed by `apps/web/src/lib/gateway.ts` | WP4 ↔ WP6 | open | the fake gateway emits this shape; align with `apps/gate` |
+| 27 | `@neondatabase/serverless` Pool over WebSocket on Vercel Node runtime (no `ws` shim needed on Node 22) | WP6 | open | chosen for interactive transactions (`appendEntityEvent`) |
+| 32 | Orodell's live `huc12` is `101900050301` (HUC-10 `1019000503`), outside the binding's `…0504–0507`; the canonical binding may need `watershed/huc10-1019000503` or will warn on rule 5 | WP2 → live tree | open | fixture HUC-12s are synthetic |
+| 33 | Twin ids `place/lake-eldora`, `place/university-camp-2`, `place/union-reservoir`, `place/leggett-valmont-reservoir`, `place/six-mile-reservoir` exist under those slugs with `swe` / `reservoir_storage` | WP2 → live tree | open | slug guesses from PRD App. B |
+| 34 | Forebay WQ site has no `discharge` datastream (else `proposeBinding` classifies it `gauge`) | WP2 | open | |
+| 35 | `SOURCE_THRESHOLDS` in `packages/twin-client` is a transcription of `sources.seed.yaml`; prefer `latest/health.json` at runtime | WP2 | open | code already prefers health.json |

@@ -1,0 +1,35 @@
+{
+  "name": "@kami/binding",
+  "version": "0.1.0",
+  "description": "Place-set binding (architecture §3): schema, loader, validator (rules 1–6), canonical sha256, supersession check and the platform's membership proposer.",
+  "license": "Apache-2.0",
+  "author": "Benjamin Life (@omniharmonic)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schemas/*": "./schemas/*"
+  },
+  "files": ["dist", "schemas"],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@kami/twin-client": "workspace:*",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "yaml": "2.9.0",
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

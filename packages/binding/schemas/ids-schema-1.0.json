@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://data.bioregionaltwin.org/id/schema/place-1.0.json",
+  "title": "Front Range identity registry entry",
+  "description": "The ENTIRE coupling surface between the twin and Prism. One ID string, one schema, two URL templates. No shared database, no shared library, no runtime call in either direction.",
+  "type": "object",
+  "required": ["schema_version", "id", "kind", "name", "generated_at"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z_]+/[a-z0-9-]+$",
+      "description": "Canonical ID, e.g. 'place/boulder-creek'. Immutable once published; aliased on rename; never reused."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["bioregion","watershed","stream_reach","waterbody","lake","reservoir",
+               "peak","ridge","trail","protected_area","forest_stand","ecological_system",
+               "monitoring_site","municipality","county","fire_event","flood_event",
+               "restoration_site","other"]
+    },
+    "name":       { "type": "string" },
+    "huc12":      { "type": "string", "pattern": "^[0-9]{12}$" },
+    "bbox":       { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 },
+    "sensitivity":{ "type": "string", "enum": ["public", "generalized"] },
+    "geometry_url": { "type": "string", "format": "uri" },
+    "latest_url":   { "type": "string", "format": "uri" },
+    "twin_url":     { "type": "string", "format": "uri" },
+    "commons_url":  { "type": "string", "format": "uri" },
+    "sameAs":     { "type": "array", "items": { "type": "string", "format": "uri" } },
+    "generated_at": { "type": "string", "format": "date-time" }
+  }
+}

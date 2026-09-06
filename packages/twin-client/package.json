@@ -1,0 +1,30 @@
+{
+  "name": "@kami/twin-client",
+  "version": "0.1.0",
+  "description": "Typed, read-only GET client for the Front Range Bioregional Twin's published tree (ADR-E01): ETag cache, 60 s per-path floor, User-Agent with contact, both staleness dialects, local-dir mode for fixtures.",
+  "license": "Apache-2.0",
+  "author": "Benjamin Life (@omniharmonic)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "zod": "4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}

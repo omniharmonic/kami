@@ -1,0 +1,68 @@
+# Boulder Creek — place-set binding (architecture §3; PRD §4.2, Appendix B).
+#
+# Every id below is minted by the Front Range Bioregional Twin and read from
+# id/index.json; the platform never invents one. Membership is the platform's
+# guess (name match + props.cdwr_stream_gnis_id) until a steward freezes it —
+# reviewed_by stays null until then. The reach this entity speaks for (Barker
+# Reservoir to the Boulder/Weld line) is an owner decision: consult Nederland's
+# Boulder Creek guardians before naming it (PRD §11 #1). Ids are subject to
+# supersession; `checkSupersession` drafts the follow-on version.
+#
+# Validated by @kami/binding against schemas/place-set-binding-1.0.json and the
+# twin's ids-schema (rules 1–6). No geometry lives here — URLs only.
+
+schema_version: "1.0"
+binding_version: 1
+entity_id: entity/boulder-creek
+archetype: creek
+anchor: place/boulder-creek-near-orodell-co
+stream_id: null                     # place/boulder-creek once the twin mints stream places (PRD §9.1 #4)
+commons_handle: wiki/places/named/boulder-creek
+
+members:
+  # the four canyon-mouth-to-mouth main-stem gauges — CDSS, not USGS (twin rule #2)
+  - { id: place/boulder-creek-near-orodell-co,                    role: main_stem_gauge, name: "Boulder Creek near Orodell" }
+  - { id: place/boulder-creek-co-below-broadway-st,               role: main_stem_gauge, name: "Boulder Creek below Broadway" }
+  - { id: place/boulder-creek-at-north-75th-st-near-boulder-co,   role: main_stem_gauge, name: "Boulder Creek at North 75th St" }
+  - { id: place/boulder-creek-at-mouth-near-longmont-co,          role: main_stem_gauge, name: "Boulder Creek at the mouth" }
+  # SNOTEL
+  - { id: place/niwot,                                            role: snotel,          name: "Niwot" }
+  - { id: place/lake-eldora,                                      role: snotel,          name: "Lake Eldora" }
+  - { id: place/university-camp-2,                                role: snotel,          name: "University Camp" }
+  # reservoirs
+  - { id: place/gross-reservoir,                                  role: reservoir,       name: "Gross Reservoir" }
+  - { id: place/union-reservoir,                                  role: reservoir,       name: "Union Reservoir" }
+  - { id: place/leggett-valmont-reservoir,                        role: reservoir,       name: "Leggett-Valmont Reservoir" }
+  - { id: place/six-mile-reservoir,                               role: reservoir,       name: "Six Mile Reservoir" }
+  # water quality — DO, pH, turbidity, conductance, water temp
+  - { id: place/south-boulder-cr-at-forebay-nr-eldorado-springs-co, role: water_quality, name: "South Boulder Creek at the forebay" }
+  # air
+  - { id: place/boulder-cu-2102-athens-st,                        role: air,             name: "Boulder CU, 2102 Athens St" }
+
+watersheds:
+  - watershed/huc10-1019000504        # Headwaters Boulder Creek
+  - watershed/huc10-1019000505        # South Boulder Creek
+  - watershed/huc10-1019000506        # Coal Creek-Boulder Creek
+  - watershed/huc10-1019000507        # Boulder Creek-Saint Vrain
+
+reach_ids: []                         # nhdplusid strings from network/reaches.geojson, when published
+
+boundary:                             # URLs only; the platform stores no geometry
+  geometry_urls:
+    - https://data.bioregionaltwin.org/geom/watershed/huc10-1019000504.geojson
+    - https://data.bioregionaltwin.org/geom/watershed/huc10-1019000505.geojson
+    - https://data.bioregionaltwin.org/geom/watershed/huc10-1019000506.geojson
+    - https://data.bioregionaltwin.org/geom/watershed/huc10-1019000507.geojson
+
+needs:                                # architecture §9 turns these into meters
+  - { need: flow,    property: discharge,        places: [place/boulder-creek-near-orodell-co],                      agg: single,           weight: 1 }
+  - { need: storage, property: reservoir_fill,   places: [place/gross-reservoir],                                    agg: single,           weight: 1 }
+  - { need: snow,    property: swe,              places: [place/niwot],                                              agg: single,           weight: 0.5 }
+  - { need: water,   property: dissolved_oxygen, places: [place/south-boulder-cr-at-forebay-nr-eldorado-springs-co], agg: single,           weight: 0.5 }
+  - { need: air,     property: pm25,             places: [place/boulder-cu-2102-athens-st],                          agg: mean_24h,         weight: 0.5 }
+  - { need: drought, property: dm,               places: [],                                                         agg: max_intersecting, weight: 1 }   # from latest/drought.geojson
+
+membership_rule: "watershed name contains 'Boulder Creek' + props.cdwr_stream_gnis_id == '00178354'"
+frozen_at: 2026-09-06T00:00:00Z
+reviewed_by: null                     # steward who froze it; null while this is the platform's guess
+twin_index_etag: null                 # id/index.json ETag at freeze; set when frozen against the live tree

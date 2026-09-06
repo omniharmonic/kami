@@ -1,0 +1,1 @@
+{"basis":[{"elevation_m":3021,"id":"place/niwot","snow_depth_cm":0,"stale":true,"swe_mm":0,"time":"2026-09-04T06:00:00Z"}],"generated_at":"2026-09-06T06:00:00Z","opacity":0,"rule":"lowest elevation at which ≥2 of the 3 nearest-by-elevation SNOTEL sites report snow depth > 0; opacity = median SWE above the line / 300 mm, capped at 1","schema_version":"1.0","stale":true}
