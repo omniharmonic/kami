@@ -290,8 +290,10 @@ def build() -> list[dict]:
         "A commons note this turn records Brown trout in Boulder Creek — Front Range Knowledge "
         "Commons, CC BY-SA. " + FALLBACK, [], [species_note("Brown trout", "Salmo trutta",
                                                               "brown-trout")])
-    # the hard rules' verbatim attribution carries a number the guard strikes (finding #4)
-    add(fresh[9], "licence_attribution", "drop_some", "what lives in the creek?",
+    # A licence identifier is a proper noun, not a measurement: the guard claims the
+    # "CC BY-SA 4.0" span before reading numbers, so the attribution the hard rules
+    # require survives intact (factguard LICENCE_RE).
+    add(fresh[9], "licence_attribution", "release_all", "what lives in the creek?",
         f"{fresh[9].flow_sentence()} A commons note records Brown trout here — Front Range "
         "Knowledge Commons, CC BY-SA 4.0.", [], [species_note("Brown trout", "Salmo trutta",
                                                               "brown-trout")])

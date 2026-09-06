@@ -68,6 +68,19 @@ WEEKDAY_RE = re.compile(r"\b(?P<w>monday|tuesday|wednesday|thursday|friday|satur
 RELDAY_RE = re.compile(r"\b(?P<w>today|yesterday|tonight|this morning|this afternoon|this evening)\b",
                        re.IGNORECASE)
 DROUGHT_RE = re.compile(r"\bD(?P<n>[0-4])\b")
+# Licence identifiers are proper nouns naming a legal document, not measurements.
+# The version number in "CC BY-SA 4.0" asserts nothing about a place, so a
+# sentence carrying the attribution the soul requires must not be dropped for
+# want of a "4.0" atom. These spans are claimed before any number is read.
+LICENCE_RE = re.compile(
+    r"\b(?:CC[\s-]?BY(?:[\s-]?(?:SA|NC|ND))*[\s-]?\d(?:\.\d+)?"
+    r"|CC0(?:[\s-]?\d(?:\.\d+)?)?"
+    r"|Apache(?:[\s-]?License)?[\s-]?\d(?:\.\d+)?"
+    r"|ODbL(?:[\s-]?\d(?:\.\d+)?)?"
+    r"|GPL(?:v?\d(?:\.\d+)?)?"
+    r"|MIT[\s-]?License)\b",
+    re.IGNORECASE,
+)
 NUMBER_RE = re.compile(rf"(?<![\w./:-])(?P<n>{_NUM})(?![\w/-])")
 SPELLED_RE = re.compile(
     rf"\b(?P<w>(?:{_tens_alt})[- ](?:{_ones_alt})|{_spelled_alt})\b", re.IGNORECASE)
@@ -148,6 +161,11 @@ def extract_candidates(sentence: str, *, gazetteer: Gazetteer | None = None,
     def add(c: Candidate) -> None:
         spans.take(*c.span)
         out.append(c)
+
+    # 0. Licence identifiers: claim the span so the version number inside it is
+    #    never read as a measurement (see LICENCE_RE).
+    for m in LICENCE_RE.finditer(text):
+        spans.take(*m.span())
 
     # 1. ISO dates / datetimes
     for m in ISO_RE.finditer(text):

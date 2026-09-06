@@ -1,5 +1,7 @@
 from datetime import date
 
+import pytest
+
 from factguard import Gazetteer, extract_candidates
 
 
@@ -68,3 +70,26 @@ def test_echo_tag_from_last_user_message():
 def test_drought_class_candidate():
     c = extract_candidates("We are in D1, not D3.")
     assert [(x.kind, x.value) for x in c] == [("enum", 1), ("enum", 3)]
+
+
+# --- licence identifiers are proper nouns, not measurements -------------------
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "That explanation comes from the Front Range Knowledge Commons, CC BY-SA 4.0.",
+        "The prose is CC BY-SA 4.0 and the facts are CC0 1.0.",
+        "My code is Apache-2.0.",
+        "Attribution: Front Range Bioregional Twin, CC BY 4.0.",
+    ],
+)
+def test_licence_version_is_not_a_candidate(sentence: str) -> None:
+    cands = extract_candidates(sentence)
+    assert [c for c in cands if c.kind == "number"] == []
+
+
+def test_a_real_number_beside_a_licence_is_still_read() -> None:
+    cands = extract_candidates("Flow is 15.4 cfs; the prose is CC BY-SA 4.0.")
+    numbers = [c.value for c in cands if c.kind == "number"]
+    assert numbers == [15.4]
