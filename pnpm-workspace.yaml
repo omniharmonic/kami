@@ -2,4 +2,5 @@ packages:
   - apps/web
   - packages/*
   - profiles/scripts
+  - infra/chain
   - e2e

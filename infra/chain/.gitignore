@@ -1,0 +1,5 @@
+# Deployed addresses / UIDs per chain live here; only the example is tracked.
+state/*
+!state/config.example.json
+# standalone-install artefacts (the package is meant to be a pnpm workspace member)
+pnpm-lock.yaml
