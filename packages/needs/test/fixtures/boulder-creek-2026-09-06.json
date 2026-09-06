@@ -1,0 +1,32 @@
+{
+  "_comment": "The all-stale 2026-09-06 local build (PRD Appendix B worked example; architecture ADR-E11). Every water reading stale, Orodell 118,000 s behind, nws.alerts critical, drought D0–D1 intersecting, Gross Reservoir 72 % of normal. Values not in the docs (DO, pm25 last value, times) are placeholders marked *verify*.",
+  "entity_id": "entity/boulder-creek",
+  "now": "2026-09-06T05:02:00Z",
+  "specs": [
+    { "need": "flow", "property": "discharge", "places": ["place/boulder-creek-near-orodell-co"], "agg": "single", "place_label": "Orodell" },
+    { "need": "storage", "property": "reservoir_fill", "places": ["place/gross-reservoir"], "agg": "single", "place_label": "Gross Reservoir" },
+    { "need": "snow", "property": "swe", "places": ["place/niwot"], "agg": "single", "place_label": "Niwot" },
+    { "need": "water", "property": "dissolved_oxygen", "places": ["place/south-boulder-cr-at-forebay-nr-eldorado-springs-co"], "agg": "single", "place_label": "the South Boulder forebay" },
+    { "need": "air", "property": "pm25", "places": ["place/boulder-cu-2102-athens-st"], "agg": "mean_24h", "place_label": "Athens St" },
+    { "need": "drought", "property": "dm", "places": [], "agg": "max_intersecting" },
+    { "need": "alerts", "property": "alert_count", "places": [], "agg": "max_intersecting" }
+  ],
+  "readings": {
+    "flow": { "value": 15.4, "unit": "[ft_i]3/s", "time": "2026-09-04T20:15:00Z", "source_id": "cdss.telemetry", "stale": true, "staleness_s": 118000, "source_status": "critical", "context": null, "series_summary": null },
+    "storage": { "value": 72, "unit": "%", "time": "2026-09-05T06:00:00Z", "source_id": "cdss.reservoirs", "stale": false, "staleness_s": 82920, "source_status": "ok", "context": null, "series_summary": { "min": 71, "max": 73, "last": 72, "trend": "flat", "n": 7 } },
+    "snow": { "value": 0, "unit": "[in_i]", "time": "2026-09-05T12:00:00Z", "source_id": "nrcs.awdb", "stale": false, "staleness_s": 61320, "source_status": "ok", "context": null, "series_summary": null },
+    "water": { "value": 7.9, "unit": "mg/L", "time": "2026-09-04T18:00:00Z", "source_id": "usgs.iv", "stale": true, "staleness_s": 126120, "source_status": "critical", "context": null, "series_summary": null },
+    "air": { "value": 6.2, "unit": "ug/m3", "time": "2026-09-04T22:00:00Z", "source_id": "airnow", "stale": true, "staleness_s": 111720, "source_status": "critical", "context": null, "series_summary": null },
+    "drought": { "value": 1, "unit": "{dm}", "time": "2026-09-02T12:00:00Z", "source_id": "usdm.current", "stale": false, "staleness_s": 320520, "source_status": "ok", "context": null, "series_summary": null },
+    "alerts": { "value": 0, "unit": "{count}", "time": "2026-09-04T21:00:00Z", "source_id": "nws.alerts", "stale": true, "staleness_s": 115320, "source_status": "critical", "context": null, "series_summary": null }
+  },
+  "live": {
+    "drought_class": 1,
+    "alerts": [],
+    "flood_category": null,
+    "fires_inside": 0,
+    "bounty_completed_in_24h": false
+  },
+  "gpu_online": true,
+  "paused": false
+}

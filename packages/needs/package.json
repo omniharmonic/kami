@@ -1,0 +1,28 @@
+{
+  "name": "@kami/needs",
+  "version": "0.1.0",
+  "description": "Pure, no-I/O computation of the typed HealthSnapshot (architecture §9): health bands, season, mood rules 1–7 with hysteresis, Rive inputs, snapshot hash and deltas.",
+  "license": "Apache-2.0",
+  "author": "Benjamin Life (@omniharmonic)",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "fast-check": "4.9.0",
+    "typescript": "5.9.3",
+    "vitest": "3.2.7"
+  }
+}
