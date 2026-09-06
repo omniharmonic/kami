@@ -24,6 +24,7 @@ class FakeUpstream:
         self.piece = piece
         self.usage = usage
         self.requests: list[dict[str, Any]] = []
+        self.request_headers: list[dict[str, str]] = []
         self.app = Starlette(routes=[
             Route("/v1/chat/completions", self.handle, methods=["POST"])])
 
@@ -40,6 +41,7 @@ class FakeUpstream:
     async def handle(self, request: Request):
         body = await request.json()
         self.requests.append(body)
+        self.request_headers.append({k.lower(): v for k, v in request.headers.items()})
         reply = self._next_reply()
         prompt_tokens = len(json.dumps(body)) // 4
         if body.get("stream"):

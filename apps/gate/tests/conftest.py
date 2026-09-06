@@ -33,16 +33,20 @@ class Gate:
 def make_gate(tmp_path):
     clients: list[httpx.AsyncClient] = []
 
-    def _make(fake, **overrides) -> Gate:
+    def _make(fake, *, env: dict[str, str] | None = None, telemetry=None,
+              **overrides) -> Gate:
         gaz = tmp_path / "gazetteer.json"
         gaz.write_text(json.dumps(GAZETTEER))
         cfg = {"upstream_url": "http://upstream", "events_dir": str(tmp_path / "events"),
-               "gazetteer_path": str(gaz)}
+               "gazetteer_path": str(gaz),
+               "provenance": {"placement": "owned", "provider": "the in-process fake"}}
         cfg.update(overrides)
         config = GateConfig.model_validate(cfg)
         up = httpx.AsyncClient(transport=httpx.ASGITransport(app=fake.app),
                                base_url="http://upstream")
-        app = create_app(config, upstream_client=up, clock=lambda: NOW, telemetry=NullTelemetry())
+        app = create_app(config, upstream_client=up, clock=lambda: NOW,
+                         telemetry=telemetry or NullTelemetry(),
+                         env=env if env is not None else {})
         client = httpx.AsyncClient(
             transport=httpx.ASGITransport(app=app, client=("127.0.0.1", 40000)),
             base_url="http://gate")

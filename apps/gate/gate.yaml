@@ -1,5 +1,24 @@
 # entity-gate configuration (architecture §5.4, §5.7, ADR-E12; plan T0.4/T0.10)
+
+# ---- upstream ---------------------------------------------------------------------------
+# The default is the local vLLM on the GPU box. For a hosted OpenAI-compatible API see
+# "Pointing the gate at a hosted API" in README.md.
 upstream_url: http://127.0.0.1:8000        # vLLM
+upstream_api_key_env: null                 # NAME of an env var holding the key; never the key
+upstream_headers: {}                       # extra static headers (e.g. HTTP-Referer for OpenRouter)
+upstream_model: null                       # what the upstream calls the model, when it differs
+request_timeout_s: 300                     # loopback answers in ms; a hosted API queues and cold-starts
+
+# ---- provenance: where the model that answers actually runs -------------------------------
+# `placement` is required and has no default. The public "how I work" page renders what the
+# gate reports here, so a gate that cannot say where its model runs does not start.
+provenance:
+  placement: owned                         # owned | rented | hosted
+  provider: "vLLM on the GPU box"
+  model: null                              # falls back to upstream_model, then the request's model
+  slug: null                               # set when this gate serves exactly one entity
+  note: null                               # one honest sentence the public page may quote
+
 listen: 127.0.0.1:8001
 admin_secret_env: GATE_ADMIN_SECRET        # env var holding the X-Gate-Admin shared secret
 passthrough: false                         # true = skip the guard (UI dev). Never skips pause.
@@ -24,11 +43,13 @@ concurrency:
 paused: []                                 # seed pause list; admin pushes and the platform poll add to it
 
 platform:
+  base_url: null                           # e.g. https://kami.example — derives provenance_url
   pause_set_url: null                      # e.g. https://kami.example/api/gate/pause-set
+  provenance_url: null                     # defaults to {base_url}/api/gate/provenance
   token_env: KAMI_PLATFORM_TOKEN
   poll_seconds: 30
+  heartbeat_seconds: 300                   # how often provenance is re-reported
   fail_closed: false                       # true: refuse all completions if the pause set cannot be fetched
 
 gazetteer_path: null                       # JSON {"places": [...], "species": [...]} from id/index.json + commons titles
 events_dir: ./events                       # append-only usage_events.jsonl / guard_events.jsonl
-upstream_timeout_s: 120

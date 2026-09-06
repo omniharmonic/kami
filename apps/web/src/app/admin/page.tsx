@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { setConfigFieldAction, toggleConsultationAction } from "@/actions/admin";
 import { FormMessage } from "@/components/governance/FormMessage";
-import { admin as copy } from "@/copy";
+import { admin as copy, howIWork as hiw, humanDuration } from "@/copy";
 import { getAdminData } from "@/lib/governance/queries";
+import { servingProvenance } from "@/lib/provenance";
 import { AuthError, requireAdmin } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,12 @@ export default async function AdminPage({ searchParams }: Props) {
   }
 
   const data = await getAdminData();
+  // What each kami's gate says is actually serving it, so an operator can see at
+  // a glance that a box is reporting what they think it is (and how old the
+  // report is). Same source as the public "how I work" page — never asserted.
+  const provenance = new Map(
+    await Promise.all(data.entities.map(async (e) => [e.entity_id, await servingProvenance(e.slug)] as const)),
+  );
   // Cost estimate: tokens over the last 7 days × the operator's card-hour cost,
   // which is a rough proxy until the GPU box reports tokens/hour (*verify*).
   const cost = data.card_hour_cost !== null ? (data.tokens_7d_total * data.card_hour_cost) / 1_000_000 : null;
@@ -58,6 +65,7 @@ export default async function AdminPage({ searchParams }: Props) {
             <tr style={{ textAlign: "left" }}>
               <th style={{ padding: "0.4rem" }}>{copy.cols.name}</th>
               <th style={{ padding: "0.4rem" }}>{copy.cols.flags}</th>
+              <th style={{ padding: "0.4rem" }}>{hiw.adminServingColumn}</th>
               <th style={{ padding: "0.4rem" }}>{copy.cols.guardDrop}</th>
               <th style={{ padding: "0.4rem" }}>{copy.cols.pulseSkip}</th>
               <th style={{ padding: "0.4rem" }}>{copy.cols.tokens7d}</th>
@@ -72,6 +80,23 @@ export default async function AdminPage({ searchParams }: Props) {
                 </td>
                 <td style={{ padding: "0.4rem" }}>
                   {e.paused && <span className="chip">{copy.paused}</span>} {e.retired && <span className="chip">{copy.retired}</span>}
+                </td>
+                <td style={{ padding: "0.4rem" }} data-testid={`serving-${e.slug}`}>
+                  {(() => {
+                    const p = provenance.get(e.entity_id)!;
+                    if (p.source === "unknown") return <span className="faint">{hiw.adminServingUnknown}</span>;
+                    return (
+                      <>
+                        <span>{hiw.adminServingLine(p.placement, p.provider, p.model)}</span>
+                        <br />
+                        <span className={p.stale ? "chip chip-stale" : "faint"}>
+                          {p.staleness_s === null
+                            ? hiw.adminServingNoAge(p.source)
+                            : hiw.adminServingAge(humanDuration(p.staleness_s), p.source)}
+                        </span>
+                      </>
+                    );
+                  })()}
                 </td>
                 <td style={{ padding: "0.4rem" }}>{pct(e.guard_drop_pct)}</td>
                 <td style={{ padding: "0.4rem" }}>{pct(e.pulse_skip_pct)}</td>

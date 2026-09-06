@@ -91,7 +91,7 @@ export const donateCopy = {
     heading: "What you get back",
     body: "Within 31 days of the month's end you get an account of the month: the balance, every payment with its transaction hash and its attestation, and one paragraph from the kami whose every number is checked against the readings it came from. Donors of record all get it — that coverage is measured, not asserted.",
     noToken: "No token, ever. Nothing here has a price, and a gift buys no standing, no vote and no return.",
-    refund: "Changed your mind, or want to be forgotten? Write to us — see docs/donors.md for exactly what we do and how quickly.",
+    refund: "There are no refunds — this is an experiment, and a gift to it is a gift, not a purchase. What you get instead is an account of every payout. If a donation was a genuine mistake, or you want to be forgotten, write to us.",
   },
 
   thanks: {

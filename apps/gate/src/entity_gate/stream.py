@@ -69,7 +69,8 @@ async def _sse_data_lines(resp: httpx.Response) -> AsyncIterator[str]:
 async def guarded_stream(body: dict[str, Any], upstream: httpx.AsyncClient, url: str, *,
                          guard: StreamingGuard | None, toolcalls: dict[str, Any],
                          on_done: Callable[[dict[str, Any]], None] | None = None,
-                         timeout: float = 120) -> AsyncIterator[bytes]:
+                         timeout: float = 300,
+                         headers: dict[str, str] | None = None) -> AsyncIterator[bytes]:
     """Async generator of SSE frames for the client."""
     req = copy.deepcopy(body)
     req["stream"] = True
@@ -85,7 +86,8 @@ async def guarded_stream(body: dict[str, Any], upstream: httpx.AsyncClient, url:
     summary: dict[str, Any] = {"status": "ok", "released": 0, "dropped": 0, "error": None}
 
     try:
-        async with upstream.stream("POST", url, json=req, timeout=timeout) as resp:
+        async with upstream.stream("POST", url, json=req, timeout=timeout,
+                                   headers=headers or None) as resp:
             if resp.status_code != 200:
                 text = (await resp.aread()).decode("utf-8", "replace")
                 summary["status"] = "upstream_error"

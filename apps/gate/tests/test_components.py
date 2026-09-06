@@ -143,7 +143,7 @@ def test_load_example_gate_yaml():
 def test_production_refuses_passthrough():
     from entity_gate.config import GateConfig, assert_safe_for_environment
 
-    cfg = GateConfig(passthrough=True)
+    cfg = GateConfig(passthrough=True, provenance={"placement": "owned"})
     assert_safe_for_environment(cfg, {})  # not production: fine
     assert_safe_for_environment(cfg, {"KAMI_ENV": "development"})
     with pytest.raises(ValueError, match="passthrough"):
@@ -153,9 +153,29 @@ def test_production_refuses_passthrough():
 def test_production_refuses_fail_open_pause_set():
     from entity_gate.config import GateConfig, Platform, assert_safe_for_environment
 
-    cfg = GateConfig(platform=Platform(pause_set_url="https://kami.example/api/gate/pause-set", fail_closed=False))
+    cfg = GateConfig(provenance={"placement": "owned"},
+                     platform=Platform(pause_set_url="https://kami.example/api/gate/pause-set", fail_closed=False))
     with pytest.raises(ValueError, match="fail_closed"):
         assert_safe_for_environment(cfg, {"KAMI_ENV": "production"})
+
+
+def test_production_refuses_a_named_key_env_var_that_is_not_set():
+    """Naming OPENROUTER_API_KEY and forgetting to export it is a 401 on every turn."""
+    from entity_gate.config import GateConfig, assert_safe_for_environment
+
+    cfg = GateConfig(provenance={"placement": "hosted", "provider": "OpenRouter"},
+                     upstream_api_key_env="A_VARIABLE_NOBODY_HAS_SET")
+    assert_safe_for_environment(cfg, {})  # not production: let a developer poke at it
+    with pytest.raises(ValueError, match="A_VARIABLE_NOBODY_HAS_SET"):
+        assert_safe_for_environment(cfg, {"KAMI_ENV": "production"})
+
+
+def test_production_allows_a_hosted_placement():
+    """`hosted` is a deviation the gate reports (ERRATA row 7), not one it forbids."""
+    from entity_gate.config import GateConfig, assert_safe_for_environment
+
+    cfg = GateConfig(provenance={"placement": "hosted", "provider": "OpenRouter"})
+    assert_safe_for_environment(cfg, {"KAMI_ENV": "production"})
 
 
 def test_fail_closed_is_the_default():

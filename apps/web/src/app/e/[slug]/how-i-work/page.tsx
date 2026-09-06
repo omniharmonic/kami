@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { howIWork as copy, errors } from "@/copy";
+import { howIWork as copy, errors, humanDuration } from "@/copy";
 import { getBinding, getEntityBySlug, getGuardDropRate, getPauseDrills, getPeople, getSoul } from "@/lib/entities";
-import { servingModel } from "@/lib/entities";
+import { servingProvenance, type Provenance } from "@/lib/provenance";
 import { getSession } from "@/lib/session";
 
 export const revalidate = 300;
@@ -16,18 +16,44 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const TWIN_HEALTH = "https://data.bioregionaltwin.org/latest/health.json";
 
+/** What the page may say about the model itself, given what was reported. */
+function modelSentence(p: Provenance): string {
+  if (p.source === "gate") return p.model ? copy.modelServing(p.model) : copy.modelServingUnnamed;
+  if (p.source === "profile") return copy.modelFromProfile(p.model ?? "", p.reasoning_effort ?? "");
+  return copy.modelUnknown;
+}
+
+/**
+ * What the page may say about *whose machine* it runs on. Only a fresh gate
+ * report in `owned`/`rented` earns the "no frontier model is on the hot path"
+ * claim (see `mayClaimNoFrontierModel`); a stale report is rendered in the past
+ * tense beside its timestamp; anything else says nothing.
+ */
+function placementSentence(p: Provenance): string | null {
+  if (p.placement === null) return p.source === "gate" ? copy.modelPlacementUnreported : null;
+  if (p.stale) {
+    if (p.placement === "owned") return copy.modelOwnedLast(p.provider);
+    if (p.placement === "rented") return copy.modelRentedLast(p.provider);
+    return copy.modelHostedLast(p.provider);
+  }
+  if (p.placement === "owned") return copy.modelOwned(p.provider);
+  if (p.placement === "rented") return copy.modelRented(p.provider);
+  return copy.modelHosted(p.provider);
+}
+
 export default async function HowIWorkPage({ params }: Props) {
   const { slug } = await params;
   const entity = (await getEntityBySlug(slug))!;
-  const [soul, binding, drills, dropRate, session, people, model] = await Promise.all([
+  const [soul, binding, drills, dropRate, session, people, provenance] = await Promise.all([
     getSoul(entity.id),
     getBinding(entity.id),
     getPauseDrills(entity.id),
     getGuardDropRate(entity.id),
     getSession(),
     getPeople(entity.id),
-    servingModel(entity.slug),
+    servingProvenance(entity.slug),
   ]);
+  const placement = placementSentence(provenance);
   const guardians = people.filter((p) => p.role === "guardian");
   // PRD §13 #4: the consultation record is public only once a steward marks it done.
   // Before that, only a signed-in user sees the placeholder (stewards/admins in later WPs).
@@ -37,14 +63,25 @@ export default async function HowIWorkPage({ params }: Props) {
     <div className="stack">
       <h2 style={{ margin: "1rem 0 0" }}>{copy.heading(entity.name)}</h2>
 
-      <section className="card">
+      {/* G7: the page must name the model. Every sentence below is rendered from
+          the gate's provenance report (or from its absence) — nothing here is
+          asserted, so the page cannot claim local inference on a day a hosted
+          API is answering. */}
+      <section className="card" data-provenance={provenance.source} data-placement={provenance.placement ?? "unreported"}>
         <h3 style={{ marginTop: 0 }}>{copy.model}</h3>
         <p style={{ margin: 0 }}>{copy.modelBody}</p>
-        {/* G7: the page must name the model. It reads the entity's own profile
-            config, so it cannot claim a model that is not the one serving. */}
-        <p style={{ margin: "0.4rem 0 0" }} data-testid="model-name">
-          {model ? copy.modelName(model.name, model.reasoning_effort) : copy.modelUnknown}
-        </p>
+        <p style={{ margin: "0.4rem 0 0" }} data-testid="model-name">{modelSentence(provenance)}</p>
+        {placement && (
+          <p style={{ margin: "0.4rem 0 0" }} data-testid="model-placement">{placement}</p>
+        )}
+        <p style={{ margin: "0.4rem 0 0" }} data-testid="model-guard">{copy.modelGuardEitherWay}</p>
+        {provenance.at && (
+          <p className="faint" style={{ margin: "0.4rem 0 0" }} data-testid="model-reported" data-stale={provenance.stale ? "true" : "false"}>
+            {provenance.stale
+              ? copy.modelStale(provenance.at, humanDuration(provenance.staleness_s ?? 0))
+              : copy.modelReported(provenance.at)}
+          </p>
+        )}
         {entity.hermes_profile && <p className="faint" style={{ margin: "0.4rem 0 0" }}>profile: <code>{entity.hermes_profile}</code></p>}
       </section>
 

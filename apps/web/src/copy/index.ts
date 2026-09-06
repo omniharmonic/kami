@@ -209,12 +209,54 @@ export const howIWork = {
   link: "How I work",
   heading: (name: string) => `How ${name} works`,
   model: "Model",
+  /**
+   * G7: the page must name the model. Everything in this section is *reported*
+   * by the gate (see `src/lib/provenance.ts`) and rendered from that report —
+   * none of it is asserted here. The old copy hardcoded "a single rented GPU …
+   * no frontier model is on the hot path", which would have kept claiming local
+   * inference on a day a hosted API was answering the chat. A page that lies
+   * about its own machinery is worse than a wrong number.
+   */
   modelBody:
-    "A small open-weights language model running on a single rented GPU, behind a gate that checks every sentence. No frontier model is on the hot path.",
-  /** G7: the page must name the model. Read from the entity's profile config so
-      the page cannot drift from what is actually serving. */
-  modelName: (name: string, effort: string) => `Currently: ${name}, reasoning effort ${effort}.`,
-  modelUnknown: "The serving model is not recorded for this kami yet. Until it is, this page will not name one.",
+    "Every reply is written by a language model and checked sentence by sentence before it reaches you. Which model, and whose machine it runs on, is reported by the gate that all traffic passes through — not written into this page by hand.",
+  modelServing: (name: string) => `Serving now: ${name}.`,
+  modelServingUnnamed: "The gate reported where the model runs but did not name the model.",
+  /** Only these two sentences may carry the "no frontier model" claim, and only
+      on a fresh report (`mayClaimNoFrontierModel`). */
+  modelOwned: (provider: string | null) =>
+    `It runs on hardware this project controls${provider ? `, served by ${provider}` : ""}, behind the gate. No frontier model is on the hot path.`,
+  modelRented: (provider: string | null) =>
+    `It runs on a GPU this project rents${provider ? ` from ${provider}` : ""} and controls for the length of the rental, behind the gate. No frontier model is on the hot path.`,
+  modelHosted: (provider: string | null) =>
+    provider
+      ? `It runs on ${provider}'s hosted API, not on hardware this project controls. What you type is sent to ${provider} and is held under ${provider}'s terms, not this project's.`
+      : "It runs on a hosted API, not on hardware this project controls — and the gate did not name the provider, so this page will not name one either. What you type leaves this project's machines.",
+  modelOwnedLast: (provider: string | null) =>
+    `When it last reported, it was running on hardware this project controls${provider ? `, served by ${provider}` : ""}.`,
+  modelRentedLast: (provider: string | null) =>
+    `When it last reported, it was running on a GPU this project rents${provider ? ` from ${provider}` : ""}.`,
+  modelHostedLast: (provider: string | null) =>
+    `When it last reported, it was answering through ${provider ? `${provider}'s` : "a"} hosted API — the conversation left hardware this project controls.`,
+  modelPlacementUnreported: "The gate has not said where it runs, so this page says nothing about where it runs.",
+  /** Rendered in every case: the guard is the one thing that does not depend on
+      whose machine the model sits on. */
+  modelGuardEitherWay:
+    "Either way the fact-sheet guard runs on this project's side of the call and checks every sentence: no number reaches you that did not come back from a twin tool call in the same turn.",
+  modelReported: (iso: string) => `Reported by the gate at ${iso}.`,
+  modelStale: (iso: string, age: string) =>
+    `Last reported ${iso}, ${age} ago. That is the last thing the gate said, not a statement about what is running right now.`,
+  /** The Hermes profile on disk asks for a model; it does not observe one. */
+  modelFromProfile: (name: string, effort: string) =>
+    `The gate has not reported. This kami's profile on disk asks for ${name} at reasoning effort ${effort} — a request, not a measurement, so this page claims nothing about where it is running.`,
+  modelUnknown:
+    "Nothing has reported which model is serving this kami, so this page does not know and will not guess. Until the gate reports, it names no model, no provider, and makes no claim about whose machine answers you.",
+  /** `/admin` reuses these so an operator sees the same reported facts. */
+  adminServingColumn: "serving",
+  adminServingUnknown: "nothing reported",
+  adminServingLine: (placement: string | null, provider: string | null, model: string | null) =>
+    [placement ?? "placement unreported", provider, model].filter(Boolean).join(" · "),
+  adminServingAge: (age: string, source: string) => `${age} ago · ${source}`,
+  adminServingNoAge: (source: string) => `no timestamp · ${source}`,
   guardiansHeading: "Guardians",
   guardiansBody:
     "These people hold the keys and the pause switch. Any one of them can stop this kami within a minute; two are needed to wake it again, or to retire it.",

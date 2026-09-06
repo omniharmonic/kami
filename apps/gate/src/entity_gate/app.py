@@ -1,7 +1,8 @@
 """The Starlette app: ``create_app(config)``.
 
 Routes: ``POST /p/{slug}/v1/chat/completions``, ``GET /healthz``,
-``POST /admin/pause/{slug}``, ``POST /admin/resume/{slug}``, ``GET /admin/state``.
+``POST /admin/pause/{slug}``, ``POST /admin/resume/{slug}``, ``GET /admin/state``,
+``GET /admin/provenance``.
 Order of checks (§5.4): pause 423 → crisis template → daily budget 429 + Retry-After →
 concurrency slot (429 ``{"people_ahead": n}``) → upstream.
 """
@@ -29,6 +30,7 @@ from .copy import BUDGET_MESSAGE, PAUSED_MESSAGE, QUEUE_FULL_MESSAGE
 from .events import EventLog
 from .guard_hook import build_sheet, last_user_text, run_nonstream, toolcall_log
 from .pause import PauseSet
+from .provenance import ProvenanceReporter
 from .slots import QueueFull, SlotManager
 from .stream import guarded_stream
 from .telemetry import Telemetry
@@ -45,21 +47,32 @@ def _error(status: int, message: str, type_: str, headers: dict[str, str] | None
 def create_app(config: GateConfig, *, upstream_client: httpx.AsyncClient | None = None,
                clock: Callable[[], datetime] | None = None,
                telemetry: Telemetry | None = None,
-               pause_client_factory: Callable[[], httpx.AsyncClient] | None = None) -> Starlette:
+               pause_client_factory: Callable[[], httpx.AsyncClient] | None = None,
+               provenance_client_factory: Callable[[], httpx.AsyncClient] | None = None,
+               env: dict[str, str] | None = None) -> Starlette:
     tel = telemetry or Telemetry()
     events = EventLog(config.events_dir)
     ledger = BudgetLedger(config.budgets, config.default_budget, config.tz, clock)
     slots = SlotManager(config.concurrency.per_entity, config.concurrency.queue)
     gazetteer = Gazetteer.from_file(config.gazetteer_path) if config.gazetteer_path else None
     upstream = upstream_client or httpx.AsyncClient(base_url=config.upstream_url,
-                                                    timeout=config.upstream_timeout_s)
+                                                    timeout=config.timeout_s)
     chat_url = (CHAT_PATH if upstream.base_url else config.upstream_url + CHAT_PATH)
+    # Authorization (from the env var named in gate.yaml) plus any static headers a hosted
+    # provider wants. Computed once at startup: a key that appears mid-run was not there
+    # when the operator read /healthz, and silently picking it up would make the report lie.
+    upstream_headers = config.upstream_request_headers(env)
 
     def _on_pause_change(action: str, info: dict[str, Any]) -> None:
         events.guard(action=action, **info)
         tel.event(f"pause.{action}", **info)
 
     pause_set = PauseSet(config.paused, config.platform, pause_client_factory, _on_pause_change)
+
+    def _on_provenance(name: str, info: dict[str, Any]) -> None:
+        tel.event(name, **info)
+
+    reporter = ProvenanceReporter(config, provenance_client_factory, _on_provenance)
 
     # ---- helpers ----------------------------------------------------------------
     def _admin_ok(request: Request) -> Response | None:
@@ -88,6 +101,11 @@ def create_app(config: GateConfig, *, upstream_client: httpx.AsyncClient | None 
             return _error(400, "messages[] required", "invalid_request")
         messages: list[dict[str, Any]] = body["messages"]
         stream = bool(body.get("stream"))
+        reporter.note_request_model(body.get("model"))
+        # The only rewrite the gate makes to a request body: the name the *upstream* calls
+        # the model, when it differs from the name the profile uses. Everything else passes
+        # through untouched.
+        body = config.apply_upstream_model(body)
 
         # 1. pause (never skipped)
         if pause_set.is_paused(slug):
@@ -164,7 +182,8 @@ def create_app(config: GateConfig, *, upstream_client: httpx.AsyncClient | None 
                 try:
                     async for frame in guarded_stream(body, upstream, chat_url, guard=guard,
                                                       toolcalls=log, on_done=on_done,
-                                                      timeout=config.upstream_timeout_s):
+                                                      timeout=config.timeout_s,
+                                                      headers=upstream_headers):
                         yield frame
                 finally:
                     slot.release()
@@ -177,10 +196,11 @@ def create_app(config: GateConfig, *, upstream_client: httpx.AsyncClient | None 
             outcome = await run_nonstream(body, upstream, chat_url, sheet=sheet or build_sheet([]),
                                           last_user=last_user, gazetteer=gazetteer,
                                           tz=config.tz, now=now, passthrough=sheet is None,
-                                          timeout=config.upstream_timeout_s)
+                                          timeout=config.timeout_s, headers=upstream_headers)
         except httpx.HTTPError as exc:
             slot.release()
-            return _error(502, f"upstream unreachable: {exc!r}", "upstream_error")
+            return _error(502, config.redact(f"upstream unreachable: {exc!r}", env),
+                          "upstream_error")
         finally:
             with contextlib.suppress(Exception):
                 slot.release()
@@ -200,7 +220,15 @@ def create_app(config: GateConfig, *, upstream_client: httpx.AsyncClient | None 
     async def healthz(_: Request) -> Response:
         return JSONResponse({"ok": True, "upstream_url": config.upstream_url,
                              "passthrough": config.passthrough,
+                             "provenance": reporter.doc(),
                              "pause": pause_set.state(), "slots": slots.state()})
+
+    async def admin_provenance(request: Request) -> Response:
+        """What is actually serving, and whether the platform has been told."""
+        denied = _admin_ok(request)
+        if denied:
+            return denied
+        return JSONResponse(reporter.state())
 
     async def admin_pause(request: Request) -> Response:
         denied = _admin_ok(request)
@@ -246,9 +274,11 @@ def create_app(config: GateConfig, *, upstream_client: httpx.AsyncClient | None 
     @contextlib.asynccontextmanager
     async def lifespan(_app: Starlette):
         await pause_set.start()
+        await reporter.start()
         try:
             yield
         finally:
+            await reporter.stop()
             await pause_set.stop()
             if upstream_client is None:
                 await upstream.aclose()
@@ -259,6 +289,7 @@ def create_app(config: GateConfig, *, upstream_client: httpx.AsyncClient | None 
         Route("/admin/pause/{slug}", admin_pause, methods=["POST"]),
         Route("/admin/resume/{slug}", admin_resume, methods=["POST"]),
         Route("/admin/state", admin_state, methods=["GET"]),
+        Route("/admin/provenance", admin_provenance, methods=["GET"]),
     ], lifespan=lifespan)
     app.state.config = config
     app.state.pause_set = pause_set
@@ -267,4 +298,6 @@ def create_app(config: GateConfig, *, upstream_client: httpx.AsyncClient | None 
     app.state.events = events
     app.state.telemetry = tel
     app.state.upstream = upstream
+    app.state.upstream_headers = upstream_headers
+    app.state.provenance = reporter
     return app

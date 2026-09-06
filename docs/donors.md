@@ -107,21 +107,23 @@ message from the wallet the money came from; we verify the signature against
 that exact address and refuse anything else. Signing costs nothing and moves
 nothing.
 
-## Refunds
+## No refunds
 
-Write to us and say so. There is no automatic refund button, and we will not
-pretend otherwise:
+There are none. This is an experiment, and a gift to it is a gift, not a
+purchase and not an investment. We would rather say that plainly on the way in
+than discover we disagree with you about it later.
 
-- **Before the money has been paid out** — while it is still sitting in the
-  Safe — we will refund it. A card donation goes back through Stripe to the
-  card that paid; a direct USDC donation is returned by a guardian-signed Safe
-  transaction to the address it came from. Both need two guardian signatures,
-  so allow a few days.
-- **After it has been paid out** to a contributor for work they have already
-  done, we cannot claw it back, and we will not ask them to return it. We will
-  tell you exactly what it paid for, with the transaction hash and the
-  attestation, and refund from the remaining balance where we can.
-- **Stripe's own fee is not ours to return.** We refund what we received.
+What you get instead of a refund is an account. Every payout this kami makes is
+listed with the amount, who received it, the transaction hash and the
+attestation that verified the work, and a report reaches you within 31 days of
+each month's end whether or not anything was spent. If we spend your money on
+something you think was foolish, you will be able to see exactly that, and say
+so, and stop giving.
+
+If a donation was a genuine mistake — a wrong amount, a wrong entity, a card
+that was not yours — write to us. We will not hide behind this policy for
+something that was an error rather than a change of mind, and we will tell you
+what we can and cannot undo.
 
 ## Being forgotten
 

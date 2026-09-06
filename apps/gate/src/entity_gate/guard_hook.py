@@ -139,7 +139,8 @@ def _usage(payload: dict[str, Any]) -> tuple[int, int]:
 async def run_nonstream(body: dict[str, Any], upstream: httpx.AsyncClient, url: str, *,
                         sheet: FactSheet, last_user: str, gazetteer: Gazetteer | None,
                         tz: str, now: datetime | None = None, passthrough: bool = False,
-                        timeout: float = 120) -> NonStreamOutcome:
+                        timeout: float = 300,
+                        headers: dict[str, str] | None = None) -> NonStreamOutcome:
     body = copy.deepcopy(body)
     body["stream"] = False
     body.pop("stream_options", None)
@@ -147,7 +148,7 @@ async def run_nonstream(body: dict[str, Any], upstream: httpx.AsyncClient, url: 
     outcome_results: list[GuardResult] = []
 
     async def call(b: dict[str, Any]) -> tuple[int, dict[str, Any]]:
-        resp = await upstream.post(url, json=b, timeout=timeout)
+        resp = await upstream.post(url, json=b, timeout=timeout, headers=headers or None)
         try:
             payload = resp.json()
         except ValueError:
