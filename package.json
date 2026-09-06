@@ -8,7 +8,7 @@
   "packageManager": "pnpm@10.33.0",
   "engines": { "node": ">=22 <23", "pnpm": ">=10" },
   "scripts": {
-    "build:packages": "pnpm -r --filter \"./packages/*\" --if-present build",
+    "build:packages": "pnpm -r --filter \"./packages/*\" --filter @kami/chain --if-present build",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",

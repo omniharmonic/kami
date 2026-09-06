@@ -102,7 +102,21 @@ export async function writeIfChanged(store: ConfigStore, key: string, value: Con
   return true;
 }
 
-export function statePathFor(chainId: number, dir = new URL("../state/", import.meta.url).pathname): string {
+/**
+ * The default directory is resolved at call time rather than as a literal
+ * `new URL("../state/", import.meta.url)`, because bundlers (Turbopack in the
+ * web app, which imports this package for its pure helpers) try to resolve such
+ * a literal as a module specifier at build time and fail. Callers that run in a
+ * bundle never take this default — they pass `KAMI_CHAIN_STATE` or use the HTTP
+ * store — so computing it lazily costs nothing and keeps the package importable
+ * from anywhere.
+ */
+export function defaultStateDir(): string {
+  const here = new URL(import.meta.url).pathname;
+  return here.replace(/\/[^/]*\/[^/]*$/, "/state");
+}
+
+export function statePathFor(chainId: number, dir = defaultStateDir()): string {
   return `${dir.replace(/\/$/, "")}/config.${chainId}.json`;
 }
 

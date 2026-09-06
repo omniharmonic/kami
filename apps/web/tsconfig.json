@@ -12,8 +12,7 @@
     "moduleResolution": "Bundler",
     "plugins": [{ "name": "next" }],
     "paths": {
-      "@/*": ["./src/*"],
-      "@kami/needs": ["../../packages/needs/src/index.ts"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", "scripts/**/*.ts", "*.ts", "*.mts", ".next/types/**/*.ts"],

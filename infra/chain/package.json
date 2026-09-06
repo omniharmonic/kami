@@ -5,18 +5,22 @@
   "license": "Apache-2.0",
   "author": "Benjamin Life (@omniharmonic)",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
   },
   "bin": {
     "kami-chain": "./bin/kami-chain.js"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
+    "chain": "tsx src/cli.ts",
     "test": "vitest run",
-    "chain": "tsx src/cli.ts"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@ethereum-attestation-service/eas-sdk": "2.10.0",
@@ -33,5 +37,11 @@
     "tsx": "4.23.13",
     "typescript": "5.9.3",
     "vitest": "3.2.7"
-  }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "state/config.example.json",
+    "README.md"
+  ]
 }
