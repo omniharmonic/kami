@@ -27,7 +27,10 @@ test.describe("prefers-reduced-motion: reduce", () => {
     await expect(svg).toBeVisible();
     await expect(svg).toHaveAttribute("src", "/rigs/fallback/creek-asleep.svg");
     await expect(svg).toHaveAttribute("aria-label", new RegExp(NAME));
-    await expect(svg).toHaveAttribute("role", "img");
+    // `alt` carries the same name. An explicit role="img" was removed: paired
+    // with an empty alt it made axe report presentation-role-conflict, and an
+    // <img> with a real alt already has the img role implicitly.
+    await expect(svg).toHaveAttribute("alt", new RegExp(NAME));
     // The image itself resolves — the pose is really there, not a broken icon.
     expect(await svg.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
 

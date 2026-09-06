@@ -157,6 +157,9 @@ export const treasury = {
   whatIDid: "What I did with your money",
   whatIDidEmpty: "Nothing paid out yet. Every payout will be listed here with its transaction hash and attestation.",
   give: "Give",
+  /** The link to the donation page. Distinct from `give`, which labels the
+      disclosure above it, so the two are never ambiguous to a reader or a test. */
+  giveCta: "Go to the donation page",
   noRecurring: "One-time only. Nothing recurs unless you come back.",
   moneyCanDo: [
     "pay people for small, verifiable work on the ground, approved by human guardians",

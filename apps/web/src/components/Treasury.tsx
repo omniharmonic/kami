@@ -51,7 +51,7 @@ export async function Treasury({
           <ul style={{ margin: 0 }}>{treasury.moneyCannotDo.map((l) => <li key={l}>{l}</li>)}</ul>
           {slug && (
             <p style={{ margin: "0.6rem 0 0" }}>
-              <Link href={`/e/${slug}/donate`} className="btn tap">{treasury.give}</Link>
+              <Link href={`/e/${slug}/donate`} className="btn tap">{treasury.giveCta}</Link>
             </p>
           )}
         </details>

@@ -20,11 +20,9 @@ const PAGES = [
   { label: "chat", path: `/e/${SLUG}/chat` },
 ] as const;
 
-const KNOWN_CONTRAST_FAILURE =
-  "colour contrast: --ink-faint (#8a8176) on --bg (#f7f2ea) is 3.43:1, on --bg-raised (#fffdf9) 3.77:1 and on " +
-  "--bg-sunken (#efe7db) 3.12:1; WCAG AA needs 4.5:1 at these sizes. 43 nodes on the entity page, 4 on the landing " +
-  "page, 5 on chat — every one of them the same token, used by .faint, .eyebrow and .meter dt. The fix is one line " +
-  "in apps/web/src/app/globals.css, which this package does not own; see the work-package report.";
+// Colour contrast was excluded here while --ink-faint failed WCAG AA (3.12:1
+// at worst against the 4.5:1 required, on 52 nodes). The token was raised in
+// apps/web/src/app/globals.css, so the rule is now enforced like any other.
 
 async function violations(page: Page, disableRules: string[] = []) {
   const builder = new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"]);
@@ -40,17 +38,13 @@ test.describe("accessibility", () => {
   for (const p of PAGES) {
     test(`${p.label} (${p.path}) has no serious or critical axe violations`, async ({ page }) => {
       await page.goto(p.path);
-      const found = seriousOrCritical(await violations(page, ["color-contrast"]));
+      const found = seriousOrCritical(await violations(page));
       expect(
         found.map((v) => `${v.impact} ${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(" | ")}`),
         `axe violations on ${p.path}`,
       ).toEqual([]);
     });
   }
-
-  test(`SKIPPED — ${KNOWN_CONTRAST_FAILURE}`, async () => {
-    test.skip(true, "a design-token fix in apps/web; reported, not fixed here (this package owns e2e/, not the app)");
-  });
 
   test("no information is carried by colour alone: every meter state has a text label", async ({ page }) => {
     await page.goto(`/e/${SLUG}`);

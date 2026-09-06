@@ -40,18 +40,38 @@ test.describe("chat", () => {
 
     expect(arrivals.map((a) => a.text.trim())).toEqual(FAKE_SENTENCES);
     // Each sentence lands in its own frame at its own time — not one lump.
-    // The fake gateway spaces them 40 ms apart, so three sentences span > 40 ms.
-    expect(arrivals[arrivals.length - 1]!.at - arrivals[0]!.at, `frame arrival times: ${arrivals.map((a) => a.at).join(", ")} ms`).toBeGreaterThan(40);
+    // The fake gateway spaces them 40 ms apart, so the span from first to last
+    // is at least 40 ms (exactly 40 when the reader keeps up perfectly; more
+    // under load). Asserting `> 40` was off by one against the fixture itself.
+    expect(arrivals[arrivals.length - 1]!.at - arrivals[0]!.at, `frame arrival times: ${arrivals.map((a) => a.at).join(", ")} ms`).toBeGreaterThanOrEqual(40);
   });
 
-  test("SKIPPED — with gzip (what every browser asks for) the SSE stream is buffered and arrives in one lump: a real bug in apps/web, reported not fixed", async () => {
-    test.skip(
-      true,
-      "next start gzips text/event-stream (Next's `compress` default), which buffers the chat relay: " +
-        "all three sentence frames arrive together, so the reply does not stream in a browser. " +
-        "The fix is in apps/web (skip compression for text/event-stream) and is out of this package's scope; " +
-        "the identity-encoding test above proves the relay itself streams.",
-    );
+  test("still streams under gzip, which is what every browser actually asks for", async () => {
+    // Next gzips text/event-stream by default, which buffers the whole reply
+    // and destroys sentence-by-sentence release. The relay sets
+    // `cache-control: no-transform`, which its compression middleware honours.
+    // This test is the regression guard: without that header the three frames
+    // arrive together and the span collapses to a few milliseconds.
+    const t0 = Date.now();
+    const res = await fetch(`${BASE_URL}/e/${SLUG}/chat`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "text/event-stream",
+        "accept-encoding": "gzip, deflate, br",
+        "x-forwarded-for": testIp(),
+      },
+      body: JSON.stringify({ messages: [{ role: "user", content: "How is the creek today?" }] }),
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("cache-control") ?? "").toContain("no-transform");
+
+    const arrivals = await readSse(res, t0);
+    expect(arrivals.map((a) => a.text.trim())).toEqual(FAKE_SENTENCES);
+    expect(
+      arrivals[arrivals.length - 1]!.at - arrivals[0]!.at,
+      `frame arrival times under gzip: ${arrivals.map((a) => a.at).join(", ")} ms`,
+    ).toBeGreaterThanOrEqual(40);
   });
 
   test("renders the streamed sentences into the reply, in order and only ever appended", async ({ page }) => {
