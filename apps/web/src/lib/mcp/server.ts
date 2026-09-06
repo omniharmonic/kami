@@ -18,7 +18,6 @@ import { getDb } from "@/db/client";
 import type { DbOrTx } from "@/db/events";
 import { bearerFrom, entityBySlug, json } from "@/lib/jobs/common";
 import { loadCurrentBinding } from "@/lib/jobs/needs";
-import { bountySpecSchema } from "./bounty-spec";
 import { mcpLimiter } from "./ratelimit";
 import { verifyEntityToken } from "./tokens";
 import {
@@ -104,7 +103,10 @@ export function createEntityMcpServer(ctx: ToolContext): McpServer {
     {
       title: "Draft bounty",
       description: "Draft one structured bounty in the PRD §7.6 shape. Tier 1 requires a prediction; twin_refs must be ids from this entity's binding; cap_usdc within the configured range; at most three drafts per ISO week. Lands as `drafted` for guardians.",
-      inputSchema: { spec: bountySpecSchema },
+      // Deliberately permissive at the protocol edge: the strict PRD §7.6 check
+      // runs in `storeBountyDraft`, so a refusal reaches the agent as a tool
+      // result naming the rule it broke rather than as a protocol error.
+      inputSchema: { spec: z.record(z.string(), z.unknown()) },
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     (args) => run(ctx, () => draftBounty(ctx, (args as { spec: unknown }).spec)),

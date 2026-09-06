@@ -1,8 +1,15 @@
 import { people } from "@/copy";
+import { getTopContributors } from "@/lib/governance/queries";
 
 export type PersonView = { role: "guardian" | "evaluator" | "steward"; name: string; accepted_at: string | null };
 
-export function People({ roles }: { roles: PersonView[] }) {
+/**
+ * PRD §6.1 #7 — guardians by name (the Zoöp Speaker model), evaluators,
+ * stewards, and top contributors by attested completions. Only display names
+ * are shown: no emails, no wallet addresses, no claimant PII.
+ */
+export async function People({ roles, entityId }: { roles: PersonView[]; entityId?: string }) {
+  const contributors = entityId ? await getTopContributors(entityId) : [];
   const groups: Array<[string, PersonView[]]> = [
     [people.guardians, roles.filter((r) => r.role === "guardian")],
     [people.evaluators, roles.filter((r) => r.role === "evaluator")],
@@ -26,6 +33,18 @@ export function People({ roles }: { roles: PersonView[] }) {
             </div>
           ) : null,
         )
+      )}
+      {contributors.length > 0 && (
+        <div style={{ marginBottom: "0.6rem" }}>
+          <p className="eyebrow" style={{ margin: "0 0 0.2rem" }}>{people.contributors}</p>
+          <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
+            {contributors.map((c) => (
+              <li key={c.name}>
+                {c.name} — {c.completions} attested completion{c.completions === 1 ? "" : "s"}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       <p className="faint" style={{ fontSize: "0.85rem" }}>{people.guardiansNote}</p>
     </section>

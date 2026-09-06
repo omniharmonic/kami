@@ -1,10 +1,28 @@
-import { treasury } from "@/copy";
+import { guardian, treasury } from "@/copy";
 import type { TreasurySummary } from "@/lib/status";
+import { getPendingSafeProposalCount } from "@/lib/governance/queries";
 
 export type PayoutView = { id: string; amount_usdc: string; executed_at: string | null; tx_hash: string | null; eas_uid_completed: string | null; title: string | null };
 
-export function Treasury({ summary, payouts, safeAddress }: { summary: TreasurySummary | null; payouts: PayoutView[]; safeAddress: string | null }) {
+/**
+ * PRD §6.1 #6 — balance, pending Safe proposals awaiting guardians, and "what
+ * I did with your money": every payout with its transaction hash and
+ * attestation UID. Donation copy states what money can and cannot do; no
+ * urgency, no recurring default (PRD §13 #2).
+ */
+export async function Treasury({
+  summary,
+  payouts,
+  safeAddress,
+  entityId,
+}: {
+  summary: TreasurySummary | null;
+  payouts: PayoutView[];
+  safeAddress: string | null;
+  entityId?: string;
+}) {
   const addr = safeAddress ?? summary?.safe_address ?? null;
+  const pending = entityId ? await getPendingSafeProposalCount(entityId) : (summary?.pending ?? 0);
   return (
     <section className="section" aria-labelledby="treasury-h">
       <h2 id="treasury-h">{treasury.heading}</h2>
@@ -13,13 +31,14 @@ export function Treasury({ summary, payouts, safeAddress }: { summary: TreasuryS
           <span className="eyebrow">{treasury.balance}</span>
           <br />
           <strong>{summary?.balance_usdc ? `${summary.balance_usdc} USDC` : treasury.balanceUnknown}</strong>
-          {summary && summary.pending > 0 && <span className="chip" style={{ marginLeft: "0.5rem" }}>{summary.pending} {treasury.pending}</span>}
+          {pending > 0 && <span className="chip" style={{ marginLeft: "0.5rem" }}>{pending} {treasury.pending}</span>}
         </p>
         {addr && (
           <p className="faint" style={{ margin: 0, fontSize: "0.8rem", wordBreak: "break-all" }}>
             Safe: <code>{addr}</code>
           </p>
         )}
+        {pending > 0 && <p className="muted" style={{ margin: 0 }}>{guardian.safeProposals}: {pending}</p>}
         <details>
           <summary className="tap" style={{ cursor: "pointer" }}>{treasury.give}</summary>
           <p className="muted" style={{ margin: "0.4rem 0" }}>{treasury.noRecurring}</p>

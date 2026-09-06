@@ -94,7 +94,8 @@ export async function reconcileEntity(db: Db, deps: TreasuryDeps, entity: typeof
     } else {
       onchain = bal.balance_usdc;
       const diff = Number(bal.balance_usdc) - expected;
-      if (Math.abs(diff) > BALANCE_TOLERANCE_USDC) {
+      // compare in cents: 100.01 − 100.00 is 0.010000000000005 in binary floating point
+      if (Math.abs(Math.round(diff * 100)) > Math.round(BALANCE_TOLERANCE_USDC * 100)) {
         findings.push({ kind: "balance_mismatch", severity: "error", detail: { expected_usdc: expected.toFixed(2), onchain_usdc: bal.balance_usdc, diff_usdc: diff.toFixed(6) } });
       }
     }

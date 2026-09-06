@@ -156,7 +156,8 @@ export async function runCommonsSync(opts: CommonsSyncOptions): Promise<CommonsS
       ),
     );
 
-    // entity/state — the week that just ended (Mon→Mon), plus the current week so far
+    // entity/state — the week that just ended (Mon→Mon), plus the current week so far.
+    // A week with no pulses gets no note: the commons is not a log of silence.
     for (const weekOf of [new Date(now.getTime() - 7 * 86400_000), now]) {
       const { start, end } = isoWeekBounds(weekOf);
       const pulseRows = await db
@@ -164,7 +165,7 @@ export async function runCommonsSync(opts: CommonsSyncOptions): Promise<CommonsS
         .from(schema.pulses)
         .where(and(eq(schema.pulses.entityId, entity.id), gte(schema.pulses.at, start), sql`${schema.pulses.at} < ${end}`))
         .orderBy(schema.pulses.at);
-      if (!pulseRows.length && weekOf === now) continue;
+      if (!pulseRows.length) continue;
       results.push(
         await upsertNote(
           opts.store,
