@@ -12,7 +12,7 @@
  * integrity.
  *
  * So this module reports instead of asserting. The gate — the proxy every
- * request passes through — posts `{placement, provider, model, at}` to
+ * request passes through — posts `{placement, provider, model, guard, at}` to
  * `POST /api/gate/provenance`, which stores it in the `config` table under
  * `gate_provenance.<slug>`, falling back to `gate_provenance.default` for a box
  * serving every kami from one upstream. This module reads that report, prefers
@@ -58,6 +58,12 @@ export type Provenance = {
   stale: boolean;
   /** Seconds since `at`; null when there is no timestamp (absent, never zero). */
   staleness_s: number | null;
+  /**
+   * The gate's own mode. `passthrough` means the fact-sheet guard is OFF, which
+   * the page must say rather than keep repeating that every sentence is checked.
+   * null when nothing reported it — the page then states the platform's rule.
+   */
+  guard: "factguard" | "passthrough" | null;
   /** From the profile only; the gate does not report it. */
   reasoning_effort: string | null;
 };
@@ -84,7 +90,13 @@ export function stalenessSeconds(at: string | null | undefined, now: number = Da
   return Math.max(0, Math.round((now - t) / 1000));
 }
 
-type GateReport = { placement: Placement | null; provider: string | null; model: string | null; at: string | null };
+type GateReport = {
+  placement: Placement | null;
+  provider: string | null;
+  model: string | null;
+  at: string | null;
+  guard: "factguard" | "passthrough" | null;
+};
 
 function str(v: unknown): string | null {
   return typeof v === "string" && v.trim() !== "" ? v.trim() : null;
@@ -101,6 +113,8 @@ export function parseGateReport(value: unknown): GateReport | null {
   const placement = placementRaw && (PLACEMENTS as readonly string[]).includes(placementRaw) ? (placementRaw as Placement) : null;
   const model = str(v.model);
   const at = str(v.at);
+  const guardRaw = str(v.guard);
+  const guard = guardRaw === "factguard" || guardRaw === "passthrough" ? guardRaw : null;
   // A report that names neither a placement nor a model says nothing.
   if (!placement && !model) return null;
   return {
@@ -108,6 +122,7 @@ export function parseGateReport(value: unknown): GateReport | null {
     provider: str(v.provider),
     model,
     at: at && Number.isFinite(Date.parse(at)) ? at : null,
+    guard,
   };
 }
 
@@ -133,6 +148,7 @@ export const UNKNOWN_PROVENANCE: Provenance = {
   source: "unknown",
   stale: false,
   staleness_s: null,
+  guard: null,
   reasoning_effort: null,
 };
 
@@ -162,6 +178,7 @@ export async function servingProvenance(slug: string, now: number = Date.now()):
       source: "profile",
       stale: false,
       staleness_s: null,
+      guard: null,
       reasoning_effort: profile.reasoning_effort,
     };
   }

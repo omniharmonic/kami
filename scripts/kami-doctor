@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# kami doctor — one command that checks the whole chain and says what is wrong.
+#
+#   bash scripts/kami-doctor                 # the whole chain, human output
+#   bash scripts/kami-doctor --json          # the same, for a machine
+#   bash scripts/kami-doctor --only gate     # one link
+#   bash scripts/kami-doctor --self-test     # prove no secret can reach the output
+#
+# It needs nothing but a Python 3.9+ interpreter — stdlib only, no pip install,
+# no node. On a Mac with the repo's toolchain any of these will do; the repo's
+# own uv venv is preferred because it can also run the gate's checker.
+# Set KAMI_DOCTOR_PYTHON to force one.
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$HERE/.." && pwd)"
+
+pick_python() {
+  if [ -n "${KAMI_DOCTOR_PYTHON:-}" ]; then echo "$KAMI_DOCTOR_PYTHON"; return; fi
+  for candidate in "$ROOT/.venv/bin/python" python3.14 python3.13 python3.12 python3.11 python3; do
+    if command -v "$candidate" >/dev/null 2>&1 || [ -x "$candidate" ]; then
+      if "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)' >/dev/null 2>&1; then
+        echo "$candidate"; return
+      fi
+    fi
+  done
+  return 1
+}
+
+PY="$(pick_python || true)"
+if [ -z "$PY" ]; then
+  echo "kami doctor needs Python 3.9 or newer on PATH (macOS ships one; the repo's .venv is preferred)." >&2
+  echo "Install it, or set KAMI_DOCTOR_PYTHON=/path/to/python3." >&2
+  exit 2
+fi
+
+exec "$PY" "$HERE/doctor/main.py" "$@"

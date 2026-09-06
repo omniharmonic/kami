@@ -117,6 +117,13 @@ describe("servingProvenance", () => {
     expect(p.placement).toBeNull();
   });
 
+  it("carries the gate's guard mode through, so the page can say when the guard is off", async () => {
+    await report("gate_provenance.ghost-creek", { placement: "hosted", provider: "together.ai", model: "m", guard: "passthrough", at: iso(60_000) });
+    expect((await servingProvenance("ghost-creek", NOW)).guard).toBe("passthrough");
+    await report("gate_provenance.ghost-creek", { placement: "hosted", provider: "together.ai", model: "m", guard: "nonsense", at: iso(60_000) });
+    expect((await servingProvenance("ghost-creek", NOW)).guard).toBeNull();
+  });
+
   it("survives having no database at all — unknown, not a guess", async () => {
     setDbForTests(null);
     expect((await servingProvenance("ghost-creek", NOW)).source).toBe("unknown");
@@ -151,7 +158,7 @@ describe("isStale / stalenessSeconds", () => {
 });
 
 describe("mayClaimNoFrontierModel", () => {
-  const base = { provider: "x", model: "m", at: iso(HOUR), staleness_s: 3600, reasoning_effort: null, stale: false } as const;
+  const base = { provider: "x", model: "m", at: iso(HOUR), staleness_s: 3600, guard: "factguard", reasoning_effort: null, stale: false } as const;
 
   it("is true only for a fresh gate report on an owned or rented GPU", () => {
     expect(mayClaimNoFrontierModel({ ...base, placement: "owned", source: "gate" })).toBe(true);

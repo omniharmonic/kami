@@ -242,6 +242,10 @@ export const howIWork = {
       whose machine the model sits on. */
   modelGuardEitherWay:
     "Either way the fact-sheet guard runs on this project's side of the call and checks every sentence: no number reaches you that did not come back from a twin tool call in the same turn.",
+  /** The gate can be run with the guard off. If it is, the page says so instead
+      of repeating that every sentence is checked. */
+  modelGuardOff:
+    "The gate reports that it is running in passthrough mode: the fact-sheet guard is off, so sentences reach you unchecked. That is a development setting, and it is said here rather than hidden.",
   modelReported: (iso: string) => `Reported by the gate at ${iso}.`,
   modelStale: (iso: string, age: string) =>
     `Last reported ${iso}, ${age} ago. That is the last thing the gate said, not a statement about what is running right now.`,

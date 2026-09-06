@@ -74,7 +74,9 @@ export default async function HowIWorkPage({ params }: Props) {
         {placement && (
           <p style={{ margin: "0.4rem 0 0" }} data-testid="model-placement">{placement}</p>
         )}
-        <p style={{ margin: "0.4rem 0 0" }} data-testid="model-guard">{copy.modelGuardEitherWay}</p>
+        <p style={{ margin: "0.4rem 0 0" }} data-testid="model-guard">
+          {provenance.guard === "passthrough" ? copy.modelGuardOff : copy.modelGuardEitherWay}
+        </p>
         {provenance.at && (
           <p className="faint" style={{ margin: "0.4rem 0 0" }} data-testid="model-reported" data-stale={provenance.stale ? "true" : "false"}>
             {provenance.stale

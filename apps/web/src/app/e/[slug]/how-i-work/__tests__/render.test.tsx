@@ -87,6 +87,20 @@ describe("/e/[slug]/how-i-work — the model section reports, it does not assert
     expect(container.textContent).toContain(FRONTIER_CLAIM);
   });
 
+  it("says the guard is off when the gate reports passthrough, instead of repeating that every sentence is checked", async () => {
+    await seed("passthrough-creek", "Passthrough Creek", {
+      placement: "hosted",
+      provider: "together.ai",
+      model: "qwen3.5-9b",
+      guard: "passthrough",
+      at: iso(60_000),
+    });
+    const guard = (await renderPage("passthrough-creek")).getByTestId("model-guard").textContent!;
+    expect(guard).toContain("passthrough mode");
+    expect(guard).toContain("the fact-sheet guard is off");
+    expect(guard).not.toContain("checks every sentence");
+  });
+
   it("says it does not know when nothing has reported, and claims nothing at all", async () => {
     await seed("silent-creek", "Silent Creek");
     const { container } = await renderPage("silent-creek");

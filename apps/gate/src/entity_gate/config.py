@@ -164,7 +164,14 @@ class GateConfig(BaseModel):
     @field_validator("upstream_url")
     @classmethod
     def _strip_slash(cls, v: str) -> str:
-        return v.rstrip("/")
+        """Normalise to a base URL: the gate appends ``/v1/chat/completions`` itself.
+
+        Every provider documents its endpoint as ``https://host/v1``, so that is what an
+        operator copies into ``upstream_url`` — and the gate would then request
+        ``/v1/v1/chat/completions`` and 404 with nothing useful to say. Strip it.
+        """
+        v = v.rstrip("/")
+        return v[:-3] if v.endswith("/v1") else v
 
     # ---- upstream helpers ---------------------------------------------------------
     @property

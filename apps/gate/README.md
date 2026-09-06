@@ -59,36 +59,35 @@ be a kami, because every number it says has to come from a tool result (ADR-E04)
 (d) only warn: without streaming, chat waits for whole replies; without a `usage` object,
 the daily budget falls back to a character-count estimate.
 
-### OpenRouter
+### OpenAI (what the first entity actually runs on today)
 
 ```yaml
-upstream_url: https://openrouter.ai/api
-upstream_api_key_env: OPENROUTER_API_KEY     # the NAME; the key lives in the environment
-upstream_headers:
-  HTTP-Referer: https://kami.example         # OpenRouter attributes traffic with these
-  X-Title: Kami
-upstream_model: qwen/qwen3.5-9b-instruct     # profile says qwen3.5-9b; OpenRouter wants this (*verify*)
+upstream_url: https://api.openai.com          # the gate appends /v1/chat/completions;
+                                              # a trailing /v1 is stripped, so either form works
+upstream_api_key_env: OPENAI_API_KEY          # the NAME; the key lives in the environment
+upstream_headers:                             # optional; drop the block if you have neither
+  OpenAI-Organization: org-...
+  OpenAI-Project: proj-...
+upstream_model: gpt-4o                        # *verify* — use the id `GET /v1/models` lists today;
+                                              # OpenAI's ids move faster than this README
 request_timeout_s: 300
 
 provenance:
   placement: hosted
-  provider: OpenRouter
-  model: qwen/qwen3.5-9b-instruct
+  provider: OpenAI
+  model: gpt-4o
   slug: boulder-creek
-  note: "Running on OpenRouter while the DGX Spark is being set up."
+  note: "Running on OpenAI while the DGX Spark is being set up."
 
 platform:
-  base_url: https://kami.example             # derives /api/gate/provenance
+  base_url: https://kami.example              # derives /api/gate/provenance
   pause_set_url: https://kami.example/api/gate/pause-set
   token_env: KAMI_PLATFORM_TOKEN
   fail_closed: true
 ```
 
-The base URL, the two attribution headers and the model slug are *verify* (`docs/verify.md`
-row 74) — the sandbox cannot reach OpenRouter, and `check_upstream` is how you settle them.
-
 ```
-export OPENROUTER_API_KEY=...        # never in the yaml, never in NEXT_PUBLIC_*
+export OPENAI_API_KEY=...             # never in the yaml, never in NEXT_PUBLIC_*
 export KAMI_PLATFORM_TOKEN=...
 export GATE_ADMIN_SECRET=...
 uv run --package kami-gate python -m entity_gate.check_upstream --config gate.yaml
@@ -96,7 +95,23 @@ entity-gate --config gate.yaml --listen 127.0.0.1:8001
 curl -s 127.0.0.1:8001/healthz | jq .provenance
 ```
 
-### LM Studio (or any local OpenAI-compatible server)
+Be clear-eyed about what this configuration is. A hosted frontier model on the hot path is
+the one thing PRD §3 rules out by name. It is here as a deliberate, time-boxed testing
+measure while the owner's DGX Spark is being set up (`docs/planning/ERRATA.md` row 7), and
+the only reason it is acceptable is that the gate now *reports* it: `placement: hosted`
+reaches `/healthz`, the platform, and the public "how I work" page, which stops claiming
+local inference the moment this config is loaded.
+
+**Any other OpenAI-compatible provider is the same four keys.** Point `upstream_url` at its
+base URL, name its key variable, set `upstream_model` to whatever it calls the model, and
+set the placement honestly. That is what makes the swap to the DGX Spark a config change
+rather than a migration: `upstream_url: http://127.0.0.1:8000`, `upstream_api_key_env:
+null`, `placement: owned`, restart. OpenRouter, for instance, is
+`upstream_url: https://openrouter.ai/api`, `upstream_api_key_env: OPENROUTER_API_KEY`,
+`upstream_model: qwen/qwen3.5-9b-instruct`, plus `HTTP-Referer` and `X-Title` in
+`upstream_headers` (all *verify*, `docs/verify.md` row 74).
+
+### LM Studio (the local alternative, and the shape the DGX Spark takes)
 
 LM Studio serves on `127.0.0.1:1234` and ignores the key, so there is no
 `upstream_api_key_env` — and the placement is `owned`, because the Mac mini is the
@@ -144,7 +159,17 @@ so (`tests/test_upstream_and_provenance.py`). A hosted model gets the same fact 
 same sentence-by-sentence release and the same gate line as a local one.
 
 The key names, never the key values, appear in what is reported: `api_key_env:
-"OPENROUTER_API_KEY"`, `authenticated: true`.
+"OPENAI_API_KEY"`, `authenticated: true`.
+
+### What a frontier model's eval numbers will not tell you
+
+While the upstream is a hosted frontier model, treat every eval result as measuring that
+model, not this product. G1's hallucination probe asks whether a **small** model stays
+honest when it does not know something; a frontier model passing it says almost nothing
+about how a Qwen-class 9B will behave on the same prompts, and a flattering first number is
+the easiest way to talk yourself out of work you still have to do. The real G1 figure has to
+be re-measured against the model that will actually serve, on the hardware that will
+actually serve it. No threshold changes because of this — only the reading of the result.
 
 ## Smoke (§12.5 step 5)
 
