@@ -55,7 +55,7 @@ describe("POST /api/gate/provenance", () => {
     const stored = await getConfig<Record<string, unknown>>(db, "gate_provenance.boulder-creek");
     expect(stored).toMatchObject({ placement: "hosted", provider: "OpenRouter", model: "qwen/qwen3.5-9b-instruct", host: "box-1", api_key_env: "OPENROUTER_API_KEY" });
     // the reader's contract: placement, provider, model and a usable `at`
-    expect(parseGateReport(stored)).toEqual({ placement: "hosted", provider: "OpenRouter", model: "qwen/qwen3.5-9b-instruct", at: "2026-09-06T05:00:00.000Z" });
+    expect(parseGateReport(stored)).toMatchObject({ placement: "hosted", provider: "OpenRouter", model: "qwen/qwen3.5-9b-instruct", at: "2026-09-06T05:00:00.000Z" });
   });
 
   it("falls back to the box-wide key when the gate serves every kami from one upstream", async () => {

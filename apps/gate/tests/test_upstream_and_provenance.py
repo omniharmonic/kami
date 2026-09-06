@@ -182,6 +182,14 @@ def test_the_shipped_gate_yaml_names_its_placement():
     assert cfg.timeout_s == 300
 
 
+def test_a_trailing_v1_in_the_upstream_url_is_stripped():
+    """Every provider documents its endpoint as https://host/v1, so that is what gets pasted."""
+    assert _cfg(upstream_url="https://api.openai.com/v1").upstream_url == "https://api.openai.com"
+    assert _cfg(upstream_url="https://api.openai.com/v1/").upstream_url == "https://api.openai.com"
+    assert _cfg(upstream_url="http://127.0.0.1:8000").upstream_url == "http://127.0.0.1:8000"
+    assert _cfg(upstream_url="http://127.0.0.1:1234/").upstream_url == "http://127.0.0.1:1234"
+
+
 def test_legacy_upstream_timeout_s_still_wins_over_the_new_default():
     assert _cfg(upstream_timeout_s=120).timeout_s == 120
     assert _cfg().timeout_s == 300

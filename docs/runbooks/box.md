@@ -79,7 +79,13 @@ it back.
    undo. A missing card is an outage, and the software already renders an outage correctly.
 3. **Do not point the gate at a hosted frontier model to keep the lights on.** No cloud frontier
    model on the hot path is a product rule (PRD non-goals), and quietly breaking it during an
-   outage is exactly how it gets broken permanently.
+   outage is exactly how it gets broken permanently. The word doing the work here is *quietly*:
+   there is a deliberate, declared hosted configuration (ERRATA row 7, while the owner's hardware
+   is pending), and it announces itself — `provenance.placement: hosted` is required, the gate
+   refuses to start without it, and the public "how I work" page says which model is serving and
+   where it runs. An outage is not the moment to make that decision by hand at 3 a.m. If the
+   project genuinely needs to move to a hosted upstream, it is a change to `gate.yaml`,
+   `provenance` included, made deliberately and visible on the page within a heartbeat.
 4. **Bring up a replacement:** any machine with the same weights and the §12.5 flag set. The
    architecture treats the model as a URL. In order: rent a pod by the hour; or start the gate in
    `--passthrough` mode against a smaller local model for chat only, with the cron jobs left off;

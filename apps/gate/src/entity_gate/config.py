@@ -171,7 +171,7 @@ class GateConfig(BaseModel):
         ``/v1/v1/chat/completions`` and 404 with nothing useful to say. Strip it.
         """
         v = v.rstrip("/")
-        return v[:-3] if v.endswith("/v1") else v
+        return v.removesuffix("/v1")
 
     # ---- upstream helpers ---------------------------------------------------------
     @property

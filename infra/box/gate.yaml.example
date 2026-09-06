@@ -5,6 +5,18 @@ upstream_url: http://vllm:8000
 listen: 0.0.0.0:8001
 passthrough: false                 # true only for UI work on a dev machine (§12.1); never on the box
 
+# Where the model actually runs. REQUIRED, with no default: a gate that cannot say
+# where its model runs refuses to start, because the public "how I work" page renders
+# this rather than asserting anything about inference. `placement` is one of:
+#   owned   — hardware the project controls (this box, a DGX Spark)
+#   rented  — a GPU box the project rents by the month or the hour
+#   hosted  — someone else's API. PRD §3 rules this out for production; see ERRATA row 7
+#             for the time-boxed exception while hardware is pending.
+provenance:
+  placement: owned
+  provider: "vLLM on the GPU box"
+  model: qwen3.5-9b
+
 # Per-entity daily budgets (tokens). Defaults from §5.7: 800k prompt / 40k output (B2's estimate × 1.5);
 # cron draws from its own prompt budget so chat cannot starve the weekly job.
 budgets:
