@@ -1,0 +1,691 @@
+{
+  "_comment": "SYNTHETIC eval fixture — a quiet mid-November afternoon: Orodell 22.7 cfs with the CDSS reading 105 minutes old (warning, not stale), Niwot 2.4 in swe, D1, no alerts.",
+  "as_of": "2026-11-14T18:00:00Z",
+  "tree_generated_at": "2026-11-14T17:50:48Z",
+  "entity_id": "entity/boulder-creek",
+  "archetype": "creek",
+  "anchor": "place/boulder-creek-near-orodell-co",
+  "binding_version": 1,
+  "frozen_at": "2026-09-06T00:00:00Z",
+  "members_n": 13,
+  "needs": [
+    {
+      "need": "flow",
+      "property": "discharge",
+      "place_id": "place/boulder-creek-near-orodell-co",
+      "agg": "single",
+      "value": 22.7,
+      "unit": "[ft_i]3/s",
+      "time": "2026-11-14T16:15:00Z",
+      "stale": false,
+      "staleness_s": 6300,
+      "source_id": "cdss.telemetry",
+      "source_status": "warning",
+      "week": {
+        "min": 21.9,
+        "max": 24.3,
+        "trend": "flat"
+      },
+      "percentile_por": null,
+      "label": "Boulder Creek near Orodell"
+    },
+    {
+      "need": "storage",
+      "property": "reservoir_fill",
+      "place_id": "place/gross-reservoir",
+      "agg": "single",
+      "value": 66,
+      "unit": "%",
+      "time": "2026-11-14T06:00:00Z",
+      "stale": false,
+      "staleness_s": 43200,
+      "source_id": "derived.fill",
+      "source_status": "warning",
+      "week": {
+        "min": 66,
+        "max": 66,
+        "trend": "flat"
+      },
+      "percentile_por": null,
+      "label": "Gross Reservoir"
+    },
+    {
+      "need": "snow",
+      "property": "swe",
+      "place_id": "place/niwot",
+      "agg": "single",
+      "value": 2.4,
+      "unit": "[in_i]",
+      "time": "2026-11-14T12:00:00Z",
+      "stale": false,
+      "staleness_s": 21600,
+      "source_id": "nrcs.awdb",
+      "source_status": "warning",
+      "week": {
+        "min": 1.9,
+        "max": 2.4,
+        "trend": "rising"
+      },
+      "percentile_por": null,
+      "label": "Niwot"
+    },
+    {
+      "need": "water",
+      "property": "dissolved_oxygen",
+      "place_id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+      "agg": "single",
+      "value": 10.6,
+      "unit": "mg/L",
+      "time": "2026-11-14T17:30:00Z",
+      "stale": false,
+      "staleness_s": 1800,
+      "source_id": "usgs.ogcapi.latest",
+      "source_status": "ok",
+      "week": {
+        "min": 10.1,
+        "max": 10.9,
+        "trend": "flat"
+      },
+      "percentile_por": null,
+      "label": "South Boulder Creek at the forebay"
+    },
+    {
+      "need": "air",
+      "property": "pm25",
+      "place_id": "place/boulder-cu-2102-athens-st",
+      "agg": "mean_24h",
+      "value": 9.1,
+      "unit": "ug/m3",
+      "time": "2026-11-14T17:00:00Z",
+      "stale": false,
+      "staleness_s": 3600,
+      "source_id": "epa.airnow",
+      "source_status": "ok",
+      "week": {
+        "min": 6.4,
+        "max": 12.0,
+        "trend": "flat"
+      },
+      "percentile_por": null,
+      "label": "Boulder CU, 2102 Athens St",
+      "n": 24
+    },
+    {
+      "need": "drought",
+      "property": "dm",
+      "place_id": null,
+      "agg": "max_intersecting",
+      "value": 1,
+      "unit": null,
+      "time": "2026-11-10T12:00:00Z",
+      "stale": false,
+      "staleness_s": 367200,
+      "source_id": "usdm.current",
+      "source_status": "ok",
+      "week": null,
+      "percentile_por": null,
+      "label": "D1 moderate drought",
+      "place_ids": [
+        "watershed/huc10-1019000504",
+        "watershed/huc10-1019000505",
+        "watershed/huc10-1019000506",
+        "watershed/huc10-1019000507"
+      ],
+      "period_end": "2026-11-17T12:00:00Z"
+    }
+  ],
+  "live": {
+    "drought_max_dm": 1,
+    "drought_label": "D1 moderate drought",
+    "drought_period_end": "2026-11-17T12:00:00Z",
+    "alerts": [],
+    "fires_inside": 0,
+    "detections_24h": 0,
+    "approximation": "Polygon tests are bbox overlap plus point-in-polygon of vertices and centroids (no edge clipping); zone-only NWS alerts carry no polygon and cannot be placed."
+  },
+  "sources": {
+    "cdss.telemetry": {
+      "health": "warning",
+      "staleness_s": 6300,
+      "last_ok": "2026-11-14T16:15:00Z"
+    },
+    "derived.fill": {
+      "health": "warning",
+      "staleness_s": 43200,
+      "last_ok": "2026-11-14T06:00:00Z"
+    },
+    "epa.airnow": {
+      "health": "ok",
+      "staleness_s": 3600,
+      "last_ok": "2026-11-14T17:00:00Z"
+    },
+    "nrcs.awdb": {
+      "health": "warning",
+      "staleness_s": 21600,
+      "last_ok": "2026-11-14T12:00:00Z"
+    },
+    "nws.alerts": {
+      "health": "unknown",
+      "staleness_s": null,
+      "last_ok": null
+    },
+    "usdm.current": {
+      "health": "ok",
+      "staleness_s": 367200,
+      "last_ok": "2026-11-10T12:00:00Z"
+    },
+    "usgs.ogcapi.latest": {
+      "health": "ok",
+      "staleness_s": 1800,
+      "last_ok": "2026-11-14T17:30:00Z"
+    }
+  },
+  "snapshot_hash": "91e83de8385956d29aa9dd687c67247e67fadff6719bd1758cd06776c1d86267",
+  "facts": {
+    "schema_version": "1.0",
+    "as_of": "2026-11-14T18:00:00Z",
+    "tree_generated_at": "2026-11-14T17:50:48Z",
+    "source_tool": "get_entity_status",
+    "atoms": [
+      {
+        "kind": "time",
+        "value": "2026-11-14T18:00:00Z",
+        "role": "as_of",
+        "place_id": null,
+        "property": null
+      },
+      {
+        "kind": "place",
+        "id": "place/boulder-creek-near-orodell-co",
+        "name": "Boulder Creek near Orodell"
+      },
+      {
+        "kind": "place",
+        "id": "place/boulder-creek-co-below-broadway-st",
+        "name": "Boulder Creek below Broadway"
+      },
+      {
+        "kind": "place",
+        "id": "place/boulder-creek-at-north-75th-st-near-boulder-co",
+        "name": "Boulder Creek at North 75th St"
+      },
+      {
+        "kind": "place",
+        "id": "place/boulder-creek-at-mouth-near-longmont-co",
+        "name": "Boulder Creek at the mouth"
+      },
+      {
+        "kind": "place",
+        "id": "place/niwot",
+        "name": "Niwot"
+      },
+      {
+        "kind": "place",
+        "id": "place/lake-eldora",
+        "name": "Lake Eldora"
+      },
+      {
+        "kind": "place",
+        "id": "place/university-camp-2",
+        "name": "University Camp"
+      },
+      {
+        "kind": "place",
+        "id": "place/gross-reservoir",
+        "name": "Gross Reservoir"
+      },
+      {
+        "kind": "place",
+        "id": "place/union-reservoir",
+        "name": "Union Reservoir"
+      },
+      {
+        "kind": "place",
+        "id": "place/leggett-valmont-reservoir",
+        "name": "Leggett-Valmont Reservoir"
+      },
+      {
+        "kind": "place",
+        "id": "place/six-mile-reservoir",
+        "name": "Six Mile Reservoir"
+      },
+      {
+        "kind": "place",
+        "id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+        "name": "South Boulder Creek at the forebay"
+      },
+      {
+        "kind": "place",
+        "id": "place/boulder-cu-2102-athens-st",
+        "name": "Boulder CU, 2102 Athens St"
+      },
+      {
+        "kind": "place",
+        "id": "watershed/huc10-1019000504",
+        "name": "Headwaters Boulder Creek"
+      },
+      {
+        "kind": "place",
+        "id": "watershed/huc10-1019000505",
+        "name": "South Boulder Creek"
+      },
+      {
+        "kind": "place",
+        "id": "watershed/huc10-1019000506",
+        "name": "Coal Creek-Boulder Creek"
+      },
+      {
+        "kind": "place",
+        "id": "watershed/huc10-1019000507",
+        "name": "Boulder Creek-Saint Vrain"
+      },
+      {
+        "kind": "number",
+        "value": 22.7,
+        "unit": "[ft_i]3/s",
+        "property": "discharge",
+        "place_id": "place/boulder-creek-near-orodell-co",
+        "time": "2026-11-14T16:15:00Z",
+        "stale": false,
+        "staleness_s": 6300,
+        "source_id": "cdss.telemetry",
+        "forecast": false,
+        "label": "Boulder Creek near Orodell"
+      },
+      {
+        "kind": "time",
+        "value": "2026-11-14T16:15:00Z",
+        "role": "reading_time",
+        "place_id": "place/boulder-creek-near-orodell-co",
+        "property": "discharge"
+      },
+      {
+        "kind": "number",
+        "value": 21.9,
+        "unit": "[ft_i]3/s",
+        "property": "discharge",
+        "place_id": "place/boulder-creek-near-orodell-co",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "cdss.telemetry",
+        "forecast": false,
+        "label": "7-day min of Boulder Creek near Orodell"
+      },
+      {
+        "kind": "number",
+        "value": 24.3,
+        "unit": "[ft_i]3/s",
+        "property": "discharge",
+        "place_id": "place/boulder-creek-near-orodell-co",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "cdss.telemetry",
+        "forecast": false,
+        "label": "7-day max of Boulder Creek near Orodell"
+      },
+      {
+        "kind": "number",
+        "value": 6300,
+        "unit": "s",
+        "property": "staleness_s",
+        "place_id": "place/boulder-creek-near-orodell-co",
+        "time": "2026-11-14T16:15:00Z",
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "cdss.telemetry",
+        "forecast": false,
+        "label": "age of flow reading"
+      },
+      {
+        "kind": "enum",
+        "name": "source_status",
+        "value": "warning",
+        "place_id": "place/boulder-creek-near-orodell-co"
+      },
+      {
+        "kind": "number",
+        "value": 66,
+        "unit": "%",
+        "property": "reservoir_fill",
+        "place_id": "place/gross-reservoir",
+        "time": "2026-11-14T06:00:00Z",
+        "stale": false,
+        "staleness_s": 43200,
+        "source_id": "derived.fill",
+        "forecast": false,
+        "label": "Gross Reservoir"
+      },
+      {
+        "kind": "time",
+        "value": "2026-11-14T06:00:00Z",
+        "role": "reading_time",
+        "place_id": "place/gross-reservoir",
+        "property": "reservoir_fill"
+      },
+      {
+        "kind": "number",
+        "value": 66,
+        "unit": "%",
+        "property": "reservoir_fill",
+        "place_id": "place/gross-reservoir",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "derived.fill",
+        "forecast": false,
+        "label": "7-day min of Gross Reservoir"
+      },
+      {
+        "kind": "number",
+        "value": 66,
+        "unit": "%",
+        "property": "reservoir_fill",
+        "place_id": "place/gross-reservoir",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "derived.fill",
+        "forecast": false,
+        "label": "7-day max of Gross Reservoir"
+      },
+      {
+        "kind": "number",
+        "value": 43200,
+        "unit": "s",
+        "property": "staleness_s",
+        "place_id": "place/gross-reservoir",
+        "time": "2026-11-14T06:00:00Z",
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "derived.fill",
+        "forecast": false,
+        "label": "age of storage reading"
+      },
+      {
+        "kind": "enum",
+        "name": "source_status",
+        "value": "warning",
+        "place_id": "place/gross-reservoir"
+      },
+      {
+        "kind": "number",
+        "value": 2.4,
+        "unit": "[in_i]",
+        "property": "swe",
+        "place_id": "place/niwot",
+        "time": "2026-11-14T12:00:00Z",
+        "stale": false,
+        "staleness_s": 21600,
+        "source_id": "nrcs.awdb",
+        "forecast": false,
+        "label": "Niwot"
+      },
+      {
+        "kind": "time",
+        "value": "2026-11-14T12:00:00Z",
+        "role": "reading_time",
+        "place_id": "place/niwot",
+        "property": "swe"
+      },
+      {
+        "kind": "number",
+        "value": 1.9,
+        "unit": "[in_i]",
+        "property": "swe",
+        "place_id": "place/niwot",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "nrcs.awdb",
+        "forecast": false,
+        "label": "7-day min of Niwot"
+      },
+      {
+        "kind": "number",
+        "value": 2.4,
+        "unit": "[in_i]",
+        "property": "swe",
+        "place_id": "place/niwot",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "nrcs.awdb",
+        "forecast": false,
+        "label": "7-day max of Niwot"
+      },
+      {
+        "kind": "number",
+        "value": 21600,
+        "unit": "s",
+        "property": "staleness_s",
+        "place_id": "place/niwot",
+        "time": "2026-11-14T12:00:00Z",
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "nrcs.awdb",
+        "forecast": false,
+        "label": "age of snow reading"
+      },
+      {
+        "kind": "enum",
+        "name": "source_status",
+        "value": "warning",
+        "place_id": "place/niwot"
+      },
+      {
+        "kind": "number",
+        "value": 10.6,
+        "unit": "mg/L",
+        "property": "dissolved_oxygen",
+        "place_id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+        "time": "2026-11-14T17:30:00Z",
+        "stale": false,
+        "staleness_s": 1800,
+        "source_id": "usgs.ogcapi.latest",
+        "forecast": false,
+        "label": "South Boulder Creek at the forebay"
+      },
+      {
+        "kind": "time",
+        "value": "2026-11-14T17:30:00Z",
+        "role": "reading_time",
+        "place_id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+        "property": "dissolved_oxygen"
+      },
+      {
+        "kind": "number",
+        "value": 10.1,
+        "unit": "mg/L",
+        "property": "dissolved_oxygen",
+        "place_id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "usgs.ogcapi.latest",
+        "forecast": false,
+        "label": "7-day min of South Boulder Creek at the forebay"
+      },
+      {
+        "kind": "number",
+        "value": 10.9,
+        "unit": "mg/L",
+        "property": "dissolved_oxygen",
+        "place_id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "usgs.ogcapi.latest",
+        "forecast": false,
+        "label": "7-day max of South Boulder Creek at the forebay"
+      },
+      {
+        "kind": "number",
+        "value": 1800,
+        "unit": "s",
+        "property": "staleness_s",
+        "place_id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+        "time": "2026-11-14T17:30:00Z",
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "usgs.ogcapi.latest",
+        "forecast": false,
+        "label": "age of water reading"
+      },
+      {
+        "kind": "enum",
+        "name": "source_status",
+        "value": "ok",
+        "place_id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co"
+      },
+      {
+        "kind": "number",
+        "value": 9.1,
+        "unit": "ug/m3",
+        "property": "pm25",
+        "place_id": "place/boulder-cu-2102-athens-st",
+        "time": "2026-11-14T17:00:00Z",
+        "stale": false,
+        "staleness_s": 3600,
+        "source_id": "epa.airnow",
+        "forecast": false,
+        "label": "Boulder CU, 2102 Athens St"
+      },
+      {
+        "kind": "time",
+        "value": "2026-11-14T17:00:00Z",
+        "role": "reading_time",
+        "place_id": "place/boulder-cu-2102-athens-st",
+        "property": "pm25"
+      },
+      {
+        "kind": "number",
+        "value": 6.4,
+        "unit": "ug/m3",
+        "property": "pm25",
+        "place_id": "place/boulder-cu-2102-athens-st",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "epa.airnow",
+        "forecast": false,
+        "label": "7-day min of Boulder CU, 2102 Athens St"
+      },
+      {
+        "kind": "number",
+        "value": 12.0,
+        "unit": "ug/m3",
+        "property": "pm25",
+        "place_id": "place/boulder-cu-2102-athens-st",
+        "time": null,
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "epa.airnow",
+        "forecast": false,
+        "label": "7-day max of Boulder CU, 2102 Athens St"
+      },
+      {
+        "kind": "number",
+        "value": 3600,
+        "unit": "s",
+        "property": "staleness_s",
+        "place_id": "place/boulder-cu-2102-athens-st",
+        "time": "2026-11-14T17:00:00Z",
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "epa.airnow",
+        "forecast": false,
+        "label": "age of air reading"
+      },
+      {
+        "kind": "enum",
+        "name": "source_status",
+        "value": "ok",
+        "place_id": "place/boulder-cu-2102-athens-st"
+      },
+      {
+        "kind": "number",
+        "value": 1,
+        "unit": null,
+        "property": "dm",
+        "place_id": null,
+        "time": "2026-11-10T12:00:00Z",
+        "stale": false,
+        "staleness_s": 367200,
+        "source_id": "usdm.current",
+        "forecast": false,
+        "label": "D1 moderate drought"
+      },
+      {
+        "kind": "time",
+        "value": "2026-11-10T12:00:00Z",
+        "role": "reading_time",
+        "place_id": null,
+        "property": "dm"
+      },
+      {
+        "kind": "number",
+        "value": 367200,
+        "unit": "s",
+        "property": "staleness_s",
+        "place_id": null,
+        "time": "2026-11-10T12:00:00Z",
+        "stale": false,
+        "staleness_s": null,
+        "source_id": "usdm.current",
+        "forecast": false,
+        "label": "age of drought reading"
+      },
+      {
+        "kind": "enum",
+        "name": "source_status",
+        "value": "ok",
+        "place_id": null
+      },
+      {
+        "kind": "enum",
+        "name": "drought_class",
+        "value": "D1 moderate drought",
+        "place_id": null
+      },
+      {
+        "kind": "time",
+        "value": "2026-11-17T12:00:00Z",
+        "role": "period_end",
+        "place_id": null,
+        "property": "dm"
+      },
+      {
+        "kind": "count",
+        "value": 0,
+        "of": "alerts",
+        "place_id": null
+      },
+      {
+        "kind": "count",
+        "value": 0,
+        "of": "fires_inside",
+        "place_id": null
+      },
+      {
+        "kind": "count",
+        "value": 0,
+        "of": "detections_24h",
+        "place_id": null
+      },
+      {
+        "kind": "count",
+        "value": 13,
+        "of": "members",
+        "place_id": null
+      },
+      {
+        "kind": "count",
+        "value": 6,
+        "of": "needs",
+        "place_id": null
+      }
+    ]
+  }
+}

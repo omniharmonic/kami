@@ -1,9 +1,10 @@
 [project]
 name = "kami-evals"
 version = "0.1.0"
-description = "Kami eval suite: hallucination probe, 200-turn guard replay, live runner, judge, fine-tune pipeline"
+description = "Kami eval suite: hallucination probe, 200-turn guard replay, live runner, judge, audit, fine-tune pipeline"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
+authors = [{ name = "Benjamin Life" }]
 dependencies = ["kami-factguard", "httpx>=0.28,<1", "pyyaml>=6,<7"]
 
 [project.scripts]
@@ -18,3 +19,7 @@ packages = ["kami_evals"]
 
 [tool.uv.sources]
 kami-factguard = { workspace = true }
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

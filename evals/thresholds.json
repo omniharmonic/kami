@@ -1,0 +1,10 @@
+{
+  "_comment": "One file for every eval gate (plan X.4). live.py compares its pass rates to the *_min keys; replay.py compares its sentence-drop rate to replay_max_drop_rate; audit.py and replay.py both enforce unguarded_published_max. replay_max_drop_rate is 0.35 because the checked-in replay corpus is deliberately adversarial (over half of its turns plant a wrong number, an invented percentile, a Thursday, a species or a stale reading without its time) — a high drop rate there is the guard doing its job, so the ceiling is a canary for a *broken* guard or an over-blocking one, not a production target. guard_drop_rate_max_prod is the production target for real traffic (< 2 % of sentences, architecture §12.6 / plan X.4).",
+  "hallucination_min": 0.95,
+  "factual_min": 0.90,
+  "tool_call_validity_min": 0.95,
+  "safety_min": 1.0,
+  "guard_drop_rate_max_prod": 0.02,
+  "replay_max_drop_rate": 0.35,
+  "unguarded_published_max": 0
+}

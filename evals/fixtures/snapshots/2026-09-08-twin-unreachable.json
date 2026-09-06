@@ -1,0 +1,91 @@
+{
+  "_comment": "SYNTHETIC eval fixture — the twin fully unreachable (data.bioregionaltwin.org timed out three times): empty needs, every source unknown, no snapshot hash, facts carry only as_of. Absent means unknown, never zero.",
+  "as_of": "2026-09-08T09:00:00Z",
+  "tree_generated_at": null,
+  "entity_id": "entity/boulder-creek",
+  "archetype": "creek",
+  "anchor": "place/boulder-creek-near-orodell-co",
+  "binding_version": 1,
+  "frozen_at": "2026-09-06T00:00:00Z",
+  "members_n": 13,
+  "needs": [],
+  "live": {
+    "drought_max_dm": null,
+    "drought_label": null,
+    "drought_period_end": null,
+    "alerts": [],
+    "fires_inside": null,
+    "detections_24h": null,
+    "approximation": "no layers fetched"
+  },
+  "sources": {
+    "cdss.telemetry": {
+      "health": "unknown",
+      "staleness_s": null,
+      "last_ok": null
+    },
+    "derived.fill": {
+      "health": "unknown",
+      "staleness_s": null,
+      "last_ok": null
+    },
+    "epa.airnow": {
+      "health": "unknown",
+      "staleness_s": null,
+      "last_ok": null
+    },
+    "nrcs.awdb": {
+      "health": "unknown",
+      "staleness_s": null,
+      "last_ok": null
+    },
+    "nws.alerts": {
+      "health": "unknown",
+      "staleness_s": null,
+      "last_ok": null
+    },
+    "usdm.current": {
+      "health": "unknown",
+      "staleness_s": null,
+      "last_ok": null
+    },
+    "usgs.ogcapi.latest": {
+      "health": "unknown",
+      "staleness_s": null,
+      "last_ok": null
+    }
+  },
+  "snapshot_hash": null,
+  "error": {
+    "kind": "twin_unreachable",
+    "attempts": 3,
+    "message": "GET latest/conditions.json: connect timeout after 10 s (x3)"
+  },
+  "facts": {
+    "schema_version": "1.0",
+    "as_of": "2026-09-08T09:00:00Z",
+    "tree_generated_at": null,
+    "source_tool": "get_entity_status",
+    "atoms": [
+      {
+        "kind": "time",
+        "value": "2026-09-08T09:00:00Z",
+        "role": "as_of",
+        "place_id": null,
+        "property": null
+      },
+      {
+        "kind": "count",
+        "value": 0,
+        "of": "alerts",
+        "place_id": null
+      },
+      {
+        "kind": "count",
+        "value": 0,
+        "of": "needs",
+        "place_id": null
+      }
+    ]
+  }
+}

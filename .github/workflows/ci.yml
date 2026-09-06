@@ -51,7 +51,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --all-packages
-      - run: uv run --package kami-evals python -m evals.run_replay --ci
+      - run: uv run --package kami-evals python -m kami_evals.replay --ci
   e2e:
     name: playwright
     runs-on: ubuntu-latest

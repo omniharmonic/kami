@@ -1,0 +1,22 @@
+{"id": "c001", "kind": "toolcall", "snapshot": "2026-01-17-hard-freeze", "question": "How is the creek right now?", "expected_tool": ["get_entity_status"]}
+{"id": "c002", "kind": "toolcall", "snapshot": "2026-05-02-spring-rise", "question": "What's the flow at Orodell?", "expected_tool": ["get_entity_status"]}
+{"id": "c003", "kind": "toolcall", "snapshot": "2026-06-12-runoff-healthy", "question": "Any alerts I should know about?", "expected_tool": ["get_alerts", "get_entity_status"]}
+{"id": "c004", "kind": "toolcall", "snapshot": "2026-07-28-monsoon-flood-warning", "question": "How has the flow moved over the last week?", "expected_tool": ["get_reading_history"]}
+{"id": "c005", "kind": "toolcall", "snapshot": "2026-08-19-smoke-day", "question": "Is today's flow low for the season?", "expected_tool": ["compare_to_normal", "get_entity_status"]}
+{"id": "c006", "kind": "toolcall", "snapshot": "2026-08-30-d3-drought", "question": "What does 'discharge' mean?", "expected_tool": ["explain"]}
+{"id": "c007", "kind": "toolcall", "snapshot": "2026-09-06-all-stale", "question": "Are your sensor feeds healthy?", "expected_tool": ["get_health", "get_entity_status"]}
+{"id": "c008", "kind": "toolcall", "snapshot": "2026-09-12-gauge-superseded", "question": "Tell me about the Niwot SNOTEL site.", "expected_tool": ["get_place"]}
+{"id": "c009", "kind": "toolcall", "snapshot": "2026-09-20-celebrating", "question": "How much is in the treasury?", "expected_tool": ["get_balance"]}
+{"id": "c010", "kind": "toolcall", "snapshot": "2026-10-03-gross-low-fill", "question": "Anything waiting for the guardians to sign?", "expected_tool": ["list_pending"]}
+{"id": "c011", "kind": "toolcall", "snapshot": "2026-11-14-late-fall-quiet", "question": "What bounties are open?", "expected_tool": ["list_open_bounties"]}
+{"id": "c012", "kind": "toolcall", "snapshot": "2026-01-17-hard-freeze", "question": "How full is Gross Reservoir?", "expected_tool": ["get_entity_status"]}
+{"id": "c013", "kind": "toolcall", "snapshot": "2026-05-02-spring-rise", "question": "Is there smoke in the air today?", "expected_tool": ["get_entity_status"]}
+{"id": "c014", "kind": "toolcall", "snapshot": "2026-06-12-runoff-healthy", "question": "What's the drought class this week?", "expected_tool": ["get_entity_status", "get_alerts"]}
+{"id": "c015", "kind": "toolcall", "snapshot": "2026-07-28-monsoon-flood-warning", "question": "Give me your full status.", "expected_tool": ["get_entity_status"]}
+{"id": "c016", "kind": "toolcall", "snapshot": "2026-08-19-smoke-day", "question": "What's a healthy dissolved-oxygen level?", "expected_tool": ["explain"]}
+{"id": "c017", "kind": "toolcall", "snapshot": "2026-08-30-d3-drought", "question": "How's the snowpack?", "expected_tool": ["get_entity_status"]}
+{"id": "c018", "kind": "toolcall", "snapshot": "2026-09-06-all-stale", "question": "Has the creek been rising or falling?", "expected_tool": ["get_reading_history", "get_entity_status"]}
+{"id": "c019", "kind": "toolcall", "snapshot": "2026-09-12-gauge-superseded", "question": "What did your last pulse say?", "expected_tool": ["get_needs_snapshot", "get_entity_status"]}
+{"id": "c020", "kind": "toolcall", "snapshot": "2026-09-20-celebrating", "question": "Is anything on fire near you?", "expected_tool": ["get_entity_status", "get_alerts"]}
+{"id": "c021", "kind": "toolcall", "snapshot": "2026-10-03-gross-low-fill", "question": "What's your snapshot hash right now?", "expected_tool": ["get_entity_status"]}
+{"id": "c022", "kind": "toolcall", "snapshot": "2026-11-14-late-fall-quiet", "question": "Which of your gauges are stale?", "expected_tool": ["get_entity_status", "get_health"]}
