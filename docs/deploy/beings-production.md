@@ -94,3 +94,10 @@ beings-agent hermes --skills entity-steward
 ```
 
 The saved credential is injected by the private launcher. `beings-agent hermes mcp test kami-platform` checks the platform independently. This local model diagnostic does not verify the public website chat, guarded hosting adapter, or recurring work. Those remain unconfigured; Boulder Creek remains private and paused.
+
+
+## Sensor-discovery correction
+
+A pending binding was previously excluded from the needs context and then serialized as zero members, no anchor, and no watersheds in get_entity_config. This incorrectly told the model that the being had no sensing body. The configuration now exposes schema-validated proposed member IDs, names and roles, with explicit binding_review and binding_active fields. Missing or invalid membership reports a null count instead of zero. The approved-only needs calculation is unchanged. The updated entity-steward skill directs read-only diagnostics to query the anchor and gauge members with public twin get_place calls even while the binding awaits review.
+
+Verification: 14 MCP tests passed, including pending/invalid binding regression and unchanged review state; web typecheck passed.

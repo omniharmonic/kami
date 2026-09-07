@@ -12,6 +12,7 @@ import { disclosureLabel } from "@/copy";
 import { getConfig } from "@/lib/jobs/common";
 import { capsFrom, DEFAULT_DRAFTS_PER_WEEK, type BountyCaps } from "./bounty-spec";
 import type { CurrentBinding, EntityRow } from "@/lib/jobs/needs";
+import { BindingSchema } from "@kami/binding";
 
 export const KAMI_ENTITY_CONFIG_PREFIX = "KAMI_ENTITY_CONFIG:";
 
@@ -19,7 +20,12 @@ export type EntityConfig = {
   entity: { id: string; slug: string; name: string; archetype: string };
   binding_version: number | null;
   anchor: string | null;
-  members: number;
+  members: number | null;
+  binding_review: string;
+  binding_active: boolean;
+  binding_note: string;
+  member_places: { id: string; name: string | null; role: string }[];
+  member_places_truncated: boolean;
   watersheds: string[];
   caps: {
     bounty_cap_usdc: BountyCaps;
@@ -40,6 +46,13 @@ function displayName(name: string | null, email: string): string {
 }
 
 export async function buildEntityConfig(db: DbOrTx, entity: EntityRow, binding: CurrentBinding | null): Promise<EntityConfig> {
+  // Review gates computed needs, not read-only discovery of proposed sensors.
+  // Never turn an unavailable approved binding into a claim of zero members.
+  const [row] = entity.bindingVersion === null ? [] : await db.select().from(schema.entityBindings)
+    .where(and(eq(schema.entityBindings.entityId, entity.id), eq(schema.entityBindings.bindingVersion, entity.bindingVersion))).limit(1);
+  const parsed = row ? BindingSchema.safeParse(row.binding) : null;
+  const proposed = binding?.binding ?? (parsed?.success ? parsed.data : null);
+  const review = row ? (parsed?.success ? row.review : "invalid") : (binding ? "approved" : "missing");
   const roles = await db
     .select({ role: schema.entityRoles.role, name: schema.users.name, email: schema.users.email })
     .from(schema.entityRoles)
@@ -54,9 +67,16 @@ export async function buildEntityConfig(db: DbOrTx, entity: EntityRow, binding: 
   return {
     entity: { id: entity.id, slug: entity.slug, name: entity.name, archetype: entity.archetype },
     binding_version: binding?.version ?? entity.bindingVersion,
-    anchor: binding?.binding.anchor ?? null,
-    members: binding?.binding.members.length ?? 0,
-    watersheds: binding?.binding.watersheds ?? [],
+    anchor: proposed?.anchor ?? null,
+    members: proposed?.members.length ?? null,
+    binding_review: review,
+    binding_active: binding !== null,
+    binding_note: proposed
+      ? "These are configured or proposed places, not a count of live sensors. Use member_places IDs with the public twin get_place tool to inspect readings, timestamps and source health. Binding review gates the computed needs snapshot; pending review does not mean sensors are absent."
+      : "No valid binding is available. Sensor membership is unknown, not zero. Search the public twin with find_places to discover candidate monitoring sites.",
+    member_places: proposed?.members.slice(0, 100).map(({ id, name, role }) => ({ id, name: name ?? null, role })) ?? [],
+    member_places_truncated: (proposed?.members.length ?? 0) > 100,
+    watersheds: proposed?.watersheds ?? [],
     caps: {
       bounty_cap_usdc: capsFrom(caps),
       bounty_drafts_per_week: typeof perWeek === "number" ? perWeek : DEFAULT_DRAFTS_PER_WEEK,

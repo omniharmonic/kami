@@ -149,6 +149,26 @@ describe("the platform MCP", () => {
     expect(payload.disclosure).toBe(config.disclosure);
   });
 
+  it("exposes proposed places for discovery without activating a pending binding", async () => {
+    const { db, entity } = await seedBoulderCreek({ slug: "pending-creek" });
+    dbs.push(db);
+    await db.update(schema.entityBindings).set({ review: "pending_review" }).where(eq(schema.entityBindings.entityId, entity.id));
+    const { token } = await mintEntityToken(db, "pending-creek", NOW);
+    const payload = toolPayload((await rpc(db, token, "tools/call", { name: "get_entity_config", arguments: {} })).body);
+    const config = payload.config as Record<string, unknown>;
+    expect(config).toMatchObject({ binding_review: "pending_review", binding_active: false, anchor: "place/boulder-creek-near-orodell-co" });
+    expect(config.members).toBeGreaterThan(0);
+    expect(config.member_places).toEqual(expect.arrayContaining([expect.objectContaining({ id: "place/boulder-creek-near-orodell-co" })]));
+    expect(JSON.stringify(config)).not.toContain('"coordinates"');
+    const [row] = await db.select().from(schema.entityBindings).where(eq(schema.entityBindings.entityId, entity.id));
+    expect(row?.review).toBe("pending_review");
+    const needs = toolPayload((await rpc(db, token, "tools/call", { name: "get_needs_snapshot", arguments: {} })).body);
+    expect(needs.snapshot).toBeNull();
+    await db.update(schema.entityBindings).set({ binding: {} }).where(eq(schema.entityBindings.entityId, entity.id));
+    const invalid = toolPayload((await rpc(db, token, "tools/call", { name: "get_entity_config", arguments: {} })).body);
+    expect(invalid.config).toMatchObject({ binding_review: "invalid", members: null, member_places: [], binding_active: false });
+  });
+
   it("post_update writes a pulse row (woke) and an entity_event", async () => {
     const { db, entity } = await seedBoulderCreek({ slug: "post-creek" });
     dbs.push(db);
