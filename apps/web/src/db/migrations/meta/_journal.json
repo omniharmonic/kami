@@ -22,6 +22,13 @@
       "when": 1788682748956,
       "tag": "0002_entity_events_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788819000000,
+      "tag": "0003_grant_rounds",
+      "breakpoints": true
     }
   ]
 }

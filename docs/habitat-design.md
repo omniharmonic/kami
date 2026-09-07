@@ -4,7 +4,7 @@ The being's home is the main visual object. The field journal is a translucent i
 
 Palette: lagoon `#174d50`, mint `#bdebd9`, blossom `#f2cbdc`, pearl `#f5fff9`, fern `#43806c`. The existing rounded sans carries both titles and data; unequal corner radii distinguish the small field-note slips from the surrounding glass console.
 
-Seven journal tabs present existing production components: senses, chat, strategies, projects, treasury, community, evidence. The summary does not interpret unavailable readings as zero or fabricate health percentages without a published band. Old readings explicitly read Stale. Exact source, unit, timestamp and band remain available in Evidence. Missing treasury balance is unknown. Empty strategy and bounty states remain honest.
+Eight journal tabs present production data: senses, chat, strategies, projects, grants, treasury, community, evidence. Grant rounds expose real draft/open/closed records and application links; planning budgets never imply a reserved balance or an award. The summary does not interpret unavailable readings as zero or fabricate health percentages without a published band. Old readings explicitly read Stale. Exact source, unit, timestamp and band remain available in Evidence. Missing treasury balance is unknown. Empty strategy and bounty states remain honest.
 
 State phrases are deterministic descriptions of pause, unavailable snapshot, stale driving input, offline runtime, or the snapshot's own guarded mood reason. They do not generate fresh ecological claims. The interaction never feeds, rewards or scores the being using payments.
 

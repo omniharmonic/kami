@@ -33,7 +33,7 @@ export async function Treasury({
         <p style={{ margin: 0 }}>
           <span className="eyebrow">{treasury.balance}</span>
           <br />
-          <strong>{summary?.balance_usdc ? `${summary.balance_usdc} USDC` : treasury.balanceUnknown}</strong>
+          <strong>{!addr ? treasury.notCreated : summary?.balance_usdc ? `${summary.balance_usdc} USDC` : treasury.balanceUnknown}</strong>
           {pending > 0 && <span className="chip" style={{ marginLeft: "0.5rem" }}>{pending} {treasury.pending}</span>}
         </p>
         {addr && (
@@ -42,6 +42,7 @@ export async function Treasury({
           </p>
         )}
         {pending > 0 && <p className="muted" style={{ margin: 0 }}>{guardian.safeProposals}: {pending}</p>}
+        {!addr && <p className="muted" style={{ margin: 0 }}>{treasury.setupRequired}</p>}
         <details>
           <summary className="tap" style={{ cursor: "pointer" }}>{treasury.give}</summary>
           <p className="muted" style={{ margin: "0.4rem 0" }}>{treasury.noRecurring}</p>
@@ -49,7 +50,7 @@ export async function Treasury({
           <ul style={{ margin: 0 }}>{treasury.moneyCanDo.map((l) => <li key={l}>{l}</li>)}</ul>
           <p className="eyebrow" style={{ margin: "0.6rem 0 0.2rem" }}>What money cannot do</p>
           <ul style={{ margin: 0 }}>{treasury.moneyCannotDo.map((l) => <li key={l}>{l}</li>)}</ul>
-          {slug && (
+          {slug && addr && (
             <p style={{ margin: "0.6rem 0 0" }}>
               <Link href={`/e/${slug}/donate`} className="btn tap">{treasury.giveCta}</Link>
             </p>

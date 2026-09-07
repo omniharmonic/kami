@@ -11,6 +11,7 @@
 import { getDb } from "@/db/client";
 import { isAdminToken, isGateSecret, json } from "@/lib/jobs/common";
 import { heartbeatSchema, recordHeartbeat } from "@/lib/jobs/gate";
+import { recordTelemetry, telemetrySchema, TelemetryConflict } from "@/lib/jobs/telemetry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,6 +25,19 @@ export async function POST(req: Request) {
     raw = await req.json();
   } catch {
     raw = {};
+  }
+  if (raw && typeof raw === "object" && "telemetry" in raw) {
+    const envelope = raw as Record<string, unknown>;
+    if ((Array.isArray(envelope.usage_events) && envelope.usage_events.length) || (Array.isArray(envelope.guard_events) && envelope.guard_events.length)) return json(400, { reason: "mixed_telemetry_protocols" });
+    const telemetry = telemetrySchema.safeParse(envelope.telemetry);
+    if (!telemetry.success) return json(400, { reason: "bad_telemetry" });
+    try {
+      return json(200, await recordTelemetry(db, telemetry.data));
+    } catch (error) {
+      if (error instanceof TelemetryConflict) return json(409, { reason: error.message });
+      console.error("[gate/telemetry] storage failure");
+      return json(500, { reason: "telemetry_storage_failed" });
+    }
   }
   const parsed = heartbeatSchema.safeParse(raw ?? {});
   if (!parsed.success) return json(400, { reason: "bad_request", issues: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) });

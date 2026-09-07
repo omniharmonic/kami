@@ -10,3 +10,4 @@ export * from "./governance";
 export * from "./money";
 export * from "./attestations";
 export * from "./records";
+export * from "./grants";

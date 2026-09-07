@@ -1,3 +1,8 @@
+import { getGrantBoard } from "@/lib/grants";
+import { getDb } from "@/db/client";
+import { getSession } from "@/lib/session";
+import { GrantCards } from "@/components/grants/GrantCards";
+import { grants as grantsCopy } from "@/copy/grants";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HabitatConsole } from "@/components/habitat/HabitatConsole";
@@ -54,6 +59,9 @@ export default async function EntityPage({ params }: Props) {
     getPeople(entity.id),
     getSiblings(entity.id),
   ]);
+  const db = getDb();
+  const session = await getSession();
+  const grants = db ? await getGrantBoard(db, entity.id, session?.user.id ?? null).catch(() => null) : null;
   return (
     <HabitatConsole tabs={[
       { id: "senses", label: "Senses", icon: "◉", detail: snapshot ? `${snapshot.needs.length} signals` : "Awaiting data", content: <>
@@ -72,7 +80,12 @@ export default async function EntityPage({ params }: Props) {
         <div className="habitat-panel-intro"><div><h2>Care becomes action</h2><p>Explore bounties, propose work, and follow the evidence behind completed projects.</p></div></div>
         <Board bounties={bounties} proposals={proposals} summary={status?.board ?? null} entityId={entity.id} slug={entity.slug} />
       </> },
-      { id: "treasury", label: "Treasury", icon: "◇", detail: treasury?.balance_usdc ? `${treasury.balance_usdc} USDC` : "Balance unknown", content: <Treasury summary={treasury} payouts={payouts} safeAddress={entity.safe_address} entityId={entity.id} slug={entity.slug} /> },
+      { id: "grants", label: "Grants", icon: "✿", detail: grants ? `${grants.rounds.filter(round => round.status === "open").length} open rounds` : "Unavailable", content: <section className="section" aria-labelledby="grants-h">
+        <h2 id="grants-h">{grantsCopy.title}</h2><p>{grantsCopy.intro}</p>
+        {grants ? <GrantCards slug={slug} rounds={grants.rounds.map(round => ({ id: round.id, title: round.title, description: round.purposeMd, status: round.status, budget: round.budgetUsdc, closesAt: round.applicationDeadline.toISOString(), applications: round.applications.length, acceptingApplications: round.acceptingApplications }))} /> : <p>Grant rounds are temporarily unavailable.</p>}
+        <p className="faint">{grantsCopy.budgetNote}</p><Link className="btn" href={`/e/${slug}/grants`}>{grants?.mayManage ? "Manage grant rounds" : "Explore grant rounds"}</Link>
+      </section> },
+      { id: "treasury", label: "Treasury", icon: "◇", detail: !entity.safe_address ? "Setup needed" : treasury?.balance_usdc ? `${treasury.balance_usdc} USDC` : "Balance unknown", content: <Treasury summary={treasury} payouts={payouts} safeAddress={entity.safe_address} entityId={entity.id} slug={entity.slug} /> },
       { id: "community", label: "Community", icon: "♧", content: <><People roles={people} entityId={entity.id} /><Siblings siblings={siblings} /><ConnectLink entity={{ id: entity.id, slug: entity.slug }} /></> },
       { id: "evidence", label: "Evidence", icon: "≋", content: <><Meters snapshot={snapshot} /><HowIWorkLink slug={entity.slug} /></> },
     ]} />

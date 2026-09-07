@@ -93,7 +93,7 @@ export const chat = {
   lookedAtNone: "I didn't look anything up for this reply.",
   guardDropped: (n: number) =>
     n === 1 ? "1 sentence was withheld because its number did not match a reading." : `${n} sentences were withheld because their numbers did not match a reading.`,
-  paused: "I'm paused by my guardians. I'll be back when two of them agree to wake me.",
+  paused: "My agent is paused. Two guardians must agree before I can wake.",
   asleep: "I'm asleep — my thinking machine is off. My readings are still on the page.",
   overBudget: "I've talked a lot today; back tomorrow.",
   rateLimited: "You've sent a lot of messages this hour. Please come back a little later.",
@@ -152,7 +152,9 @@ export const board = {
 export const treasury = {
   heading: "Treasury",
   balance: "Safe balance",
-  balanceUnknown: "not read yet",
+  balanceUnknown: "balance unavailable",
+  notCreated: "Treasury not set up",
+  setupRequired: "A treasury needs accepted guardians and a deployed Safe before it can receive funds or propose payouts.",
   pending: "awaiting guardians",
   whatIDid: "What I did with your money",
   whatIDidEmpty: "Nothing paid out yet. Every payout will be listed here with its transaction hash and attestation.",
