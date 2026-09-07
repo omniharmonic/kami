@@ -5,9 +5,16 @@ the state of the hosted half, not a plan. `vercel.md` is the general procedure;
 this is the specific one.
 
 **Live: https://kami-web-one.vercel.app** — Vercel project `kami-web`
-(`prj_fSbKysNQvRIsM9lYA0JL6k6BJiLx`), production branch
-`claude/kami-platform-setup-rqz7nf`, root directory `apps/web`. Every push to
-that branch deploys.
+(`prj_fSbKysNQvRIsM9lYA0JL6k6BJiLx`), root directory `apps/web`. Every push to
+the production branch deploys.
+
+**One setting to check.** The project was created when the repository's only
+branch was `claude/kami-platform-setup-rqz7nf`, so Vercel took that as its
+production branch. `main` now exists at the same commit and is the canonical
+branch. Until Vercel's **Settings → Git → Production Branch** is pointed at
+`main`, pushes to `main` will not deploy — they will build as previews, or not
+at all, and the live site will keep tracking the old branch. Changing GitHub's
+default branch does not change Vercel's setting; they are independent.
 
 ---
 

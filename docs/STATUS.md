@@ -1,6 +1,6 @@
 # Where Kami is
 
-**As of 2026-09-06, commit `1312675`, branch `claude/kami-platform-setup-rqz7nf`.**
+**As of 2026-09-07, commit `b9ac73b`, branch `main`.**
 **Live at https://kami-web-one.vercel.app.**
 
 This is the top of the documentation. It says what exists, what is proven, what is
