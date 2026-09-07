@@ -64,6 +64,7 @@ def request(
     body: Any = None,
     timeout: float = 20.0,
     max_bytes: int = 1 << 20,
+    follow_redirects: bool = True,
 ) -> Resp:
     """One request. `body` may be bytes, str or a JSON-serialisable object."""
     hdrs = {"User-Agent": USER_AGENT, "Accept": "application/json, */*"}
@@ -80,7 +81,12 @@ def request(
     req = urllib.request.Request(url, data=data, headers=hdrs, method=method)
     started = time.time()
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 - explicit URLs only
+        class NoRedirect(urllib.request.HTTPRedirectHandler):
+            def redirect_request(self, req, fp, code, msg, headers, newurl):
+                return None
+
+        open_url = urllib.request.urlopen if follow_redirects else urllib.request.build_opener(NoRedirect()).open
+        with open_url(req, timeout=timeout) as resp:  # noqa: S310 - explicit URLs only
             payload = resp.read(max_bytes)
             return Resp(
                 status=resp.status,

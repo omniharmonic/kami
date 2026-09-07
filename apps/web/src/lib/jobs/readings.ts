@@ -206,11 +206,12 @@ async function mean24h(reader: TreeReader, placeId: string, property: string): P
   if (!base) return null;
   const page = await reader.page(placeId);
   const series = seriesFor(page, property);
-  if (!series) return base; // no series published: the latest value stands in, labelled as such by its time
+  // An instantaneous observation cannot stand in for the reviewed daily mean.
+  if (!series) return null;
   const end = base.time ? Date.parse(base.time) : reader.nowMs;
   const vals = windowValues(series, Number.isFinite(end) ? end : reader.nowMs, DAY_S);
   const mean = meanOf(vals);
-  if (mean === null) return base;
+  if (mean === null) return null;
   return { ...base, value: Math.round(mean * 100) / 100 };
 }
 

@@ -24,6 +24,7 @@ from context import build_context
 from report import CheckResult, Report, fail, now_iso
 
 CHECKS: List[Tuple[str, str, str]] = [
+    ("agent", "checks.agent", "read-only agent onboarding: token, binding, needs and public twin observations"),
     ("upstream", "checks.upstream", "the model API: reachable, tool calls, streaming, usage"),
     ("gate", "checks.gate", "the gate: running, guard on, provenance, budgets, and a live guard drop"),
     ("twin", "checks.twin", "the twin: tree reachable, anchor present, latest reading and its age"),

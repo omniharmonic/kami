@@ -20,6 +20,43 @@ wrapper prefers the repo's `.venv/bin/python` (which can also run the gate's own
 checker), then any `python3.11`+ on `PATH`, then `python3`. Force one with
 `KAMI_DOCTOR_PYTHON=/path/to/python3`.
 
+## Private agent onboarding
+
+```bash
+bash scripts/kami-doctor --only agent
+bash scripts/kami-doctor --only agent --json
+```
+
+The private launcher should supply `PLATFORM_URL=https://beings.earth`, the
+entity-scoped `PLATFORM_MCP_TOKEN`, and `KAMI_ENTITY_SLUG=boulder-creek` through
+its environment. Keep the token in the existing private credential file; do not
+paste it into a command, issue, or repository file. `KAMI_ENTITY_SLUG` takes
+precedence over `--slug` for this check. Without the variable, `--slug` applies.
+
+This check initializes authenticated platform MCP and public twin MCP sessions,
+then reads only `get_entity_config`, `get_needs_snapshot`, `list_datasets` and
+`get_place` for the configured anchor. It uses no model, creates no jobs, changes
+no binding or pause state, and publishes nothing. HTTP redirects are rejected
+so a token cannot be forwarded to another endpoint. Reports contain selected
+status fields and counts, never raw tool responses or geometry.
+
+A pending binding can contain readable proposed places. Missing computed needs,
+stale driving data, and a paused entity are reported separately from a broken
+connection. Paused + approved + stale can therefore have a successful private
+read path and a freshness warning. Website chat, guard enforcement, public
+visibility and learning jobs remain explicitly untested by this check.
+
+Set `KAMI_HERMES_PROFILE=beings-earth` only when you also want to compare that
+profile's local `binding.yaml` or `binding.json` version with the platform.
+The doctor does not inspect the default profile implicitly. `HERMES_HOME`, when
+set, is the root containing `profiles/`; otherwise it uses `~/.hermes`.
+
+Offline regression tests:
+
+```bash
+python3 -m unittest discover -s scripts/doctor -p 'test_*.py'
+```
+
 ## The four verdicts
 
 | verdict | means |

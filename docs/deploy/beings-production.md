@@ -101,3 +101,33 @@ The saved credential is injected by the private launcher. `beings-agent hermes m
 A pending binding was previously excluded from the needs context and then serialized as zero members, no anchor, and no watersheds in get_entity_config. This incorrectly told the model that the being had no sensing body. The configuration now exposes schema-validated proposed member IDs, names and roles, with explicit binding_review and binding_active fields. Missing or invalid membership reports a null count instead of zero. The approved-only needs calculation is unchanged. The updated entity-steward skill directs read-only diagnostics to query the anchor and gauge members with public twin get_place calls even while the binding awaits review.
 
 Verification: 14 MCP tests passed, including pending/invalid binding regression and unchanged review state; web typecheck passed.
+
+## Approved watershed and private agent verification (September 7)
+
+The steward explicitly approved the broader connected watershed candidate v2: 12 configured places and five driving need mappings. The installation used a database transaction, verified the accepted steward role, required the existing private/paused v1 state, inserted the reviewed v2 row, moved the current pointer, and appended a hash-chained `binding.approved` event. The chain verified with four events. No guardian, consultation, pause or publication field changed.
+
+The first real needs run stored snapshot 1 at `2026-09-07T18:09:47.140Z`, hash `b540e378767d5d84c0c8f1cc52a378e4b046159a93f82a957cbbdcd8a8cd95f6`. Publication was withheld (`consultation_not_done`). Snow was stale; the snapshot was asleep and also reported the paused state. A real Hermes/OpenAI turn retrieved approved v2, the 12-place membership, all five needs with provenance and freshness, and the public Orodell observation. It kept the single anchor distinct from the broader watershed. The dedicated local profile now carries v2. The production connection page independently showed v2 approved and recent authenticated activity.
+
+The repository's original `profiles/boulder-creek/binding.yaml` remains a v1 regression fixture; it is not production truth. Current clients should refresh the authenticated bundle and start with `get_entity_config`. That tool now exposes `membership_rule` and `need_mappings`, so agents can distinguish driving assessments from contextual members without inferring from stale local files. The entity-steward instructions also separate connection, binding review, snapshot availability, freshness, pause and public runtime.
+
+A related scientific correction removes the `mean_24h` fallback to an instantaneous reading when no usable series exists. The mean stays unknown; raw observations remain available. Tests cover absent series, samples outside the window, and an actual mean distinct from the latest reading.
+
+### Next runtime work — not yet running
+
+The installed `hermes proxy` supports Nous and xAI, not the user's OpenAI Codex OAuth provider. Keeping that sign-in behind the existing gate requires a loopback Chat Completions/Responses transport adapter that preserves tool-call IDs, streaming, usage and credential refresh. The installed auxiliary Codex client is not suitable: it drops tool continuation linkage and buffers output. Reuse the main Codex transport instead.
+
+Website chat additionally requires authenticated per-slug routing, full sanitized tool evidence forwarding from Hermes's completion callback, a configuration check proving every model round goes through the gate, production pause synchronization, and a reachable HTTPS gateway. Begin the guarded runtime test with the entity still paused and require HTTP 423. Do not enable learning jobs or treat the private CLI diagnostic as proof of a guarded public runtime.
+
+### Remaining onboarding work
+
+- Give stewards a reviewable binding approval and first-snapshot workflow in the UI, removing the one-time operator script used here.
+- Show binding/snapshot readiness separately from connection activity on the connect page.
+- Detect stale downloaded profiles and offer a safe refresh that preserves credentials and model preferences.
+- Package the synchronous Hermes MCP startup check in the downloadable client setup, including installed-version checks.
+- Replace unsupported recurring-job assumptions with verified installed Hermes capabilities; test the first loop before scheduling it.
+
+### Repeatable private setup check
+
+On this device run `beings-agent doctor`. The private launcher supplies the existing entity credential and `KAMI_HERMES_PROFILE=beings-earth`; it invokes `bash scripts/kami-doctor --only agent`. Other installations can set `PLATFORM_URL`, `PLATFORM_MCP_TOKEN`, and `KAMI_ENTITY_SLUG` in their private environment and run the same repository command. The diagnostic uses MCP initialization and four read-only tool calls. It follows no credential-bearing redirects and prints no raw tool data or geometry.
+
+Live result on September 7: eight checks passed, zero failed, one data-freshness warning, and one explicitly skipped public-runtime check. Fifteen mocked diagnostic regressions and the existing secret-redaction self-test passed. The setup check consumes no model credits and changes no entity state.

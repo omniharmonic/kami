@@ -1,5 +1,7 @@
 # entity/boulder-creek — the first kami
 
+**Current production setup (2026-09-07):** approved broader-watershed binding v2, private and paused. The local Hermes profile is `beings-earth`, using the user’s OpenAI Codex sign-in. The root `binding.yaml` and model configuration below are the original fixture/deployment baseline, not the installed production state. See [the v2 review](reviews/watershed-v2-review.md) and [production handoff](../../docs/deploy/beings-production.md). Download the authenticated connection bundle for the current binding.
+
 Archetype `creek`; anchor `place/boulder-creek-near-orodell-co` (PRD Appendix B). Model `qwen3.5-9b` behind
 the gate at `http://127.0.0.1:8001/p/boulder-creek/v1`; profile deployed to `~/.hermes/profiles/boulder-creek/`.
 

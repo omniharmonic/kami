@@ -1,6 +1,6 @@
-# Boulder Creek: broader connected watershed — proposed v2
+# Boulder Creek: broader connected watershed — reviewed v2
 
-Status: **draft for steward review, not approved or installed**. The user selected the broader connected watershed scope. Production remains on pending-review v1, private and paused. This draft does not record consultation or authorize public representation.
+Status: **approved and installed on 2026-09-07** following the steward’s explicit approval in the setup session. Production now points to approved binding v2, with 12 places and five need mappings. The being remains private and paused; consultation and public representation were not authorized. Approval time: `2026-09-07T18:09:46.880Z`. The production audit chain verified after installation. The companion proposed JSON preserves the exact candidate that was reviewed; the installed binding additionally records the steward’s account ID in `reviewed_by`.
 
 ## Proposed scope
 
@@ -43,4 +43,6 @@ All retained driving needs keep the existing staleness rules. Missing stays unkn
 
 `watershed-v2-evidence.json` records the published twin responses consulted on September 7, 2026, including source timestamps, parent catchments, readings and public page URLs. It omits geometry. Refresh observations before making current-condition claims.
 
-Review the 12-place membership and five need mappings together. Approval of this draft would be a separate recorded steward action; it would not unpause the being, appoint guardians, record consultation, or start a model service.
+The 12-place membership and five need mappings were approved together. The first needs job stored snapshot 1 at `2026-09-07T18:09:47.140Z`; publication was withheld because consultation is incomplete. A real OpenAI-backed Hermes turn retrieved approved v2, its snapshot, and the public Orodell gauge. It identified stale snow separately from the paused state and kept the anchor distinct from the broader watershed. The local `beings-earth` profile was refreshed to the installed binding.
+
+The original `profiles/boulder-creek/binding.yaml` remains the v1 fixture baseline used by regression tests. It is not the current production configuration. Download the authenticated connection bundle for the exact current binding, including its review metadata.

@@ -12,7 +12,7 @@ import { disclosureLabel } from "@/copy";
 import { getConfig } from "@/lib/jobs/common";
 import { capsFrom, DEFAULT_DRAFTS_PER_WEEK, type BountyCaps } from "./bounty-spec";
 import type { CurrentBinding, EntityRow } from "@/lib/jobs/needs";
-import { BindingSchema } from "@kami/binding";
+import { BindingSchema, type BindingNeed } from "@kami/binding";
 
 export const KAMI_ENTITY_CONFIG_PREFIX = "KAMI_ENTITY_CONFIG:";
 
@@ -26,6 +26,8 @@ export type EntityConfig = {
   binding_note: string;
   member_places: { id: string; name: string | null; role: string }[];
   member_places_truncated: boolean;
+  membership_rule: string | null;
+  need_mappings: BindingNeed[];
   watersheds: string[];
   caps: {
     bounty_cap_usdc: BountyCaps;
@@ -76,6 +78,8 @@ export async function buildEntityConfig(db: DbOrTx, entity: EntityRow, binding: 
       : "No valid binding is available. Sensor membership is unknown, not zero. Search the public twin with find_places to discover candidate monitoring sites.",
     member_places: proposed?.members.slice(0, 100).map(({ id, name, role }) => ({ id, name: name ?? null, role })) ?? [],
     member_places_truncated: (proposed?.members.length ?? 0) > 100,
+    membership_rule: proposed?.membership_rule ?? null,
+    need_mappings: proposed?.needs ?? [],
     watersheds: proposed?.watersheds ?? [],
     caps: {
       bounty_cap_usdc: capsFrom(caps),

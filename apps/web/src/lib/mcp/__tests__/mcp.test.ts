@@ -159,6 +159,8 @@ describe("the platform MCP", () => {
     expect(config).toMatchObject({ binding_review: "pending_review", binding_active: false, anchor: "place/boulder-creek-near-orodell-co" });
     expect(config.members).toBeGreaterThan(0);
     expect(config.member_places).toEqual(expect.arrayContaining([expect.objectContaining({ id: "place/boulder-creek-near-orodell-co" })]));
+    expect(config.need_mappings).toEqual(expect.arrayContaining([expect.objectContaining({ need: "flow", property: "discharge", places: ["place/boulder-creek-near-orodell-co"], agg: "single" })]));
+    expect(typeof config.membership_rule).toBe("string");
     expect(JSON.stringify(config)).not.toContain('"coordinates"');
     const [row] = await db.select().from(schema.entityBindings).where(eq(schema.entityBindings.entityId, entity.id));
     expect(row?.review).toBe("pending_review");
@@ -166,7 +168,7 @@ describe("the platform MCP", () => {
     expect(needs.snapshot).toBeNull();
     await db.update(schema.entityBindings).set({ binding: {} }).where(eq(schema.entityBindings.entityId, entity.id));
     const invalid = toolPayload((await rpc(db, token, "tools/call", { name: "get_entity_config", arguments: {} })).body);
-    expect(invalid.config).toMatchObject({ binding_review: "invalid", members: null, member_places: [], binding_active: false });
+    expect(invalid.config).toMatchObject({ binding_review: "invalid", members: null, member_places: [], binding_active: false, membership_rule: null, need_mappings: [] });
   });
 
   it("post_update writes a pulse row (woke) and an entity_event", async () => {

@@ -133,11 +133,16 @@ ${list}
    See \`.env.example\`. Nothing in this bundle contains the token, on purpose.
 3. Merge \`mcp.json\` into your MCP client's configuration. The platform server is HTTP and
    carries your token; the public twin uses Streamable HTTP and needs no credential.
-   Start with the twin's \`list_datasets\` tool, then \`find_places\` or \`find_species\`.
+   Read the platform's \`get_entity_config\` first: it is the current binding, including review state,
+   member place IDs, scope and need mappings. Compare its version with this bundle before using it.
+   Then check the twin's \`list_datasets\` and \`get_place\` for the configured anchor.
    Use the platform's \`get_needs_snapshot\` for this being's configured pulse: the hosted
    twin does not load your private binding file or know your being's slug.
 4. Give your agent \`SOUL.md\` as its system prompt or its top-level instructions, and
    \`skills/entity-steward/\` as a skill it can read.
+5. Run a read-only first turn: refresh configuration and needs, read the anchor, and explain any
+   pending review, missing snapshot, stale source or pause separately. Do not publish or start jobs.
+   A working MCP connection does not establish that website chat or its fact guard is configured.
 
 ## Local or custom twin trees
 
