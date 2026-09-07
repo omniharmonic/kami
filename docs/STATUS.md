@@ -1,6 +1,6 @@
 # Where Kami is
 
-**As of 2026-09-07, commit `b9ac73b`, branch `main`.**
+**As of 2026-09-07, branch `main`.**
 **Live at https://kami-web-one.vercel.app.**
 
 This is the top of the documentation. It says what exists, what is proven, what is
@@ -58,7 +58,7 @@ avatar, but never in the hard rules or the guard.
 
 | Piece | State |
 |---|---|
-| **Web app** | Live on Vercel (`kami-web`, root directory `apps/web`). Every push to the branch deploys. |
+| **Web app** | Live on Vercel (`kami-web`, root directory `apps/web`). Every push to the production branch deploys; see `deploy/first-deploy.md` for which branch that is. |
 | **Database** | Neon Postgres 17 (`kami`, `aws-us-west-2`). 38 tables, 12 enums, 64 indexes, 3 triggers. All three migrations applied and recorded in `__drizzle_migrations`. |
 | **Crons** | Twelve declared in `apps/web/vercel.json`. Verified running — `safe-poll` returns 200, which requires the cron secret to match, a database client to exist, and a query to succeed. |
 | **First entity** | Boulder Creek seeded: binding v1 (`pending_review`), soul v1 on hard rules v1, first link of its hash chain. **Paused and not consulted**, so its page 404s and the landing page says "No kami are public yet". That is correct, not a bug. |
