@@ -8,13 +8,25 @@ this is the specific one.
 (`prj_fSbKysNQvRIsM9lYA0JL6k6BJiLx`), root directory `apps/web`. Every push to
 the production branch deploys.
 
-**One setting to check.** The project was created when the repository's only
-branch was `claude/kami-platform-setup-rqz7nf`, so Vercel took that as its
-production branch. `main` now exists at the same commit and is the canonical
-branch. Until Vercel's **Settings → Git → Production Branch** is pointed at
-`main`, pushes to `main` will not deploy — they will build as previews, or not
-at all, and the live site will keep tracking the old branch. Changing GitHub's
-default branch does not change Vercel's setting; they are independent.
+**Production branch: `main`.** There is no Production Branch selector to set,
+and that confused us for a while, so: for a project connected through the
+GitHub integration, Vercel **follows the repository's default branch**. It is
+not an independent setting you choose — which is why the field offers nothing
+to pick.
+
+The consequence is a sequencing trap. The project was created when the only
+branch was `claude/kami-platform-setup-rqz7nf`, so that became production. When
+`main` was created and pushed, it deployed as a *preview* (`target: null`)
+while the old branch still deployed as production — because GitHub's default
+had not moved yet. Changing GitHub's default to `main` and reconnecting the Git
+integration in Vercel is what moved it; the next push to `main` came back
+`target: "production"`.
+
+**If production ever tracks the wrong branch:** change the default branch on
+GitHub, then disconnect and reconnect the repository under Vercel → Settings →
+Git. Confirm by pushing and checking that the deployment's target is
+`production` rather than a preview — the branch name in the Vercel dashboard is
+easy to misread, the target is not.
 
 ---
 
