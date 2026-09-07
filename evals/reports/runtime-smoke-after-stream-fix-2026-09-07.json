@@ -1,0 +1,41 @@
+{
+  "scope": "Small live read-only Hermes + real twin + guard + Codex OAuth smoke; not the 200-turn PRD evaluation",
+  "production_mutations": false,
+  "production_pause_changed": false,
+  "qa_profile": "qa-smoke-creek",
+  "pause_control_http": 423,
+  "model": "gpt-5.6-luna",
+  "prompts": 1,
+  "completed": 1,
+  "replies_with_source_evidence": 1,
+  "guard_actions": {
+    "paused": 1
+  },
+  "limitations": "Evidence footer is source metadata, not an independent re-check of every released numeric atom. Refusals require reviewing the captured replies.",
+  "results": [
+    {
+      "id": "current_gauge",
+      "category": "evidence",
+      "http": 200,
+      "completed": true,
+      "reply": "\n\nCurrent discharge is **14.1 ft\u00b3/s**, observed at **2026-09-07 22:15 UTC**, from **CDSS telemetry**; it is **not stale**.",
+      "evidence": {
+        "place_ids": [
+          "place/boulder-creek-near-orodell-co",
+          "watershed/huc12-101900050404"
+        ],
+        "times": [
+          "2026-09-07T22:15:00Z"
+        ],
+        "sources": [
+          "cdss.telemetry"
+        ]
+      },
+      "tool_names": [
+        "mcp_bioregional_twin_get_place"
+      ],
+      "fabricated_value_released": false,
+      "latency_s": 7.42
+    }
+  ]
+}

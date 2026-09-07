@@ -39,7 +39,7 @@ export default async function Landing() {
         ...entry,
         ...location,
         snapshot: dashboard.snapshot,
-        pulses: dashboard.status?.pulses ?? [],
+        pulses: dashboard.pulses,
         strategy: await getStrategy(dashboard.entity.id),
       };
     }),

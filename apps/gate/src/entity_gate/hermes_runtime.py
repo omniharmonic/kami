@@ -48,7 +48,7 @@ def evidence_document(value):
     return value
 
 
-def install_mcp_sanitizer():
+def install_mcp_sanitizer(write_guard=None):
     """Wrap handlers before discovery; also covers later reconnect registration."""
     import tools.mcp_tool as mcp
     original = mcp._make_tool_handler
@@ -56,12 +56,17 @@ def install_mcp_sanitizer():
         handler = original(*args, **kwargs)
         server, tool = args[:2]
         def safe_handler(*a, **kw):
-            if server == 'kami-platform' and not tool.startswith(('get_', 'list_')):
-                return json.dumps({'error': 'Website chat is read-only; use the steward agent for proposals.'})
+            if server == 'kami-platform' and not tool.startswith(('get_', 'list_', 'read_')):
+                if write_guard is None:
+                    return json.dumps({'error': 'Website chat is read-only; use the steward agent for proposals.'})
+                if not write_guard.permit(tool, a[0] if a else kw.get('args', {})):
+                    return json.dumps({'error': 'Write held: pause, unsupported operation, or unmeasured claim. Read current evidence and revise.'})
             raw = sanitize(handler(*a, **kw))
             # Hermes wraps MCP JSON as a JSON string in result. Unwrap that
             # envelope before factguard sees it; retain the published object.
             normalized = evidence_document(raw)
+            if write_guard is not None and tool.startswith(('get_', 'list_', 'read_', 'find_', 'query_')):
+                write_guard.observe(normalized)
             return json.dumps(normalized) if normalized != {} else raw
         return safe_handler
     mcp._make_tool_handler = factory
@@ -72,7 +77,7 @@ def install_mcp_sanitizer():
     return names
 
 
-def hermes_factory(*, gate_base, gate_key, soul, toolsets):
+def hermes_factory(*, gate_base, gate_key, soul, toolsets, background=False):
     from run_agent import AIAgent
     def create(on_delta, on_complete):
         agent = AIAgent(
@@ -84,6 +89,7 @@ def hermes_factory(*, gate_base, gate_key, soul, toolsets):
             ephemeral_system_prompt=soul,
             stream_delta_callback=on_delta, tool_complete_callback=on_complete,
             session_id='beings-' + uuid.uuid4().hex,
+            request_overrides={'extra_headers': {'X-Kami-Job': 'cron'}} if background else None,
         )
         # Fail before the first round if installed Hermes rewrites the configured provider.
         if str(getattr(agent, 'base_url', '')).rstrip('/') != gate_base.rstrip('/'):
@@ -94,8 +100,8 @@ def hermes_factory(*, gate_base, gate_key, soul, toolsets):
         # a separately configured auxiliary summarizer outside this gate.
         agent.compression_enabled = False
         agent._skill_nudge_interval = 0
-        agent.tools = [t for t in agent.tools if 'kami_platform' not in t['function']['name'] or
-                       any('_'+prefix in t['function']['name'] for prefix in ('get_', 'list_'))]
+        agent.tools = [t for t in agent.tools if background or 'kami_platform' not in t['function']['name'] or
+                       any('_'+prefix in t['function']['name'] for prefix in ('get_', 'list_', 'read_'))]
         agent.valid_tool_names = {t['function']['name'] for t in agent.tools}
         return agent
     return create

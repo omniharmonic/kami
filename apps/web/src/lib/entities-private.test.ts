@@ -6,9 +6,11 @@ import * as schema from "@/db/schema";
 import { defaultDataDir, loadStatus, type Status } from "@/lib/status";
 import { cleanupTmpDirs, NOW, seedBoulderCreek } from "@/lib/jobs/__tests__/helpers";
 
-const mocks = vi.hoisted(() => ({ access: vi.fn(), published: vi.fn() }));
+const mocks = vi.hoisted(() => ({ access: vi.fn(), published: vi.fn(), balance: vi.fn() }));
 vi.mock("@/lib/entity-access", () => ({ requireVisibleEntity: mocks.access }));
 vi.mock("@/lib/entities", () => ({ getStatusCached: mocks.published }));
+vi.mock("@/lib/treasury/reads", () => ({ readSafeBalance: mocks.balance }));
+vi.mock("@/lib/treasury/deps", () => ({ getTreasuryDeps: () => ({}) }));
 import { getVisibleEntityDashboard } from "./entities-private";
 
 let db: TestDb;
@@ -26,6 +28,8 @@ beforeEach(async () => {
   vi.restoreAllMocks();
   mocks.access.mockReset().mockResolvedValue({ entity, preview: true });
   mocks.published.mockReset().mockResolvedValue(fixture);
+  mocks.balance.mockReset().mockResolvedValue({ balance_usdc: "12.5" });
+  await db.delete(schema.pulses);
   await db.update(schema.entities).set({ bindingVersion: 1 }).where(eq(schema.entities.id, entity.id));
   await db.update(schema.entityBindings).set({ review: "approved", reviewedAt: beforeApproval });
   await db.delete(schema.needSnapshots);
@@ -56,6 +60,23 @@ describe("authorized private dashboard snapshots", () => {
     expect(result.status).toBe(fixture);
     expect(read).not.toHaveBeenCalled();
     expect(mocks.published).toHaveBeenCalledWith("boulder-creek");
+  });
+  it("reads only this private entity's guarded notes without publishing a Status", async () => {
+    await db.insert(schema.pulses).values([
+      { entityId: entity.id, at: NOW, woke: true, text: "A guarded private field note", guardResult: "pass", deltas: [] },
+      { entityId: entity.id, at: NOW, woke: true, text: "Held text must not be rendered", guardResult: "held", deltas: [] },
+      { entityId: entity.id, at: NOW, woke: true, text: "Malformed delta", guardResult: "pass", deltas: [{ broken: true }] },
+    ]);
+    const result = await getVisibleEntityDashboard("boulder-creek");
+    expect(result.pulses.map(p => p.text)).toEqual(["A guarded private field note"]);
+    expect(result.status).toBeNull();
+    expect(mocks.published).not.toHaveBeenCalled();
+  });
+  it("reads a configured private Safe through the real treasury boundary", async () => {
+    mocks.access.mockResolvedValue({ entity: { ...entity, safe_address: "0x1111111111111111111111111111111111111111" }, preview: true });
+    const result = await getVisibleEntityDashboard("boulder-creek");
+    expect(result.treasury?.balance_usdc).toBe("12.5");
+    expect(mocks.balance).toHaveBeenCalledWith({}, "0x1111111111111111111111111111111111111111");
   });
   it("withholds needs for a pending current binding", async () => {
     await db.update(schema.entityBindings).set({ review: "pending_review" });

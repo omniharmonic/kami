@@ -127,6 +127,7 @@ async def test_tool_call_deltas_pass_through_untouched(make_gate):
     assert any(d.get("tool_calls") == tc for d in deltas)
     finishes = [c["choices"][0]["finish_reason"] for c in datas if c.get("choices")]
     assert "tool_calls" in finishes
+    assert not any(d.get("content") for d in deltas), "Tool-only rounds must not emit a no-reading fallback"
 
 
 async def test_passthrough_skips_guard_but_never_pause(make_gate):

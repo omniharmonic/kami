@@ -140,7 +140,7 @@ describe("the platform MCP", () => {
 
     const payload = toolPayload((await rpc(db, token, "tools/call", { name: "get_entity_config", arguments: {} })).body);
     const config = payload.config as Record<string, unknown>;
-    expect(config).toMatchObject({ binding_version: 1, anchor: "place/boulder-creek-near-orodell-co", guardians: ["ada"], paused: false });
+    expect(config).toMatchObject({ binding_version: 1, anchor: "place/boulder-creek-near-orodell-co", guardians: ["ada"], paused: false, agent_writes_allowed: true, agent_write_block_reason: null });
     expect((config.caps as Record<string, unknown>).bounty_cap_usdc).toEqual({ min: 25, max: 150 });
     expect(config.disclosure).toBe("I'm an AI voice for config-creek, built on public sensor data — not the creek, not a legal person.");
     expect(payload.system_message as string).toMatch(/^KAMI_ENTITY_CONFIG: \{/);
@@ -156,7 +156,7 @@ describe("the platform MCP", () => {
     const { token } = await mintEntityToken(db, "pending-creek", NOW);
     const payload = toolPayload((await rpc(db, token, "tools/call", { name: "get_entity_config", arguments: {} })).body);
     const config = payload.config as Record<string, unknown>;
-    expect(config).toMatchObject({ binding_review: "pending_review", binding_active: false, anchor: "place/boulder-creek-near-orodell-co" });
+    expect(config).toMatchObject({ binding_review: "pending_review", binding_active: false, agent_writes_allowed: false, agent_write_block_reason: "binding_pending_review", anchor: "place/boulder-creek-near-orodell-co" });
     expect(config.members).toBeGreaterThan(0);
     expect(config.member_places).toEqual(expect.arrayContaining([expect.objectContaining({ id: "place/boulder-creek-near-orodell-co" })]));
     expect(config.need_mappings).toEqual(expect.arrayContaining([expect.objectContaining({ need: "flow", property: "discharge", places: ["place/boulder-creek-near-orodell-co"], agg: "single" })]));

@@ -40,6 +40,10 @@ export type EntityConfig = {
   stewards: string[];
   evaluators: number;
   paused: boolean;
+  /** Lifecycle/review eligibility, not a grant of authority or runtime capability. */
+  agent_writes_allowed: boolean;
+  agent_write_block_reason: "paused" | "retired" | "binding_pending_review" | "binding_unavailable" | null;
+  agent_write_policy: string;
   disclosure: string;
 };
 
@@ -55,6 +59,10 @@ export async function buildEntityConfig(db: DbOrTx, entity: EntityRow, binding: 
   const parsed = row ? BindingSchema.safeParse(row.binding) : null;
   const proposed = binding?.binding ?? (parsed?.success ? parsed.data : null);
   const review = row ? (parsed?.success ? row.review : "invalid") : (binding ? "approved" : "missing");
+  const bindingActive = binding !== null && review === "approved" && binding.version === entity.bindingVersion;
+  const writeBlockReason: EntityConfig["agent_write_block_reason"] = entity.retiredAt !== null ? "retired"
+    : entity.pausedAt !== null ? "paused" : bindingActive ? null
+    : review === "pending_review" ? "binding_pending_review" : "binding_unavailable";
   const roles = await db
     .select({ role: schema.entityRoles.role, name: schema.users.name, email: schema.users.email })
     .from(schema.entityRoles)
@@ -72,7 +80,7 @@ export async function buildEntityConfig(db: DbOrTx, entity: EntityRow, binding: 
     anchor: proposed?.anchor ?? null,
     members: proposed?.members.length ?? null,
     binding_review: review,
-    binding_active: binding !== null,
+    binding_active: bindingActive,
     binding_note: proposed
       ? "These are configured or proposed places, not a count of live sensors. Use member_places IDs with the public twin get_place tool to inspect readings, timestamps and source health. Binding review gates the computed needs snapshot; pending review does not mean sensors are absent."
       : "No valid binding is available. Sensor membership is unknown, not zero. Search the public twin with find_places to discover candidate monitoring sites.",
@@ -92,6 +100,9 @@ export async function buildEntityConfig(db: DbOrTx, entity: EntityRow, binding: 
     stewards: roles.filter((r) => r.role === "steward").map((r) => displayName(r.name, r.email)).sort(),
     evaluators: roles.filter((r) => r.role === "evaluator").length,
     paused: entity.pausedAt !== null,
+    agent_writes_allowed: writeBlockReason === null,
+    agent_write_block_reason: writeBlockReason,
+    agent_write_policy: "This flag reports lifecycle and binding-review eligibility only. Paused or retired beings and unapproved bindings cannot publish agent updates or draft bounties. Authentication, tool permissions, evidence guards, caps and budgets still apply. Each runtime may impose read-only access; this flag does not grant website chat write tools.",
     disclosure: disclosureLabel(entity.name, entity.archetype),
   };
 }

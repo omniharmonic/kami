@@ -68,3 +68,44 @@ Only router port 8643 is exposed. Verified over HTTPS: anonymous POST returns 40
 Vercel must use `HERMES_GATEWAY_URL` with the router URL, `HERMES_API_SERVER_KEY` with settings.json's `HERMES_GATEWAY_API_KEY` value, and `GATE_ADMIN_SECRET` with its matching generated value. The internal `API_SERVER_KEY` is for the local harness and must not be substituted for the router credential. Production pause synchronization was initially 401 pending deployment of that new shared secret, and the gate correctly failed closed.
 
 Reinstallation is supported by `infra/mac/install-guarded-runtime.py`; it preserves generated local keys. The installer requires an existing production secret file, tunnel ID and hostname. `scripts/runtime/run-service.py` reads private JSON settings and launches the selected process without putting keys into launchd arguments.
+
+## Scheduled stewardship and observed pause enforcement
+
+The installed Hermes scheduler now owns five `no_agent` script jobs in the isolated runtime profile: hourly pulse, daily reflection at 06:30, Monday bounty drafting at 09:00, quarterly strategy evaluation at 09:00 on the first of January/April/July/October, and monthly donor narrative at 09:00 on the first. Timezone is America/Denver. `no_agent` here means Hermes's scheduler executes the reviewed script; that script explicitly constructs the guarded AIAgent only after its pause checks. It does not invoke an unguarded scheduler model.
+
+`earth.beings.scheduler` runs the installed scheduler tick once per minute. Each task executes `scripts/runtime/steward-turn.py` in a separate process. The entry point checks production-synchronized pause state before MCP discovery and again before any model call. Background model requests carry `X-Kami-Job: cron` and use the gate's separate cron budget. No fallback model, shell tools, or signing tools are enabled.
+
+Background platform mutations are limited to `post_update` and `draft_bounty`. Function-call arguments normally pass through the model proxy untouched, so the background MCP handler adds another factguard check immediately before executing a mutation, against only tool evidence collected in that same turn. It also rechecks pause immediately before the write. Unsupported mutations and unmeasured numeric claims are held. Website chat remains read-only; none of these permissions are exposed to its visitor interface.
+
+Live verification on September 7 at 17:04 Denver time triggered the actual scheduled pulse once. Hermes recorded `last_status: ok`; its output was `status: skipped`, `reason: paused_or_sync_unavailable`, `model_calls: 0`. The next pulse remained scheduled for 18:00. The entity itself stayed paused and no publication or payment occurred. Five schedules are installed and enabled, but their ecological work is intentionally skipped while the being is paused.
+
+`earth.beings.reporter` checks the real local gate, authenticated harness contract and successful production pause sync once per minute, then posts heartbeat and model provenance. Both production endpoints accepted the first report at `2026-09-07T23:02:21Z`. It sends no invented usage rows. Usage/guard JSONL remains local; reliable delivery of those logs into the platform's currently non-idempotent heartbeat ingestion needs a separate cursor/idempotency implementation.
+
+Reproducible schedule installation: `infra/mac/install-steward-schedules.py --enable`. Omitting `--enable` installs disabled jobs. It uses installed Hermes `create_job`, `pause_job`, `resume_job` and `tick` APIs, not the unsupported flags in the old template commentary. The runtime installer now accepts `--slug` and `--source-profile`; this deployment serves one being per port set and refuses to overwrite another existing being.
+
+Remaining route distinctions: the public router accepts visitor user/assistant messages only. The older donor-report helper that sends system/tool messages directly to that URL is deliberately refused; the scheduled trusted donor task instead uses MCP `post_update`. Summon voice-preview staging profiles are not provided by this single-profile runtime. No staging or visitor exception bypasses the role restrictions.
+
+### Schedule times at installation
+
+After the manual paused-skip verification, the recorded next runs were:
+
+| Job | Next run (America/Denver) |
+| --- | --- |
+| Pulse | September 7, 2026, 18:00 |
+| Daily reflection | September 8, 2026, 06:30 |
+| Weekly bounties | September 14, 2026, 09:00 |
+| Quarterly strategy | October 1, 2026, 09:00 |
+| Donor report | October 1, 2026, 09:00 |
+
+These are installation records; Hermes's private `cron/jobs.json` carries the subsequently advanced times.
+
+To stop and disable every installed runtime service (without deleting credentials or changing entity governance):
+
+```sh
+for component in bridge gate hermes router tunnel scheduler reporter; do
+  launchctl disable "gui/$(id -u)/earth.beings.$component"
+  launchctl bootout "gui/$(id -u)/earth.beings.$component"
+done
+```
+
+To pause only the schedules while retaining the website's guarded runtime, rerun `infra/mac/install-steward-schedules.py` without `--enable`, using the installed Hermes virtualenv Python. The entity's independent governance pause remains authoritative.

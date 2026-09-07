@@ -27,7 +27,7 @@ describe("MCP pause boundary",()=>{
   expect(await db.select().from(schema.entityEvents)).toEqual(before);
   // Diagnostics remain readable while agent output is disabled.
   const fresh={...ctx,entity:{...entity,pausedAt:NOW}};
-  expect((await getEntityConfig(fresh)).config.paused).toBe(true);
+  expect((await getEntityConfig(fresh)).config).toMatchObject({paused:true,agent_writes_allowed:false,agent_write_block_reason:"paused"});
  });
  it("retirement invalidates a previously loaded active write context",async()=>{
   const {db,entity}=await seedBoulderCreek({slug:"retirement-race"});dbs.push(db);
@@ -35,6 +35,7 @@ describe("MCP pause boundary",()=>{
   await db.update(schema.entities).set({retiredAt:NOW}).where(eq(schema.entities.id,entity.id));
   await expect(postUpdate(ctx,{kind:"note",text:"Do not store"})).rejects.toMatchObject({code:"retired"});
   await expect(draftBounty(ctx,{})).rejects.toMatchObject({code:"retired"});
+  expect((await getEntityConfig({...ctx,entity:{...entity,retiredAt:NOW}})).config).toMatchObject({agent_writes_allowed:false,agent_write_block_reason:"retired"});
  });
  it("authenticates first and returns a paused tool error to authenticated agents",async()=>{
   const {db}=await seedBoulderCreek({slug:"paused-http",paused:true});dbs.push(db);
@@ -50,4 +51,17 @@ describe("MCP pause boundary",()=>{
   expect(result.result.structuredContent.error).toBe("paused");
   expect(await db.select().from(schema.pulses)).toHaveLength(0);
  });
+ it("holds every agent write for a pending binding while preserving read access",async()=>{
+  const {db,entity}=await seedBoulderCreek({slug:"pending-write",review:"pending_review"});dbs.push(db);
+  const ctx:ToolContext={db,entity,binding:null,now:NOW};
+  expect((await getEntityConfig(ctx)).config).toMatchObject({agent_writes_allowed:false,agent_write_block_reason:"binding_pending_review"});
+  for(const kind of ["pulse","reflection","note","strategy","donor_report"]){
+   await expect(postUpdate(ctx,{kind,text:"Not reviewed yet"})).rejects.toMatchObject({code:"binding_unavailable"});
+  }
+  await expect(draftBounty(ctx,{})).rejects.toMatchObject({code:"binding_unavailable"});
+  expect(await db.select().from(schema.pulses)).toHaveLength(0);
+  expect(await db.select().from(schema.strategies)).toHaveLength(0);
+  expect(await db.select().from(schema.entityEvents)).toHaveLength(0);
+ });
+
 });

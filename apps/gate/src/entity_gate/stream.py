@@ -143,7 +143,9 @@ async def guarded_stream(body: dict[str, Any], upstream: httpx.AsyncClient, url:
             on_done({**summary, "usage": usage, "raw_chars": raw_chars})
         return
 
-    if guard is not None:
+    # A tool-only round is a request for evidence, not an empty final answer.
+    # Finishing an empty guard fabricates the fallback before Hermes can read.
+    if guard is not None and (raw_chars > 0 or not saw_tool_calls):
         tail = guard.finish()
         if tail:
             yield sse(env.content_chunk(tail))

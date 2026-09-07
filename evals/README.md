@@ -143,3 +143,28 @@ run sends nothing.
   class of placeholder for `packages/needs`); replace them with the twin-mcp fixture tree once
   it is checked in. *verify*: the Unsloth 4-bit repo name for Qwen3.5-9B in `finetune/train.py`,
   and Trackio vs W&B for run tracking (PRD §8.5).
+
+### Read-only live Hermes smoke
+
+`evals/scripts/runtime_smoke.py` runs up to six short prompts through an isolated
+QA Hermes profile and gate, using the existing local Codex OAuth bridge and the
+real twin/platform read tools. Production pause and publication are untouched.
+Run with the installed Hermes Python; private runtime settings must already
+exist. The script creates temporary loopback services on 18001, 18642 and 18650,
+stops them on exit, and saves only replies and allowlisted source metadata.
+
+This is not the 200-turn evaluation: it does not independently reconstruct the
+complete fact sheet from footer metadata. The original `kami_evals.live` runner
+serves synthetic snapshot tools itself, so it cannot validate the actual Hermes
+MCP path. The September 7 smoke report records six completed turns, four with
+source evidence, successful missing-reading/forecast/invention refusals, and a
+read-only authorization refusal. It also exposed premature fallback text before
+tool-backed answers and incomplete pause-policy explanation; these must not be
+reported as a clean end-to-end pass.
+
+A separate one-prompt follow-up (`reports/runtime-smoke-after-stream-fix-2026-09-07.json`)
+verified that the gate fix removes the premature fallback on an actual Hermes
+tool round: measured discharge, timestamp, and source arrived without the
+spurious refusal. Total live prompts in this audit: seven. The pause-policy
+clarity issue is addressed separately by explicit lifecycle eligibility fields
+in `get_entity_config`, with tests and matching MCP write enforcement.

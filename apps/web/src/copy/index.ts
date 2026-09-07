@@ -46,7 +46,7 @@ export const disclosure = {
 export const states = {
   asleepStale: "I can't feel my gauge",
   asleepGpuOff: "I'm asleep — my thinking machine is off",
-  asleepPaused: "paused by my guardians",
+  asleepPaused: "agent paused",
   overBudget: "I've talked a lot today; back tomorrow",
   peopleAhead: (n: number) => (n === 1 ? "1 person ahead of you" : `${n} people ahead of you`),
   sensesBehind: (hours: number) => `my senses are ${hours} hour${hours === 1 ? "" : "s"} behind`,
@@ -196,7 +196,7 @@ export const people = {
 export const entityPage = {
   /** Shown to role-holders viewing an entity whose consultation is not recorded. */
   consultationPreview:
-    "Not public yet. This page is visible to you because you hold a role here. It becomes readable by anyone once a steward records that consultation with the relevant Tribal offices and local guardians has happened (PRD §13 #4).",
+    "Private team preview. Public release awaits the steward’s record of consultation with the relevant Tribal offices and local guardians.",
 } as const;
 
 export const siblings = {

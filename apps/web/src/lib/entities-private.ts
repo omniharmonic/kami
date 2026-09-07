@@ -6,14 +6,16 @@ import { withDb } from "@/db/client";
 import * as schema from "@/db/schema";
 import { requireVisibleEntity } from "@/lib/entity-access";
 import { getStatusCached } from "@/lib/entities";
-import { snapshotSchema } from "@/lib/status";
+import { pulseEntrySchema, snapshotSchema, treasurySummarySchema, type PulseEntry, type TreasurySummary } from "@/lib/status";
+import { readSafeBalance } from "@/lib/treasury/reads";
+import { getTreasuryDeps } from "@/lib/treasury/deps";
 
 /** Authorization runs here as well as in each route; no caller-provided preview flag. */
 export async function getVisibleEntityDashboard(slug: string) {
   const visible = await requireVisibleEntity(slug);
   if (!visible.preview) {
     const status = await getStatusCached(slug);
-    return { ...visible, status, snapshot: status?.snapshot ?? null, asOf: status?.as_of ?? null };
+    return { ...visible, status, snapshot: status?.snapshot ?? null, asOf: status?.as_of ?? null, pulses: status?.pulses ?? [], treasury: status?.treasury ?? null };
   }
 
   const privateSnapshot = await withDb(async (db) => {
@@ -45,5 +47,23 @@ export async function getVisibleEntityDashboard(slug: string) {
         || binding.data.binding_version !== row.version || snapshot.data.entity_id !== visible.entity.id) return null;
     return { snapshot: snapshot.data as HealthSnapshot, asOf: row.asOf.toISOString() };
   }, null);
-  return { ...visible, status: null, snapshot: privateSnapshot?.snapshot ?? null, asOf: privateSnapshot?.asOf ?? null };
+  // Separate request-scoped values: never manufacture a public Status for a
+  // private being or write private notes into the published status cache.
+  const privateJournal = await withDb(async (db) => {
+    const [pulseRows, pendingRows] = await Promise.all([
+      db.select().from(schema.pulses).where(and(eq(schema.pulses.entityId, visible.entity.id), eq(schema.pulses.guardResult, "pass"))).orderBy(desc(schema.pulses.at)).limit(20),
+      db.select({ hash: schema.safeProposals.safeTxHash }).from(schema.safeProposals).where(and(eq(schema.safeProposals.entityId, visible.entity.id), eq(schema.safeProposals.status, "pending"))),
+    ]);
+    const pulses: PulseEntry[] = pulseRows.flatMap((row) => {
+      const parsed = pulseEntrySchema.safeParse({ at: row.at.toISOString(), woke: row.woke, text: row.text, guard_result: row.guardResult, deltas: Array.isArray(row.deltas) ? row.deltas : [] });
+      return parsed.success ? [parsed.data] : [];
+    });
+    let balance: string | null = null;
+    if (visible.entity.safe_address) {
+      try { balance = (await readSafeBalance(getTreasuryDeps(), visible.entity.safe_address)).balance_usdc; } catch { /* Unknown remains unknown. */ }
+    }
+    const treasury = treasurySummarySchema.parse({ safe_address: visible.entity.safe_address ?? null, balance_usdc: balance, pending: pendingRows.length });
+    return { pulses, treasury };
+  }, { pulses: [] as PulseEntry[], treasury: null as TreasurySummary | null });
+  return { ...visible, status: null, snapshot: privateSnapshot?.snapshot ?? null, asOf: privateSnapshot?.asOf ?? null, ...privateJournal };
 }

@@ -112,7 +112,7 @@ export async function getPeople(entityId: string): Promise<PersonView[]> {
       .from(schema.entityRoles)
       .innerJoin(schema.users, eq(schema.users.id, schema.entityRoles.userId))
       .where(and(eq(schema.entityRoles.entityId, entityId), isNotNull(schema.entityRoles.acceptedAt), isNull(schema.entityRoles.revokedAt)));
-    return rows.map((r) => ({ role: r.role, name: r.name ?? r.email.split("@")[0] ?? "someone", accepted_at: r.acceptedAt?.toISOString() ?? null }));
+    return rows.map((r) => ({ role: r.role, name: r.name?.trim() || r.email.split("@")[0] || "someone", accepted_at: r.acceptedAt?.toISOString() ?? null }));
   }, []);
 }
 

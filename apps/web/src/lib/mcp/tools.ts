@@ -44,7 +44,8 @@ async function withActiveEntityWrite<T>(ctx: ToolContext, write: (locked: ToolCo
     if (entity.retiredAt) throw new ToolError("retired", "This being is retired; agent writes are disabled.");
     if (entity.pausedAt) throw new ToolError("paused", "This being is paused; agent writes are disabled. Read tools remain available.");
     const loaded = await loadCurrentBinding(tx, entity);
-    return write({ ...ctx, db: tx, entity, binding: "error" in loaded ? null : loaded });
+    if ("error" in loaded) throw new ToolError("binding_unavailable", "Agent writes require an approved current sensing binding. Read tools remain available while a steward reviews it.");
+    return write({ ...ctx, db: tx, entity, binding: loaded });
   });
 }
 
