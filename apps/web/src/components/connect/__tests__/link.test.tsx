@@ -53,6 +53,6 @@ describe("ConnectLink", () => {
     cleanup();
     currentUser = { id: "u-ada", email: "ada@example.org", name: "Ada", age_gate_ok: true, platform_admin: false };
     render(await ConnectLink({ entity }));
-    expect(screen.getByTestId("connect-link").textContent).toContain("Connect a brain");
+    expect(screen.getByTestId("connect-link").textContent).toContain("Connect an agent");
   });
 });

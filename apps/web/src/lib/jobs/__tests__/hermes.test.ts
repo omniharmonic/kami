@@ -142,3 +142,36 @@ describe("cron deliveries", () => {
     expect(parseBountyOutput("no json at all")).toEqual([]);
   });
 });
+
+describe("cron publication boundaries", () => {
+  it("does not publish staging output into the production being", async () => {
+    const { db, entity } = await seedBoulderCreek({ slug: "preview-creek" });
+    dbs.push(db);
+    for (const fields of [{ profile: "preview-creek-staging" }, { slug: "preview-creek", profile: "preview-creek-staging" }]) {
+      const out = await handleHermesDelivery(db, { id: "preview-output", job: "pulse", ...fields, output: "Preview text", kami_guard: "pass" }, { now: NOW });
+      expect(out).toMatchObject({ ok: false, status: 422, reason: "staging_delivery" });
+    }
+    expect(await db.select().from(schema.pulses).where(eq(schema.pulses.entityId, entity.id))).toHaveLength(0);
+  });
+
+  it("refuses late cron output after pause or retirement without consuming its event id", async () => {
+    const { db, entity } = await seedBoulderCreek({ slug: "pause-delivery" });
+    dbs.push(db);
+    const delivery = { id: "late-output", job: "pulse", slug: entity.slug, output: "Guarded output", kami_guard: "pass" };
+    await db.update(schema.entities).set({ pausedAt: NOW }).where(eq(schema.entities.id, entity.id));
+    expect(await handleHermesDelivery(db, delivery, { now: NOW })).toMatchObject({ ok: false, status: 423, reason: "paused" });
+    await db.update(schema.entities).set({ retiredAt: NOW }).where(eq(schema.entities.id, entity.id));
+    expect(await handleHermesDelivery(db, delivery, { now: NOW })).toMatchObject({ ok: false, status: 410, reason: "retired" });
+    expect(await db.select().from(schema.pulses).where(eq(schema.pulses.entityId, entity.id))).toHaveLength(0);
+    expect(await db.select().from(schema.config).where(eq(schema.config.key, "hermes_events.late-output"))).toHaveLength(0);
+  });
+
+  it("uses the configured public comment window for agent strategies", async () => {
+    const { db, entity } = await seedBoulderCreek({ slug: "strategy-window" });
+    dbs.push(db);
+    await setConfig(db, "strategy_comment_days", 21);
+    expect(await handleHermesDelivery(db, { id: "strategy-output", job: "quarterly-strategy", slug: entity.slug, output: "A strategy open for public review.", kami_guard: "pass" }, { now: NOW })).toMatchObject({ ok: true });
+    const [row] = await db.select().from(schema.strategies).where(eq(schema.strategies.entityId, entity.id));
+    expect(row?.commentOpenUntil?.getTime()).toBe(NOW.getTime() + 21 * 86400_000);
+  });
+});

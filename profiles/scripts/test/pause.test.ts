@@ -60,8 +60,8 @@ describe("pause.ts", () => {
     expect(calls[1]!.url).toBe("https://platform.test/api/entities/boulder-creek/pause");
     expect(res.gate).toBe(200);
     expect(res.platform).toBe(200);
-    expect(res.hermesCommand).toContain("/api/jobs/pause");
-    expect(logs.join("\n")).toContain("/api/jobs/pause");
+    expect(res.hermesCommand).toContain("cron pause '<verified-job-id>'");
+    expect(logs.join("\n")).toContain("cron pause '<verified-job-id>'");
     expect(fs.readFileSync(path.join(stateDir, "paused"), "utf8")).toContain("ada");
   });
 

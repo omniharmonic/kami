@@ -3,7 +3,7 @@ name: entity-steward
 description: How a kami senses, speaks, pulses, drafts bounties, writes its quarterly memo and donor paragraph, and handles a crisis — which tool to call for what, and the rule that no number leaves without a tool result from this turn. Load for every cron job and every chat turn of an entity profile.
 license: Apache-2.0
 metadata:
-  version: "1"
+  version: "2"
   owner: platform
   references: [references/needs-model.md, references/templates.md]
 ---
@@ -31,8 +31,9 @@ have it.
 | You want to | Call | Notes |
 |---|---|---|
 | Know how the place is right now | `platform.get_needs_snapshot` | The computed `HealthSnapshot`: needs, bands, mood, `mood_reason`, `stale_driving`, `season`, `deltas[]`. Mood is computed by code; you may explain it, never override it. |
-| The readings behind the snapshot | `twin.get_entity_status` | One call for every member place; `needs[]` with `value, unit, time, stale, staleness_s, source_status, week{min,max,trend}`, plus `live{drought_max_dm, alerts, fires_inside, detections_24h}` and `snapshot_hash`. **The one call a pulse needs.** |
-| Active alerts (NWS, drought, fire, air) | `twin.get_alerts` | Each has `headline, severity, until, place_ids, url`. Quote the headline; do not paraphrase severity. |
+| The readings behind the snapshot | `twin.get_place` | Pass `id` from your binding member IDs, one published place at a time. Preserve time, unit, source and freshness. The hosted twin does not load your private binding or know your being slug. |
+| Live alerts, drought and fire | `twin.get_live` | Pass `layer` and a published watershed ID as `within`. Follow pagination. Keep geometryless alerts unlocated; do not claim they apply locally. Quote the source headline and severity. Air readings come from the relevant `get_place` result. |
+| Discover ecological datasets and species | `twin.list_datasets`, `twin.find_places`, `twin.find_species`, `twin.get_species`, `twin.query_ecology`, `twin.read_artifact`, `twin.resolve_entity` | Use published IDs and tool schemas. `resolve_entity` can propose a public watershed binding, not resolve your private being slug. Species reports are not abundance, CPW ranges are not sightings, and regional summaries are not local measurements. Keep pagination, provenance and sensitivity caveats. |
 | A week of one property at one place | `twin.get_reading_history` | `{place_id, property, window: 24h|7d}` → `summary{min,max,last,trend,n}`. No raw points reach you; do not invent any. |
 | A place's identity, `superseded_by`, `commons_url`, `sameAs` | `twin.get_place` | Use `superseded_by` to detect a retired gauge (see the templated line). |
 | What a property means, its units, published bands | `twin.explain` | CC BY-SA 4.0 — attribute when you quote it. Bands here are the only bands you may name. |
@@ -75,7 +76,7 @@ When you do wake:
 
 1. `get_needs_snapshot` — the computed snapshot with `deltas[]` against the last pulse (`band_change`,
    `alert_start`, `alert_end`, `stale_flip`, `mood_change` are `notable: true`; `value_change` is not).
-2. `get_entity_status` — the readings behind it. Two calls; you now hold every number you are allowed to say.
+2. If a delta needs more context, call `get_place` with the relevant published member ID from `binding.json`. Never send your private being slug to the hosted twin. Only same-turn tool results may supply facts.
 3. Diff: read `deltas[]`. Do not recompute anything.
 4. If **no** delta is notable: call `post_update({kind: "pulse", snapshot_id})` with no text. Done.
 5. If a delta is notable: write **at most 80 words**, plain, using only numbers from steps 1–2, naming the
@@ -104,7 +105,7 @@ Rules:
   outcome should show, so your own accuracy can be scored (PRD §7.3). Tiers 2–4 set `prediction: null`.
 - Do not draft a tier-1 bounty whose verification depends on a source whose `get_health` verdict is
   `critical` (PRD §6.5).
-- `twin_refs` must be ids from your binding (they appear in `get_entity_status`); guardians cannot edit them.
+- `twin_refs` must be ids from your binding (verify them with `get_place` in this turn); guardians cannot edit them.
 - `linked_strategy` names a current strategy bullet from `get_strategy`; if there is no strategy yet, draft
   at most one bounty and say so in `why`.
 - Caps are proposals; guardians set the real number. Never mention urgency, never mention donors.
@@ -117,7 +118,7 @@ your output and stop — the deploy writes them to a JSONL for review.
 ## Quarterly memo
 
 1 Jan / Apr / Jul / Oct, `context_from: [weekly-bounties]`, `high` reasoning, the larger model. Read
-`get_strategy`, `get_attestation_summary`, `get_needs_snapshot`, and `get_entity_status`. Write under 400
+`get_strategy`, `get_attestation_summary`, `get_needs_snapshot`, and `get_place` for relevant binding member IDs. Write under 400
 words:
 
 - three bullets — "what I'm trying to change and how I'll know" — each naming a place, a property, and the

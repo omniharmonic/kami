@@ -3,7 +3,7 @@
 Read `README.md` first (the five rules). Then the planning docs in `docs/planning/`: `01-PRD.md` (what), `02-technical-architecture.md` (how; the authority when the two disagree), `03-implementation-plan.md` (task-level detail). `docs/research/twin-survey.md` documents the twin's published tree shapes with citations — build fixtures from it.
 
 ## Naming
-- The product is **Kami**. Package scope `@kami/*`. Entity ids are `entity/<slug>`. "Ecological Entities" in the planning docs = Kami. An individual entity may be called "a kami"; the disclosure copy always says "an AI voice **for** <place>".
+- The platform is **beings.earth**; **Kami** is its mascot and onboarding guide. Digital caretakers are called beings. Package scope `@kami/*`. Entity ids are `entity/<slug>`. "Ecological Entities" in the planning docs = Kami. An individual entity may be called "a kami"; the disclosure copy always says "an AI voice **for** <place>".
 - Attribution: Benjamin Life (@omniharmonic). Never attribute to OpenCivics.
 
 ## Workspace

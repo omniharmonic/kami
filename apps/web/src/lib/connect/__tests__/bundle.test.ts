@@ -89,8 +89,22 @@ describe("connect · the bundle", () => {
     expect(Object.keys(parsed.mcpServers).sort()).toEqual([PLATFORM_SERVER_KEY, TWIN_SERVER_KEY].sort());
     expect(parsed.mcpServers[PLATFORM_SERVER_KEY]!.url).toBe("https://kami.test/mcp");
     expect(parsed.mcpServers[PLATFORM_SERVER_KEY]!.headers!.Authorization).toBe("Bearer ${PLATFORM_MCP_TOKEN}");
-    expect(parsed.mcpServers[TWIN_SERVER_KEY]!.command).toBe("npx");
-    expect(parsed.mcpServers[TWIN_SERVER_KEY]!.args).toContain("@bioregionaltwin/mcp");
+    expect(parsed.mcpServers[TWIN_SERVER_KEY]!.type).toBe("http");
+    expect(parsed.mcpServers[TWIN_SERVER_KEY]!.url).toBe("https://mcp.bioregionaltwin.org/mcp");
+    expect(parsed.mcpServers[TWIN_SERVER_KEY]!.headers).toBeUndefined();
+  });
+
+  it("offers a local checkout example without pretending the public server loads private bindings", async () => {
+    const bundle = await buildConnectBundle(db, "boulder-creek", { origin: ORIGIN, now: NOW });
+    const local = JSON.parse(bundle.files.find(f => f.path === "mcp.local.example.json")!.content);
+    expect(local.mcpServers[TWIN_SERVER_KEY].command).toBe("node");
+    expect(local.mcpServers[TWIN_SERVER_KEY].args).toContain("${TWIN_BINDING_PATH}");
+    const readme = bundle.files.find(f => f.path === "README.md")!.content;
+    expect(readme).toContain("does not load your private binding");
+    expect(readme).toContain("not published to npm");
+    const skill = bundle.files.find(f => f.path === "skills/entity-steward/SKILL.md")!.content;
+    expect(skill).not.toMatch(/get_entity_status|get_alerts/);
+    expect(skill).toContain("platform.get_needs_snapshot");
   });
 
   it("contains no token value anywhere in it", async () => {

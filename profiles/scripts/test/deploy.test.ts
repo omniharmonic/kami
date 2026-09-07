@@ -37,18 +37,24 @@ describe("deploy-profile plan", () => {
     expect(cfg.model.base_url).toBe("http://127.0.0.1:8001/p/boulder-creek/v1");
     expect(cfg.model.default).toBe("qwen3.5-9b");
     expect(cfg.model.context_length).toBe(65536);
-    expect(cfg.memory.write_approval).toBe(true);
-    expect(cfg.skills.write_approval).toBe(true);
-    expect(cfg.skills.guard_agent_created).toBe(true);
+    expect(cfg.memory.memory_enabled).toBe(false);
+    expect(cfg.memory.write_approval).toBeUndefined();
+    expect(cfg.skills).toBeUndefined();
+    expect(cfg.model.api_mode).toBe("chat_completions");
+    expect(cfg.fallback_providers).toEqual([]);
+    expect(cfg.fallback_model).toEqual([]);
     expect(cfg.cron.max_parallel_jobs).toBe(2);
     expect(cfg.mcp_servers.twin.tools.include).toEqual([
-      "get_entity_status", "get_alerts", "get_reading_history", "get_place", "explain", "get_health", "compare_to_normal",
+      "list_datasets", "find_places", "find_species", "get_species", "query_ecology", "read_artifact", "resolve_entity", "get_reading_history", "get_place", "get_live", "explain", "get_health", "compare_to_normal",
     ]);
+    expect(cfg.mcp_servers.twin.url).toBe("https://mcp.bioregionaltwin.org/mcp");
+    expect(cfg.mcp_servers.twin.command).toBeUndefined();
     expect(cfg.mcp_servers.treasury.tools.include).toEqual(["get_balance", "list_pending", "propose_bounty_payout"]);
     expect(cfg.mcp_servers.treasury.args).toEqual(["run", "treasury-mcp", "--entity", "boulder-creek"]);
     expect(cfg.mcp_servers.platform.tools.include).toHaveLength(9);
     expect(cfg.mcp_servers.platform.headers.Authorization).toBe("Bearer ${PLATFORM_MCP_TOKEN}");
-    expect(cfg.agent.disabled_toolsets).toContain("delegate");
+    expect(cfg.platform_toolsets.cli).toEqual(["twin", "platform", "treasury"]);
+    expect(cfg.agent).toBeUndefined();
   });
 
   it("--staging suffixes the slug everywhere it matters", () => {
@@ -70,7 +76,8 @@ describe("deploy-profile plan", () => {
     expect(plan.paused).toBe(true);
     expect((parseYaml(plan.files.get("config.yaml")!) as any).paused).toBe(true);
     expect(plan.files.get("state/paused")).toBeDefined();
-    expect(plan.remoteCommands.filter((c) => c.includes(" cron add ")).every((c) => c.includes("--disabled"))).toBe(true);
+    expect(plan.remoteCommands.filter((c) => / cron (add|create) /.test(c))).toEqual([]);
+    expect(plan.compatibilityBlockers.join(" ")).toContain("verified paused by job ID");
     const viaFlag = buildPlan({ slug: "boulder-creek", dryRun: true, paused: true, stateDir: tmp() });
     expect(viaFlag.paused).toBe(true);
   });
@@ -85,23 +92,18 @@ describe("deploy-profile plan", () => {
     expect(() => bindingYamlToJson("archetype: creek\n")).toThrow(TemplateError);
   });
 
-  it("emits five remove+add cron pairs, the rsync over Tailscale, and a reload", () => {
-    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir: tmp(), host: "gpu-box", largeModel: "qwen3.8-27b" });
-    const adds = plan.remoteCommands.filter((c) => c.includes(" cron add "));
-    expect(adds).toHaveLength(5);
-    expect(adds.map((c) => /--name '([^']+)'/.exec(c)![1])).toEqual([
-      "pulse", "daily-reflection", "weekly-bounties", "quarterly-strategy", "donor-report",
-    ]);
-    expect(adds[0]).toContain("--pre-script '/opt/data/profiles/boulder-creek/skills/entity-steward/scripts/pulse_precheck.py'");
-    expect(adds[0]).toContain("--toolsets 'mcp:twin,mcp:platform'");
-    expect(adds[2]).toContain("--model 'qwen3.8-27b'");
-    expect(adds[3]).toContain("--schedule '0 9 1 1,4,7,10 *'");
-    expect(adds[3]).toContain("--context-from 'weekly-bounties'");
-    expect(plan.rsyncCommand[0]).toBe("rsync");
+  it("reports runtime blockers and emits no fictional cron or reload commands", () => {
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir: tmp(), host: "gpu-box" });
+    expect(plan.compatibilityBlockers.join(" ")).toMatch(/pre-script wake gating/);
+    expect(plan.remoteCommands.join(" ")).not.toMatch(/cron add|cron create|reload|cron doctor/);
+    expect(plan.remoteCommands.at(-1)).toContain("cron list --all");
     expect(plan.rsyncCommand.at(-1)).toBe("gpu-box:~/.hermes/profiles/boulder-creek/");
-    expect(plan.rsyncCommand).toContain("state/");
-    expect(plan.remoteCommands.some((c) => c.includes("reload"))).toBe(true);
-    expect(plan.remoteCommands.at(-1)).toContain("cron doctor");
+  });
+
+  it("blocks real deployment before remote mutation, including paused profiles", () => {
+    for (const paused of [false, true]) {
+      expect(() => buildPlan({ slug: "boulder-creek", stateDir: tmp(), paused, platformMcpToken: "test-only" })).toThrow(/blocked before file transfer/);
+    }
   });
 
   it("without --large-model the 27B override is not applied", () => {
@@ -139,8 +141,8 @@ describe("deploy-profile plan", () => {
         bindingFile: path.join(import.meta.dirname, "fixtures", "no-such-binding.yaml"),
       }),
     ).toThrow(/binding/);
-    // With its committed binding, a real deploy plan builds.
-    const plan = buildPlan({ slug: "boulder-creek", stateDir: tmp(), platformMcpToken: "t" });
+    // With its committed binding, rendering works; runtime deploy remains blocked.
+    const plan = buildPlan({ slug: "boulder-creek", dryRun: true, stateDir: tmp(), platformMcpToken: "t" });
     expect(plan.files.has("binding.json")).toBe(true);
   });
 

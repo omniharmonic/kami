@@ -31,9 +31,9 @@ jobs:
     reasoning_effort: low
     prompt: >-
       Run one pulse exactly as skills/entity-steward/SKILL.md describes under "How a pulse works":
-      call get_needs_snapshot, then get_entity_status, read the deltas[] the platform returned, and only
-      if a delta is notable write at most 80 words that use nothing but numbers from those two tool
-      results. Then call post_update with kind "pulse", the snapshot_id, and the text (or no text).
+      call get_needs_snapshot and read the deltas[] the platform returned. If context is needed,
+      call get_place with a published member ID from binding.json, never your private being slug.
+      Only if a delta is notable write at most 80 words using numbers from this run's tool results. Then call post_update with kind "pulse", the snapshot_id, and the text (or no text).
       Do not compute mood or needs yourself; they arrive computed.
 
   - name: daily-reflection
@@ -42,8 +42,8 @@ jobs:
     reasoning_effort: low
     prompt: >-
       Write one short reflection (under 120 words) on what changed in the last 24 hours and what you are
-      watching, using only numbers from tool results in this run (get_needs_snapshot, get_entity_status,
-      get_alerts). If nothing changed, say so in one sentence. Post it with post_update kind "reflection".
+      watching, using only numbers from tool results in this run (get_needs_snapshot, get_place
+      for binding member IDs, get_live scoped to a published watershed ID). If nothing changed, say so in one sentence. Post it with post_update kind "reflection".
 
   - name: weekly-bounties
     schedule: "0 9 * * 1"

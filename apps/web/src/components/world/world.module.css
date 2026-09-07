@@ -1,0 +1,212 @@
+.world {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  overflow: hidden;
+  background: linear-gradient(#bbd4d1 0%, #e5e9cb 40%, #8baa83 100%);
+  isolation: isolate;
+}
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  touch-action: pan-y;
+}
+.fallback {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ready .fallback {
+  opacity: 0;
+  transition: opacity 1s;
+}
+.haze {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: linear-gradient(
+    180deg,
+    rgba(224, 239, 217, 0.13),
+    transparent 37%,
+    rgba(9, 45, 37, 0.1)
+  );
+  box-shadow: inset 0 -70px 90px -70px #143b31;
+}
+.markers {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.marker {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  background: none;
+  border: 0;
+  padding: 0;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+  pointer-events: auto;
+  color: #203f34;
+  outline-offset: 8px;
+  transition: opacity 0.4s;
+}
+.marker:focus-visible {
+  outline: 3px solid #fff4b3;
+  border-radius: 24px;
+}
+.markerSprite {
+  width: 105px;
+  height: 118px;
+  filter: drop-shadow(0 7px 15px #c8ffe077);
+  transition: transform 0.3s;
+}
+.marker:hover .markerSprite,
+.marker[aria-pressed="true"] .markerSprite {
+  transform: translateY(-6px) scale(1.1);
+}
+.marker[aria-pressed="true"] .markerLabel {
+  background: #fffce9;
+  box-shadow:
+    0 0 0 2px #fff3b499,
+    0 5px 15px #173e3426;
+}
+.markerLabel {
+  padding: 7px 12px;
+  white-space: nowrap;
+  border: 1px solid #f3f4dc9c;
+  border-radius: 9px;
+  background: #f4f7e9d9;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 3px 12px #173e3420;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 1.3;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.statusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #95a293;
+  flex-shrink: 0;
+}
+.caption {
+  position: absolute;
+  bottom: 14px;
+  left: 20px;
+  z-index: 4;
+  color: #f5f9e7d9;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-shadow: 0 1px 6px #183d32;
+  pointer-events: none;
+}
+.sprite {
+  overflow: visible;
+  width: 100%;
+  height: 100%;
+}
+.spriteBody {
+  transform-origin: 80px 95px;
+  animation: float 5s ease-in-out infinite;
+}
+.marker:nth-child(2n) .spriteBody {
+  animation-delay: -2s;
+}
+.marker:nth-child(3n) .spriteBody {
+  animation-delay: -3.5s;
+}
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-7px) rotate(2deg);
+  }
+}
+@media (max-width: 700px) {
+  .markerSprite {
+    width: 76px;
+    height: 86px;
+  }
+  .markerLabel {
+    font-size: 10px;
+    padding: 6px 9px;
+  }
+  .caption {
+    left: 12px;
+    bottom: 10px;
+    font-size: 9px;
+  }
+  .marker {
+    max-width: 145px;
+  }
+  .markerLabel {
+    white-space: normal;
+    text-align: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spriteBody {
+    animation: none;
+  }
+  .markerSprite,
+  .ready .fallback {
+    transition: none;
+  }
+}
+.habitat .markerSprite {
+  width: 165px;
+  height: 185px;
+}
+.habitat .markerLabel {
+  display: none;
+}
+.habitat .caption {
+  max-width: 75%;
+  font-size: 9px;
+}
+.habitat .marker {
+  pointer-events: none;
+}
+.caption {
+  display: none;
+}
+@media (max-width: 700px) {
+  .habitat .markerSprite {
+    width: 130px;
+    height: 145px;
+  }
+  .markerSprite {
+    width: 69px;
+    height: 79px;
+  }
+  .markerLabel {
+    font-size: 9px;
+  }
+}
+@media (max-width: 700px) {
+  .markerLabel {
+    white-space: nowrap;
+    width: max-content;
+  }
+  .marker {
+    max-width: none;
+  }
+}

@@ -1,0 +1,31 @@
+/** Beings.earth summon experience; existing workflow copy remains authoritative for form actions. */
+export const experience = {
+  title: "Bring a being into the world.",
+  intro: "A little imagination. A living place. A shared commitment to care. Kami will help you give your being a home, a voice, and people to keep it accountable.",
+  mascot: "Kami, your guide",
+  greeting: "Every being begins with listening.",
+  greetingDetail: "Start with a place you care about. We’ll connect its public ecological signals to a digital voice you can tend together.",
+  start: "Begin summoning",
+  back: "Back to the landscape",
+  stepsTitle: "From a place to a presence",
+  steps: [
+    { title: "Find its home", text: "Choose a place in the twin and see which public signals it can actually sense." },
+    { title: "Give it a shape", text: "Choose its appearance. Ecological conditions shape its state; care earns its adornments." },
+    { title: "Find its voice", text: "Write a personality around shared rules: cite the evidence, admit uncertainty, and listen." },
+    { title: "Gather its guardians", text: "Invite two people to help care for this being and hold its actions accountable." },
+    { title: "Make room for action", text: "Review optional funding, then the consultation and publication requirements." },
+  ],
+  codeTitle: "The code of care",
+  codeIntro: "Beings.earth is a shared practice of supporting the health and vitality of the web of life.",
+  code: [
+    "Act in good faith for living systems and the people who care for them.",
+    "Respect Indigenous sovereignty and more-than-human perspectives. A digital being does not represent a nation, community, or species.",
+    "Keep evidence, strategies, and learning open. Say when a signal is missing, and when a strategy did not work.",
+    "Keep people responsible for decisions and money. The being proposes; guardians approve.",
+  ],
+  availabilityTitle: "A home grounded in evidence",
+  availability: "The place picker shows what the twin currently publishes. Wildlife communities, forest areas, and drawn habitats need supported public records and safe bindings before they can be summoned. Sensitive locations stay protected.",
+  draftsTitle: "Beings taking shape",
+  draftUntitled: "A being, still becoming",
+  signInHelp: "Sign in to save your being as it takes shape. You can return to your draft at any step.",
+} as const;

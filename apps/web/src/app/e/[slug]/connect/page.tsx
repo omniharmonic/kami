@@ -47,6 +47,12 @@ function GenericPanel({ bundle, slug }: { bundle: ConnectBundle | null; slug: st
   const mcpJson = bundle?.files.find((f) => f.path === "mcp.json") ?? null;
   return (
     <div className="stack" data-testid="panel-generic">
+      <div className="sunken">
+        <h4 style={{ marginTop: 0 }}>{copy.claude.heading}</h4>
+        <p className="muted">{copy.claude.what}</p>
+        <Copyable label="Terminal" value={copy.claude.command} block />
+        <p className="muted">{copy.claude.verify}</p>
+      </div>
       {mcpJson ? (
         <Copyable label="mcp.json" value={mcpJson.content} block hint={copy.bundle.noToken} testId="mcp-json" />
       ) : (
@@ -88,11 +94,13 @@ function HermesPanel({ profile, slug }: { profile: HermesProfile | null; slug: s
         ))}
       </ul>
 
-      <h4 style={{ marginBottom: 0 }}>{copy.hermes.commandsHeading}</h4>
+      <details className="sunken">
+      <summary style={{ cursor: "pointer", fontWeight: 600 }}>{copy.hermes.commandsHeading}</summary>
       <p className="muted" style={{ marginTop: "0.2rem" }}>{copy.hermes.commandsWhat}</p>
       <Copyable label="shell" value={copy.hermes.commands(slug).join("\n")} block testId="hermes-commands" />
       <p className="sunken">{copy.hermes.unverified}</p>
       <p className="faint" style={{ fontSize: "0.85rem" }}>{copy.hermes.provisionNote}</p>
+      </details>
     </div>
   );
 }
@@ -148,7 +156,7 @@ export default async function ConnectPage({ params }: Props) {
     <div className="stack">
       <h2 style={{ margin: "1rem 0 0" }}>{copy.title(entity.name)}</h2>
       <p>{copy.intro}</p>
-      <p className="sunken">{copy.cannotSee}</p>
+      <p className="muted">{copy.cannotSee}</p>
       {roleLine(access) ? <p className="faint" style={{ fontSize: "0.85rem" }} data-testid="role-line">{roleLine(access)}</p> : null}
       {paused ? <p className="notice" role="status" data-testid="connect-paused">{copy.paused}</p> : null}
 

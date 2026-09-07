@@ -7,6 +7,8 @@ import { FormMessage } from "@/components/governance/FormMessage";
 import { bountyStatusLabel, me as copy } from "@/copy";
 import { getDb } from "@/db/client";
 import { getMyAttestations, getMyClaims, getMyReputation } from "@/lib/governance/queries";
+import { getMyBeings } from "@/lib/governance/my-beings";
+import { listDrafts, resumeStep, DONE_STEP } from "@/lib/summon/draft";
 import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +33,8 @@ export default async function MePage({ searchParams }: Props) {
   const user = session.user;
   const db = getDb();
   const [claims, attestations, reputation] = await Promise.all([getMyClaims(user.id), getMyAttestations(user.id), getMyReputation(user.id)]);
+  const [beings, drafts] = db ? await Promise.all([getMyBeings(db, user), listDrafts(user.id, { db })]) : [[], []];
+  const unfinished = drafts.filter((draft) => resumeStep(draft.data) !== DONE_STEP);
   const optIn = db ? await getContributeOptIn(db, user.id) : false;
   const exportJson = db ? JSON.stringify(await buildMeExport(db, user.id), null, 2) : null;
 
@@ -42,6 +46,43 @@ export default async function MePage({ searchParams }: Props) {
         error={typeof sp.error === "string" ? sp.error : null}
         okText={{ saved: copy.saved, chats_deleted: "Your chat sessions were deleted.", evidence_deletion: copy.evidenceDeletionNote }}
       />
+
+      <section aria-labelledby="my-beings-h" className="stack" style={{ marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+          <h2 id="my-beings-h" style={{ margin: 0 }}>{copy.beings}</h2>
+          <Link className="btn" href="/summon">{copy.summon}</Link>
+        </div>
+        <p className="muted" style={{ margin: 0 }}>{beings.length ? copy.beingsHint : copy.beingsEmpty}</p>
+        <ul className="stack" style={{ listStyle: "none", margin: 0, padding: 0 }}>
+          {beings.map((being) => (
+            <li key={being.id} className="card stack">
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                <strong>{being.name}</strong>
+                {being.private ? <span className="chip">{copy.private}</span> : null}
+                {being.paused ? <span className="chip">{copy.paused}</span> : null}
+                {being.retired ? <span className="chip">{copy.retired}</span> : null}
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <Link className="btn" href={`/e/${being.slug}`}>{copy.visit}</Link>
+                {being.access.may_view ? <Link className="btn btn-primary" href={`/e/${being.slug}/connect`}>{copy.connectAgent}</Link> : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {unfinished.length ? (
+          <div className="stack">
+            <h3 style={{ marginBottom: 0 }}>{copy.drafts}</h3>
+            {unfinished.map((draft) => {
+              const step = resumeStep(draft.data);
+              return <div className="sunken" key={draft.id}>
+                <strong>{draft.data.place?.name ?? copy.draftUntitled}</strong>
+                <p className="muted">{copy.draftStep(step)}</p>
+                <Link className="btn" href={`/summon/${draft.id}/${step === 6 ? "review" : step}`}>{copy.resume}</Link>
+              </div>;
+            })}
+          </div>
+        ) : null}
+      </section>
 
       <div className="card stack">
         <h2 style={{ margin: 0, fontSize: "1.05rem" }}>{copy.profile}</h2>

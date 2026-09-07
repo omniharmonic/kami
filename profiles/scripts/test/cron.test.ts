@@ -25,32 +25,31 @@ describe("cron.yaml", () => {
     expect(spec.timezone).toBe("America/Denver");
   });
 
-  it("pulse prompt caps the utterance at 80 words and names the two tool calls", () => {
+  it("pulse prompt caps the utterance at 80 words and uses the scoped platform snapshot and public member IDs", () => {
     const p = spec.jobs[0]!.prompt;
     expect(p).toContain("80 words");
     expect(p).toContain("get_needs_snapshot");
-    expect(p).toContain("get_entity_status");
+    expect(p).toContain("get_place");
+    expect(spec.jobs.map(j => j.prompt).join(" ")).not.toMatch(/get_entity_status|get_alerts/);
     expect(p).toContain("post_update");
   });
 
-  it("renders a `hermes cron add` per job, model override only when the large model is served", () => {
-    const cmds = cronCommands(spec, opts);
-    expect(cmds).toHaveLength(10);
-    expect(cmds.filter((c) => c.includes("cron remove"))).toHaveLength(5);
-    expect(cmds.some((c) => c.includes("--model"))).toBe(false);
-    const weekly = cronAddCommand(spec.jobs[2]!, spec, { ...opts, largeModel: "qwen3.8-27b" });
-    expect(weekly).toContain("--model 'qwen3.8-27b'");
-    expect(weekly).toContain("--continuity");
-    expect(weekly).toContain("--skill 'entity-steward'");
-    expect(weekly).toContain("--reasoning-effort medium");
-    const daily = cronAddCommand(spec.jobs[1]!, spec, { ...opts, largeModel: "qwen3.8-27b" });
-    expect(daily).not.toContain("--model");
+  it("refuses required semantics unsupported by installed Hermes", () => {
+    expect(() => cronCommands(spec, opts)).toThrow(/compatibility/);
+    expect(cronCommands(spec, { ...opts, paused: true })).toEqual([]);
+    expect(() => cronAddCommand(spec.jobs[0]!, spec, { ...opts, paused: true })).toThrow(/paused entity/);
+  });
+
+  it("renders supported jobs with positional schedule and no fictional flags", () => {
+    const simple = { name: "check", schedule: "0 * * * *", prompt: "Check the stream", skill: "entity-steward" };
+    const cmd = cronAddCommand(simple, { ...spec, timezone: "", jobs: [simple] }, opts);
+    expect(cmd).toBe("hermes --profile 'boulder-creek' cron create '0 * * * *' 'Check the stream' --name 'check' --skill 'entity-steward'");
   });
 
   it("shell-quotes prompts safely", () => {
     expect(shellQuote("it's")).toBe(`'it'\\''s'`);
-    const cmd = cronAddCommand({ name: "x", schedule: "* * * * *", prompt: "say 'hi'; rm -rf /" }, spec, opts);
-    expect(cmd.endsWith(`'say '\\''hi'\\''; rm -rf /'`)).toBe(true);
+    const cmd = cronAddCommand({ name: "x", schedule: "* * * * *", prompt: "say 'hi'; rm -rf /" }, { ...spec, timezone: "" }, opts);
+    expect(cmd).toContain(shellQuote("say 'hi'; rm -rf /"));
   });
 
   it("rejects a spec missing a job or with a bad schedule", () => {

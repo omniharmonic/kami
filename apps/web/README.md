@@ -13,7 +13,7 @@ pnpm --filter @kami/web dev
 With no `.env.local` at all the app runs from two fakes:
 
 - **Status**: `KAMI_DATA_DIR` defaults (outside production) to `src/fixtures/status/`, which holds `boulder-creek.json` — the all-stale 2026-09-06 build (mood `asleep`, "I can't feel my gauge", flow stale at Orodell, storage 72 % live, drought D1). The page renders from it with a visible "as of"; every DB read falls back to an empty state.
-- **Gateway**: `HERMES_GATEWAY_URL` defaults to `fake:`, which streams a canned guarded reply plus the trailing `event: toolcalls`. Variants: `fake:asleep` (tunnel down → the asleep line as a system message, `X-Kami-State: asleep`), `fake:busy` (429 with `people_ahead`), `fake:paused` (423), `fake:fast` (no delays; used by tests).
+- **Gateway**: An unset `HERMES_GATEWAY_URL` returns an explicit asleep state. Set `HERMES_GATEWAY_URL=fake:` only for development/testing to stream a canned reply plus the trailing `event: toolcalls`. Variants: `fake:asleep` (tunnel down → the asleep line as a system message, `X-Kami-State: asleep`), `fake:busy` (429 with `people_ahead`), `fake:paused` (423), `fake:fast` (no delays; used by tests).
 
 Add `DATABASE_URL` and `BETTER_AUTH_SECRET` to get sessions, roles and chat persistence; add `RESEND_API_KEY` to actually send magic links (without it the link is printed to the server log).
 
@@ -42,7 +42,7 @@ Parsed once in `src/env.ts` with zod. `SKIP_ENV_VALIDATION=1` skips validation (
 | `RESEND_API_KEY`, `RESEND_FROM` | no | magic-link mail; without a key the link is logged |
 | `KAMI_DATA_DIR` | no | local dir with `entity/<slug>/status.json` or `<slug>.json`; dev default `src/fixtures/status` |
 | `KAMI_DATA_BASE_URL` | no | R2 public base URL; read with `cache: "no-store"` |
-| `HERMES_GATEWAY_URL` | no | `http://gw:8642` in prod; default `fake:` |
+| `HERMES_GATEWAY_URL` | no | `http://gw:8642` in prod; default unset (asleep) |
 | `HERMES_API_SERVER_KEY` | prod | bearer for the gateway |
 | `CHAT_COOKIE_SECRET` | no | HMAC key for the anonymous chat cookie (falls back to `BETTER_AUTH_SECRET`) |
 

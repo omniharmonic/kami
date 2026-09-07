@@ -1,0 +1,37 @@
+.world { padding: 1rem 0 3rem; }
+.back { display: inline-flex; padding: .5rem 0 1.5rem; font-size: .86rem; color: var(--muted); }
+.sheet { padding: clamp(1.2rem, 4vw, 3.5rem); border: 1px solid rgba(139,174,153,.3); border-radius: 2rem; background: rgba(244,248,237,.91); color: #294c43; box-shadow: 0 24px 80px #24453710; }
+.sheet :global(.muted), .sheet :global(.faint) { color: #5e7167; }
+.sheet :global(.field) { background: #fffefa; color: #294c43; border-color: #b4c7b9; border-radius: .7rem; }
+.sheet :global(.btn) { border-radius: 2rem; }
+.sheet :global(.btn-primary) { background: #315e4d; color: #fffdf0; border-color: #315e4d; }
+.sheet :global(.sunken), .sheet :global(.card) { background: #e8eee1; border-color: #c9d6c7; }
+.hero { display: grid; grid-template-columns: 1.3fr 1fr; gap: 2rem; align-items: center; padding-bottom: 2.5rem; }
+.introduction h1 { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(2.8rem, 5vw, 4.6rem); font-weight: 400; line-height: 1.06; letter-spacing: -.045em; margin: 0 0 1.3rem; max-width: 11ch; }
+.introduction > p { max-width: 45ch; line-height: 1.8; color: #5b6e60; }
+.gate { margin-top: 1.8rem; }
+.gate p { font-size: .9rem; line-height: 1.65; }
+.guide { text-align: center; padding: 1rem; }
+.kami { width: min(100%, 280px); overflow: visible; }
+.sprite { animation: drift 5s ease-in-out infinite; transform-origin: center; }
+.guideName { display: block; color: #61816c; font-size: .82rem; }
+.guide h2 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: 1.6rem; margin: .7rem 0; }
+.guide p { font-size: .87rem; line-height: 1.75; max-width: 33ch; margin: auto; color: #617463; }
+.path { border-top: 1px solid #c5d3c1; padding-top: 2rem; }
+.path h2, .code h2, .drafts h2 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; font-size: 1.7rem; }
+.steps { list-style: none; padding: 0; display: grid; gap: 0; margin: 1.5rem 0 2.5rem; counter-reset: steps; }
+.steps li { display: grid; grid-template-columns: 2.5rem 1fr; gap: 1rem; counter-increment: steps; padding-bottom: 1.3rem; }
+.steps li::before { content: counter(steps); display: grid; place-items: center; align-self: start; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid #b1c9aa; color: #41694e; font-family: Georgia, serif; }
+.steps h3 { margin: .2rem 0 .4rem; font-size: 1rem; font-weight: 600; }
+.steps p { margin: 0; color: #617463; font-size: .9rem; max-width: 65ch; line-height: 1.65; }
+.code { padding: 1.5rem 1.8rem; background: #dfe9d8; border-radius: .6rem 1.8rem 1.8rem 1.8rem; }
+.code h2 { margin-top: 0; }
+.code p, .code li { font-size: .9rem; line-height: 1.75; max-width: 75ch; }
+.code ul { padding-left: 1.2rem; }
+.code li + li { margin-top: .6rem; }
+.availability { margin-top: 1.5rem; font-size: .88rem; line-height: 1.75; color: #637366; }
+.availability summary { cursor: pointer; color: #315e4d; padding: .7rem 0; }
+.drafts { margin: 0 0 2.5rem; }
+@keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@media (max-width: 650px) { .hero { grid-template-columns: 1fr; gap: .5rem; } .guide { order: -1; padding: 0; } .kami { width: 165px; } .guide h2, .guide p { display: none; } .introduction h1 { max-width: 15ch; font-size: 2.7rem; } .sheet { border-radius: 1.4rem; } .code { padding: 1.3rem; } }
+@media (prefers-reduced-motion: reduce) { .sprite { animation: none; } }

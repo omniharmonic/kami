@@ -16,6 +16,7 @@ import { appendEntityEvent, type DbOrTx } from "@/db/events";
 import * as schema from "@/db/schema";
 import { bountySpecSchema, capsFrom, DEFAULT_DRAFTS_PER_WEEK, isoWeekBounds, specSha256, type BountySpec } from "@/lib/mcp/bounty-spec";
 import { getConfig } from "./common";
+import { CONFIG_DEFAULTS, getConfigNumber } from "@/lib/governance/config";
 import type { CurrentBinding, EntityRow } from "./needs";
 
 export type GuardResult = "pass" | "dropped" | "held";
@@ -82,7 +83,8 @@ export async function storeStrategy(
     throw new Error(`strategy ${quarter} is already ratified; a new draft must wait for the next quarter`);
   }
   const id = existing?.id ?? randomUUID();
-  const commentOpenUntil = new Date(now.getTime() + 7 * 86400_000);
+  const commentDays = await getConfigNumber(db, "strategy_comment_days", CONFIG_DEFAULTS.strategy_comment_days);
+  const commentOpenUntil = new Date(now.getTime() + Math.max(0, commentDays) * 86400_000);
   if (existing) {
     await db.update(schema.strategies).set({ memoMd: input.memo_md, guardResult: input.guard_result, commentOpenUntil }).where(eq(schema.strategies.id, id));
   } else {

@@ -54,6 +54,38 @@ Two properties of that picture are load-bearing:
   what makes "one guardian pauses, two resume" a real boundary), and no model endpoint is
   ever on the public internet.
 
+## Runtime compatibility (verified September 7, 2026)
+
+The installed Hermes gateway serves `/v1/chat/completions` for one active profile.
+It does **not** serve the platform's `/p/<slug>/v1/chat/completions` route.
+An authenticated, slug-allowlisted adapter must route requests to each profile's
+loopback API before the tunnel is connected to production. Never expose the gate's
+admin port or use the gate as a replacement agent runtime: it cannot execute tools.
+
+The native wrapper now runs `hermes --profile "$KAMI_HERMES_PROFILE" gateway run`,
+with `API_SERVER_ENABLED=true`, `API_SERVER_HOST=127.0.0.1`, a dedicated
+`API_SERVER_PORT` (default 8642), and required `API_SERVER_KEY`. Use a separate
+profile and port for each being. `gateway start` manages an already-installed
+Hermes service and is not the foreground command for this launchd wrapper.
+Set `KAMI_HERMES_PROFILE` and `API_SERVER_KEY` in the private env file before launch;
+`HERMES_API_SERVER_KEY` is the matching Vercel variable, not the runtime variable.
+
+Automated profile deployment currently stops **before rsync**. The installed
+cron CLI accepts positional schedule and prompt, but cannot preserve the templates'
+pre-script wake gating, continuity, context-from, per-job tool/model restrictions,
+or explicit timezone flags. Dry runs show these blockers. Paused plans create no
+jobs; existing jobs must be reviewed with `hermes --profile NAME cron list --all`
+and paused by actual job ID using `hermes --profile NAME cron pause ID`. Creating
+an enabled job and pausing afterward would leave a scheduler race.
+
+The template's `memory.write_approval` and `skills.write_approval` fields are not
+implemented by this Hermes build. They must not be presented as enforced controls.
+The provider-side fact guard remains required, but Hermes does not forward its
+`toolcalls` evidence event; it emits `hermes.tool.progress` with tool name/status.
+A verified evidence bridge is still needed for the website's source footer.
+Do not report public chat or the five learning jobs as active until this integration
+passes live pause, evidence and scheduler checks.
+
 ## Install
 
 Assumes: the repo cloned, `corepack enable && pnpm install`, `uv sync`, and a Hermes CLI on

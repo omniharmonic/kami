@@ -44,7 +44,7 @@ export function ageGateDeclared(body: unknown, headers: Headers | undefined): bo
 
 export function createAuth(opts: CreateAuthOptions) {
   return betterAuth({
-    appName: "Kami",
+    appName: "beings.earth",
     secret: opts.secret,
     baseURL: opts.baseURL,
     database: drizzleAdapter(opts.db, {

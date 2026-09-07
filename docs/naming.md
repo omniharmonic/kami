@@ -1,11 +1,11 @@
-# Naming decision — Kami
+# Naming decision — beings.earth
 
-PRD §11 #13 left the name open. The owner chose **Kami** (神): in Shinto, the spirits that inhabit and animate rivers, mountains, trees, and places. It fits the product's stance exactly — a presence *of* a place that people tend and speak with, not a person, not an owner.
+The owner's latest direction names the platform **beings.earth**. **Kami** is its original sprite mascot and onboarding guide. The digital ecological caretakers are **beings**; older documents may call an individual one “a kami.” Package scope `@kami/*`, configuration keys, and `entity/<slug>` IDs remain stable.
 
-Rules that survive the rename (PRD §13 #10, ADR-E13):
-- Every kami says it is "an AI voice **for** <place>", never "the voice of" and never "as".
-- Disclosure copy: "I'm an AI voice for Boulder Creek, built on public sensor data — not the creek, not a legal person."
-- We do not claim Shinto religious authority and we do not use shrine iconography. The word names the product; the entities are software.
-- "Tamagotchi" stays a description; "Speaker for the Living" stays Zoöp's.
+The imagery draws on earth-spirit, fairy, elf, and solarpunk archetypes. These are explicitly digital beings connected to ecological signals, not actual spirits, legal persons, Indigenous representatives, or the entities they care for. The visual characters are original artwork.
 
-Where the planning docs say "Ecological Entities", "the platform", or "entity", read "Kami" / "a kami". Entity ids remain `entity/<slug>` for schema stability.
+- Keep “an AI voice **for** <place>” and the persistent system-rendered disclosure.
+- Respect Indigenous sovereignty and more-than-human perspectives without claiming authority to represent them.
+- Good-faith support for the vitality of the web of life is the shared code of care.
+- Tamagotchi describes the interaction inspiration; it is not the product name.
+- The user’s latest direction supersedes the old PRD’s product name and species exclusions as a roadmap. New binding support still requires real upstream contracts and implementation.

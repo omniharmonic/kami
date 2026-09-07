@@ -1,6 +1,6 @@
-# Kami — AI voices for places
+# beings.earth — digital caretakers for living places
 
-**Kami** (神, the Shinto word for the spirits that inhabit rivers, mountains, and living places) is a platform where anyone can summon an AI agent that speaks *for* a creek, a watershed, a reservoir, a ridge, or a bioregion — grounded in the [Front Range Bioregional Twin](https://github.com/omniharmonic/frontrange-twin)'s live sensor readings, with an avatar whose mood follows measured conditions, a chat that can only cite what the twin measured, a small treasury controlled by human guardians, and a weekly loop in which the agent drafts bounties, people do real work, evaluators verify it, and the outcome is attested on chain.
+**beings.earth** is a platform where anyone can summon an AI agent that speaks *for* a creek, a watershed, a reservoir, a ridge, or a bioregion — grounded in the [Front Range Bioregional Twin](https://github.com/omniharmonic/frontrange-twin)'s live sensor readings, with an avatar whose mood follows measured conditions, a chat that can only cite what the twin measured, a small treasury controlled by human guardians, and a weekly loop in which the agent drafts bounties, people do real work, evaluators verify it, and the outcome is attested on chain.
 
 **The pitch:** a Tamagotchi for rights of nature — except the feelings are gauge readings, the money is signed by humans, and the receipts are public.
 
@@ -14,9 +14,11 @@ Built by Benjamin Life ([@omniharmonic](https://github.com/omniharmonic)). Apach
 4. **No token, ever.** Not for governance, not for reputation, not for cosmetics. See [`docs/no-token.md`](docs/no-token.md).
 5. **The platform reads the twin like a browser does and never writes into it.** Separate repo; one published file contract plus a read-only MCP wrapper.
 
+Kami is the platform’s original sprite mascot and guide. The landscape is an illustrated digital home, not measured terrain. Current implementation and remaining integration work: [`docs/beings-earth-audit.md`](docs/beings-earth-audit.md).
+
 ## State of the build
 
-**Live at https://kami-web-one.vercel.app.** Every work package in
+**Live at https://beings.earth.** Every work package in
 `docs/planning/03-implementation-plan.md` is implemented and the whole suite is green.
 
 **Start at [`docs/STATUS.md`](docs/STATUS.md)** — what exists, what is deployed, what is
@@ -33,7 +35,9 @@ it and names what is not proven.
 | End-to-end (Playwright, production build) | 41 specs |
 | Production build · security gates | compiles, no warnings · six gates green |
 
-**The one thing to know before believing any of it: no model has ever spoken.** Every chat path in
+**Production verification: see [the current handoff](docs/deploy/beings-production.md).** Sign-in, public twin MCP reads, and authenticated platform MCP connections have now been tested live. Website model chat remains unconfigured. The original baseline below describes fixture coverage, not the newer live checks.
+
+**Original implementation baseline: no model had spoken.** Every chat path in
 this repository runs against a fake gateway. The fact-sheet guard is proven against a generated
 adversarial corpus of 204 turns; the ≥95 % hallucination probe in `evals/` has never met a real
 model. The same is true of the chain (no Safe has been deployed), the twin (this sandbox cannot

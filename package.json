@@ -2,13 +2,16 @@
   "name": "kami",
   "private": true,
   "version": "0.1.0",
-  "description": "Kami — AI voices for places, grounded in the Front Range Bioregional Twin. Reads the twin like a browser does; never writes into it.",
+  "description": "Kami \u2014 AI voices for places, grounded in the Front Range Bioregional Twin. Reads the twin like a browser does; never writes into it.",
   "license": "Apache-2.0",
   "author": "Benjamin Life (@omniharmonic)",
   "packageManager": "pnpm@10.33.0",
-  "engines": { "node": "22.x", "pnpm": ">=10" },
+  "engines": {
+    "node": "22.x",
+    "pnpm": ">=10"
+  },
   "scripts": {
-    "build:packages": "pnpm -r --filter \"./packages/*\" --filter @kami/chain --if-present build",
+    "build:packages": "pnpm -r --filter @kami/binding --filter @kami/needs --filter @kami/reputation --filter @kami/twin-client --filter @bioregionaltwin/mcp --filter @kami/chain --if-present build",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
     "build": "pnpm -r --if-present build",

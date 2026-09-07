@@ -19,12 +19,19 @@ export function ConnectTabs({ generic, hermes }: Props) {
   const [tab, setTab] = useState<"any" | "hermes">("any");
   return (
     <>
-      <div role="tablist" aria-label={copy.tabs.label} style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "1rem" }}>
+      <div onKeyDown={(event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        const next = event.key === "Home" ? "any" : event.key === "End" ? "hermes" : tab === "any" ? "hermes" : "any";
+        setTab(next);
+        document.getElementById(`tab-${next}`)?.focus();
+      }} role="tablist" aria-label={copy.tabs.label} style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "1rem" }}>
         <button
           role="tab"
           type="button"
           id="tab-any"
           aria-selected={tab === "any"}
+          tabIndex={tab === "any" ? 0 : -1}
           aria-controls="panel-any"
           className={tab === "any" ? "btn btn-primary" : "btn"}
           onClick={() => setTab("any")}
@@ -36,6 +43,7 @@ export function ConnectTabs({ generic, hermes }: Props) {
           type="button"
           id="tab-hermes"
           aria-selected={tab === "hermes"}
+          tabIndex={tab === "hermes" ? 0 : -1}
           aria-controls="panel-hermes"
           className={tab === "hermes" ? "btn btn-primary" : "btn"}
           onClick={() => setTab("hermes")}

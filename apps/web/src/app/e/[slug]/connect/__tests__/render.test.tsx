@@ -141,7 +141,7 @@ describe("/e/[slug]/connect", () => {
     await renderPage();
     expect(screen.getByTestId("token-cannot-mint")).toBeTruthy();
     expect(screen.queryByTestId("mint")).toBeNull();
-    expect(screen.getByTestId("role-line").textContent).toContain("guardian role");
+    expect(screen.getByTestId("role-line").textContent).toContain("Your access: guardian");
   });
 
   it("renders the status section with every signal, and no bare tick", async () => {

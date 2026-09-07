@@ -7,6 +7,7 @@ import { and, desc, eq, gte } from "drizzle-orm";
 import { getDb } from "@/db/client";
 import * as schema from "@/db/schema";
 import { getEntityBySlug, getConfigNumber } from "./entities";
+import { mayPreview } from "./entity-access";
 import { chatCompletion } from "./gateway";
 import { checkChatLimits } from "./ratelimit";
 import { DEFAULT_REMINDER_EVERY, type ChatDeps, type ChatSessionRef } from "./chat-handler";
@@ -17,6 +18,7 @@ const HOUR = 60 * 60 * 1000;
 export const productionChatDeps: ChatDeps = {
   async getEntity(slug) {
     const e = await getEntityBySlug(slug);
+    if (e?.from_db && e.consultation_done_at === null && !(await mayPreview(e.id))) return null;
     return e && !e.retired ? { id: e.id, slug: e.slug, name: e.name, archetype: e.archetype, paused: e.paused } : null;
   },
 
@@ -56,8 +58,8 @@ export const productionChatDeps: ChatDeps = {
     return getConfigNumber("reminder_every_turns", DEFAULT_REMINDER_EVERY);
   },
 
-  async gateway({ slug, messages, user }) {
-    return chatCompletion({ slug, messages, user });
+  async gateway({ slug, messages, user, signal }) {
+    return chatCompletion({ slug, messages, user, ...(signal ? { signal } : {}) });
   },
 
   async persistTurn({ sessionId, turn, user, assistant, toolcalls, guard_dropped, reminder, state }) {

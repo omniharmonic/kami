@@ -1,0 +1,695 @@
+{
+  "source": "https://mcp.bioregionaltwin.org/api/v1/tools",
+  "retrieved_at": "2026-09-07",
+  "tools": [
+    {
+      "name": "list_datasets",
+      "description": "Discover all public ecological layers, scope semantics, and artifact templates. Missing layers are unknown, never evidence of absence.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "query_ecology",
+      "description": "Read one ecological layer within a union of watershed polygons or a custom WGS84 polygon. Paginated, full source properties, geometric intersection including holes and crossing reaches. Regional summaries remain explicitly regional.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "dataset": {
+            "type": "string",
+            "enum": [
+              "conditions",
+              "alerts",
+              "drought",
+              "fires",
+              "detections",
+              "quakes",
+              "snow",
+              "health",
+              "species",
+              "reaches",
+              "flow_network",
+              "territories",
+              "languages",
+              "places",
+              "tiles"
+            ]
+          },
+          "within": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z_]+\\/[a-z0-9-]+$"
+            }
+          },
+          "polygon": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "Polygon"
+                  },
+                  "coordinates": {
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "minItems": 4,
+                      "maxItems": 2000,
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "number",
+                            "minimum": -180,
+                            "maximum": 180
+                          },
+                          {
+                            "type": "number",
+                            "minimum": -90,
+                            "maximum": 90
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "type",
+                  "coordinates"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "MultiPolygon"
+                  },
+                  "coordinates": {
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "minItems": 4,
+                        "maxItems": 2000,
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number",
+                              "minimum": -180,
+                              "maximum": 180
+                            },
+                            {
+                              "type": "number",
+                              "minimum": -90,
+                              "maximum": 90
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "type",
+                  "coordinates"
+                ]
+              }
+            ]
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "dataset"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "find_species",
+      "description": "Search all published species by scientific/common name or taxon ID. Includes taxa without detail pages. Record counts are not population counts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        }
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_species",
+      "description": "A species profile with occurrence caveats, source references and seasonal range URLs. Optional polygon scope tests mapped ranges; it does not assert presence or clip occurrence counts.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^species\\/[a-z0-9-]+$"
+          },
+          "within": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z_]+\\/[a-z0-9-]+$"
+            }
+          },
+          "polygon": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "Polygon"
+                  },
+                  "coordinates": {
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "minItems": 4,
+                      "maxItems": 2000,
+                      "type": "array",
+                      "items": {
+                        "type": "array",
+                        "prefixItems": [
+                          {
+                            "type": "number",
+                            "minimum": -180,
+                            "maximum": 180
+                          },
+                          {
+                            "type": "number",
+                            "minimum": -90,
+                            "maximum": 90
+                          }
+                        ],
+                        "items": false,
+                        "minItems": 2,
+                        "maxItems": 2
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "type",
+                  "coordinates"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "const": "MultiPolygon"
+                  },
+                  "coordinates": {
+                    "minItems": 1,
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "minItems": 1,
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "minItems": 4,
+                        "maxItems": 2000,
+                        "type": "array",
+                        "items": {
+                          "type": "array",
+                          "prefixItems": [
+                            {
+                              "type": "number",
+                              "minimum": -180,
+                              "maximum": 180
+                            },
+                            {
+                              "type": "number",
+                              "minimum": -90,
+                              "maximum": 90
+                            }
+                          ],
+                          "items": false,
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "type",
+                  "coordinates"
+                ]
+              }
+            ]
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "read_artifact",
+      "description": "Read any supported public JSON artifact in bounded sections. JSON Pointer selects a field; arrays paginate. Geometry is omitted with a direct public URL for clients. Use for normals, series, stream metadata, tiles and species fields omitted from summaries.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "maxLength": 200,
+            "pattern": "^(?:(?:id|latest|geom|normals|species|network|tiles|boundary)\\/)\\S+\\.(?:json|geojson)$"
+          },
+          "pointer": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "find_places",
+      "description": "Search the twin's identity registry (id/index.json) by name substring, kind, HUC prefix or bbox. Returns ids to pass to get_place. Paginated (limit \u2264 50).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "description": "case-insensitive substring of the name or id",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "kind": {
+            "description": "place kind, e.g. monitoring_site | watershed | bioregion",
+            "type": "string"
+          },
+          "huc": {
+            "description": "HUC prefix (2\u201312 digits)",
+            "type": "string",
+            "pattern": "^\\d{2,12}$"
+          },
+          "bbox": {
+            "description": "[minLon, minLat, maxLon, maxLat]",
+            "minItems": 4,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "cursor": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        }
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_place",
+      "description": "One place: its identity record (id/<id>.json), its latest readings with stale/staleness_s computed from staleness_crit_s against the current clock, a 7-day series summary per datastream (min, max, last, trend, n) and points_url for the raw series. No series points and no geometry are returned; use geometry_url.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z_]+\\/[a-z0-9-]+$",
+            "description": "twin id, e.g. place/boulder-creek-near-orodell-co"
+          },
+          "series": {
+            "description": "include series_summary (default true)",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_conditions",
+      "description": "Latest readings for monitoring sites from latest/conditions.json, filtered by place_ids, a HUC prefix, or `within` a place polygon (point-in-polygon computed server-side; properties only are returned). Paginated and size-capped.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "place_ids": {
+            "maxItems": 50,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "huc": {
+            "type": "string",
+            "pattern": "^\\d{2,12}$"
+          },
+          "within": {
+            "description": "a watershed/bioregion id whose geom/ polygon bounds the stations",
+            "type": "string",
+            "pattern": "^[a-z_]+\\/[a-z0-9-]+$"
+          },
+          "cursor": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        }
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_live",
+      "description": "Features of a live layer (alerts | drought | fires | detections | quakes), optionally only those intersecting the polygon of `within`. Properties plus centroid/bbox only \u2014 never a ring. Zone-only NWS alerts have no polygon and are returned with geometry: null, matched_by: null. Drought features carry dm, label, period_start, period_end.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "layer": {
+            "type": "string",
+            "enum": [
+              "alerts",
+              "drought",
+              "fires",
+              "detections",
+              "quakes"
+            ]
+          },
+          "within": {
+            "type": "string",
+            "pattern": "^[a-z_]+\\/[a-z0-9-]+$"
+          },
+          "cursor": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          }
+        },
+        "required": [
+          "layer"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_snow",
+      "description": "The snowline artifact (latest/snow.json): snowline_m (null when fewer than 3 usable sites, none report snow, or all are stale), opacity, the SNOTEL basis with per-site stale flags, and the rule verbatim.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_health",
+      "description": "The honesty board (latest/health.json): per source, is the feed up (health, last_ok, staleness_s) and are its values fresh (readings, stale_readings), with the thresholds that decide.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_boundary_summary",
+      "description": "The bioregion boundary as a proposal with its reasoning: id, boundary_version, ring, area_sqkm, huc8[], method, the first 600 characters of the rationale (CC BY-SA 4.0), rationale_url and geometry_url. No ring is returned.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "description": "default v1",
+            "type": "string",
+            "pattern": "^v\\d+$"
+          }
+        }
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_briefing",
+      "description": "The twin's weekly briefing (fact sheet + guarded analysis) when the twin publishes one; {available:false} until briefings/ ships.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+          }
+        }
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "explain",
+      "description": "Plain-language explanation of a property (discharge, swe, pm25, \u2026) or a class:<kind> key, with unit help and, where a settled scale exists, bands. Static copy vendored from the twin, CC BY-SA 4.0 with attribution. Never a model output. Pass `value` to get the band it falls in.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "property": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "value": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "property"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "list_entities",
+      "description": "Bindings this server was started with (stdio: --binding files). The hosted Worker returns {entities: []} \u2014 the twin does not host an entity registry.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "resolve_entity",
+      "description": "Resolve `query` to a validated place-set binding: an entity slug configured on this server, a twin watershed/stream id (\u2192 a proposed binding, binding_version 0, unreviewed), or an https binding_url on an allowlisted origin (\u2192 fetched and validated against schema + rules 1\u20136).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_entity_status",
+      "description": "THE pulse call: for the entity's binding, each need resolved with its aggregation (value, unit, time, stale, staleness_s, source_status, 7-day week{min,max,trend}, label, percentile_por: null until the twin publishes baselines), the live picture over its watersheds (drought_max_dm, alerts, fires_inside, detections_24h), source health, snapshot_hash (sha256 over members' readings excluding generated_at/staleness_s) and a facts-1.0 block for the guard.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "description": "entity slug or entity/<slug>; optional when one binding is configured",
+            "type": "string"
+          }
+        }
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_reading_history",
+      "description": "Summary of one property's series at a place over 24h or 7d (min, max, last, trend, n) from the place page's 7-day series, plus points_url. Raw points never go to the model.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "place_id": {
+            "type": "string",
+            "pattern": "^[a-z_]+\\/[a-z0-9-]+$"
+          },
+          "property": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "window": {
+            "description": "default 7d",
+            "type": "string",
+            "enum": [
+              "24h",
+              "7d"
+            ]
+          }
+        },
+        "required": [
+          "place_id",
+          "property"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "get_alerts",
+      "description": "Everything alert-shaped touching the entity: NWS alerts (polygon-matched to its watersheds, or zone-only with matched_by: null), the Drought Monitor class when \u2265 D1, active fires inside, and PM2.5 beyond Moderate at its air member.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "entity": {
+            "type": "string"
+          }
+        }
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    },
+    {
+      "name": "compare_to_normal",
+      "description": "Published baseline and interpretation for a specific datastream. Uses normals.by_datastream, preserving units and basis. Historical dates return that date\u2019s baseline, never today\u2019s percentile relabelled as history.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "place_id": {
+            "type": "string",
+            "pattern": "^[a-z_]+\\/[a-z0-9-]+$"
+          },
+          "property": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "datastream": {
+            "type": "string",
+            "maxLength": 150
+          },
+          "date": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          }
+        },
+        "required": [
+          "place_id",
+          "property"
+        ]
+      },
+      "_meta": {
+        "contract_version": "1.0"
+      }
+    }
+  ]
+}

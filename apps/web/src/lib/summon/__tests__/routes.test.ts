@@ -4,7 +4,7 @@
  *
  * The preview's contract is the interesting one: guarded like production, and
  * honest when the gateway is not there. `HERMES_GATEWAY_URL=fake:` is the
- * sandbox's gateway (vitest sets it through `src/env.ts`'s default).
+ * sandbox's gateway, explicitly enabled by each preview fixture.
  */
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { parse as parseYaml } from "yaml";
@@ -121,8 +121,22 @@ describe("POST /api/summon/preview", () => {
     expect(json.code).toBe("too_long");
   });
 
+  async function previewWithGateway(gateway: string) {
+    const prior = process.env.HERMES_GATEWAY_URL;
+    vi.resetModules();
+    process.env.HERMES_GATEWAY_URL = gateway;
+    try {
+      const { POST } = await import("@/app/api/summon/preview/route");
+      return await POST(body());
+    } finally {
+      if (prior === undefined) delete process.env.HERMES_GATEWAY_URL;
+      else process.env.HERMES_GATEWAY_URL = prior;
+      vi.resetModules();
+    }
+  }
+
   it("labels the reply a preview, names the staging profile, and stores nothing", async () => {
-    const res = await previewRoute(body());
+    const res = await previewWithGateway("fake:");
     expect(res.status).toBe(200);
     const json = (await res.json()) as { label: string; profile: string; stored: boolean; text: string; disclosure: string; looked_at: unknown[] };
     expect(json.profile).toBe("salmon-creek-staging");
@@ -134,29 +148,17 @@ describe("POST /api/summon/preview", () => {
   });
 
   it("says the gateway is unreachable rather than faking a reply", async () => {
-    const prior = process.env.HERMES_GATEWAY_URL;
-    vi.resetModules();
-    process.env.HERMES_GATEWAY_URL = "fake:asleep";
-    const { POST } = await import("@/app/api/summon/preview/route");
-    const res = await POST(body());
+    const res = await previewWithGateway("fake:asleep");
     expect(res.status).toBe(503);
     const json = (await res.json()) as { reason: string; message: string; text?: string };
     expect(json.reason).toBe("gateway_unreachable");
     expect(json.message).toMatch(/gateway is not answering/);
     expect(json.text).toBeUndefined();
-    process.env.HERMES_GATEWAY_URL = prior ?? "fake:";
-    vi.resetModules();
   });
 
   it("passes a paused staging profile's refusal straight through", async () => {
-    const prior = process.env.HERMES_GATEWAY_URL;
-    vi.resetModules();
-    process.env.HERMES_GATEWAY_URL = "fake:paused";
-    const { POST } = await import("@/app/api/summon/preview/route");
-    const res = await POST(body());
+    const res = await previewWithGateway("fake:paused");
     expect(res.status).toBe(423);
-    process.env.HERMES_GATEWAY_URL = prior ?? "fake:";
-    vi.resetModules();
   });
 });
 

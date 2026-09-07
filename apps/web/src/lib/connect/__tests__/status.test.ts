@@ -24,6 +24,7 @@ const deps = (over: Partial<Parameters<typeof connectStatus>[2]> = {}) => ({
   now: NOW,
   provenance: async () => UNKNOWN,
   gatewayIsFake: () => true,
+  gatewayIsConfigured: () => true,
   ...over,
 });
 
@@ -122,6 +123,13 @@ describe("connect · the status signals", () => {
     const seen = find((await connectStatus(db, entity, real)).signals, "chat");
     expect(seen.state).toBe("seen");
     expect(seen.age_s).toBe(60);
+  });
+
+  it("does not claim an empty gateway is configured, even with an old heartbeat", async () => {
+    await setConfig(db, "gpu_last_seen_at", "2026-09-06T11:59:00Z");
+    const status = await connectStatus(db, entity, deps({ gatewayIsFake: () => false, gatewayIsConfigured: () => false }));
+    expect(find(status.signals, "chat").state).toBe("not_configured");
+    expect(find(status.signals, "chat").at).toBeNull();
   });
 
   it("never reports a state outside the three it is allowed to have", async () => {

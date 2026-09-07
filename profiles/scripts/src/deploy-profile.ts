@@ -7,7 +7,8 @@
  * Renders SOUL.md (hard rules from the template + voice from profiles/<slug>/voice.md), config.yaml, .env,
  * binding.json (from profiles/<slug>/binding.yaml), copies the entity-steward skill, writes `paused: true`
  * when --paused or profiles/<slug>/state/paused exists, pushes over Tailscale with rsync, then runs the
- * `hermes cron add` calls and a reload. --dry-run prints the plan and writes nothing remote.
+ * compatible scheduler commands. Unsupported runtime features block before rsync.
+ * --dry-run prints all compatibility blockers and writes nothing remote.
  *
  * Env: PLATFORM_MCP_TOKEN (required unless --dry-run), PLATFORM_URL, TWIN_BASE_URL, BOX_HOST, HERMES_CMD,
  *      REMOTE_HERMES_HOME (default /opt/data — the path inside the hermes container, see infra/box).
@@ -21,7 +22,7 @@ import { pathToFileURL } from "node:url";
 
 import { renderSoul } from "./lib/soul.js";
 import { assertNoChainKey, bindingYamlToJson, renderConfig, renderEnv } from "./lib/config.js";
-import { cronCommands, parseCronSpec } from "./lib/cron.js";
+import { cronCommands, cronCompatibilityIssues, parseCronSpec } from "./lib/cron.js";
 import {
   CONFIG_TMPL_PATH,
   CRON_YAML_PATH,
@@ -56,6 +57,7 @@ export type DeployPlan = {
   slug: string;
   deploySlug: string;
   paused: boolean;
+  compatibilityBlockers: string[];
   /** relative path inside the profile dir → content */
   files: Map<string, string>;
   /** directories copied verbatim: local absolute → relative inside the profile dir */
@@ -127,7 +129,15 @@ export function buildPlan(o: DeployOptions): DeployPlan {
   const remoteProfileDir = `${remoteHermesHome}/profiles/${deploySlug}`;
   const hermesCmd = o.hermesCmd ?? process.env.HERMES_CMD ?? DEFAULTS.hermesCmd;
   const cronSpec = parseCronSpec(fs.readFileSync(CRON_YAML_PATH, "utf8"));
-  const crons = cronCommands(cronSpec, { slug: deploySlug, remoteProfileDir, hermesCmd, largeModel: o.largeModel, paused });
+  const compatibilityBlockers = [
+    ...cronCompatibilityIssues(cronSpec),
+    "Runtime profile routing and evidence forwarding require an adapter; stock Hermes has neither /p/<slug> routing nor the gate toolcalls event",
+    ...(paused ? ["Existing scheduler jobs must be verified paused by job ID before any profile replacement"] : []),
+  ];
+  if (!o.dryRun && compatibilityBlockers.length) {
+    throw new Error(`Runtime deployment blocked before file transfer: ${compatibilityBlockers.join("; ")}`);
+  }
+  const crons = compatibilityBlockers.length ? [] : cronCommands(cronSpec, { slug: deploySlug, remoteProfileDir, hermesCmd, largeModel: o.largeModel, paused });
 
   const host = o.host ?? process.env.BOX_HOST ?? DEFAULTS.host;
   const outDir = o.outDir ?? path.join(stateDir, "build", deploySlug);
@@ -142,15 +152,14 @@ export function buildPlan(o: DeployOptions): DeployPlan {
     ...(paused ? [`touch ${hostProfileDir}/state/paused`] : [`rm -f ${hostProfileDir}/state/paused`]),
     `chmod 700 ${hostProfileDir}/skills/entity-steward/scripts/pulse_precheck.py`,
     ...crons,
-    // verify (docs/verify.md #1): reload without a gateway restart. Two candidates; the first that exists wins.
-    `${hermesCmd} profile reload ${deploySlug} || curl -fsS -X POST -H "Authorization: Bearer $API_SERVER_KEY" http://127.0.0.1:8642/api/profiles/${deploySlug}/reload`,
-    `${hermesCmd} cron doctor --profile ${deploySlug}`,
+    `${hermesCmd} --profile '${deploySlug}' cron list --all`,
   ];
 
   return {
     slug: o.slug,
     deploySlug,
     paused,
+    compatibilityBlockers,
     files,
     copies: [{ from: SKILL_DIR, to: "skills/entity-steward" }],
     warnings,
@@ -219,6 +228,7 @@ export function main(argv: string[]): number {
   const outDir = o.outDir ?? path.join(o.stateDir ?? path.join(profileDir(o.slug), "state"), "build", plan.deploySlug);
 
   console.log(`# deploy-profile ${plan.slug} → ${plan.deploySlug}${plan.paused ? " (PAUSED)" : ""}${dryRun ? " [dry-run]" : ""}`);
+  for (const blocker of plan.compatibilityBlockers) console.log(`! runtime blocked: ${blocker}`);
   for (const w of plan.warnings) console.log(`! ${w}`);
   console.log(`# files → ${outDir}`);
   for (const [rel, content] of plan.files) console.log(`  ${rel}  (${content.length} bytes)`);
@@ -227,7 +237,7 @@ export function main(argv: string[]): number {
 
   console.log("# push (rsync over Tailscale)");
   run(plan.rsyncCommand, dryRun);
-  console.log("# remote (ssh) — Hermes CLI flags are *verify*");
+  console.log("# remote (ssh) — review only until runtime blockers are resolved");
   for (const c of plan.remoteCommands) run(["ssh", plan.rsyncCommand.at(-1)!.split(":")[0]!, c], dryRun);
   console.log(dryRun ? "# dry-run: nothing pushed" : "# done; check the pulse skipped/woke counter within the hour (§12.5 step 7)");
   return 0;

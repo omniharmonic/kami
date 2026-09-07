@@ -3,12 +3,12 @@
  * pause.ts <slug> [--resume --guardians <a>,<b>] [--reason "<text>"] [--dry-run]
  *
  * Pause: POST the gate's admin endpoint (GATE_ADMIN_URL + X-Gate-Admin secret), call the platform pause
- * action when PLATFORM_URL is set, print the Hermes /api/jobs pause call (*verify*), and drop a
+ * action when PLATFORM_URL is set, print verified per-job Hermes CLI instructions, and drop a
  * profiles/<slug>/state/paused marker so the next deploy keeps the profile paused (architecture §5.9).
  * One guardian pauses. Resume needs two distinct guardian names (ADR-E12, §15 deviation).
  *
  * Env: GATE_ADMIN_URL (default http://127.0.0.1:8001), GATE_ADMIN_SECRET, PLATFORM_URL, PLATFORM_ADMIN_TOKEN,
- *      HERMES_API_URL (default http://127.0.0.1:8642), API_SERVER_KEY.
+ *      Hermes cron instructions must be run on the dedicated runtime host.
  * Exit: 0 ok · 1 gate refused/unreachable · 2 usage.
  */
 import fs from "node:fs";
@@ -80,10 +80,13 @@ export async function runPause(a: PauseArgs, deps: PauseDeps): Promise<PauseResu
   const gateUrl = `${gateBase}/admin/pause/${a.slug}`; // verify against apps/gate: POST pauses, DELETE resumes
   const gateMethod = a.resume ? "DELETE" : "POST";
 
-  const hermesBase = (deps.env.HERMES_API_URL ?? "http://127.0.0.1:8642").replace(/\/$/, "");
+  // Installed Hermes manages jobs by ID, never by profile-wide /api/jobs/pause.
+  // These are review instructions, not an executed bulk mutation.
   const hermesCommand =
-    `curl -fsS -X POST -H "Authorization: Bearer $API_SERVER_KEY" -H "Content-Type: application/json" ` +
-    `${hermesBase}/api/jobs/${a.resume ? "resume" : "pause"} -d '{"profile":"${a.slug}"}'   # verify: Hermes /api/jobs pause (docs/verify.md #1)`;
+    `hermes --profile '${a.slug}' cron list --all\n` +
+    `# Inspect each job's profile and ID, then run for each matching job:\n` +
+    `hermes --profile '${a.slug}' cron ${a.resume ? "resume" : "pause"} '<verified-job-id>'`;
+
 
   const result: PauseResult = { gate: "skipped", platform: "skipped", hermesCommand };
 

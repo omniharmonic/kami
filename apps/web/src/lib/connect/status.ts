@@ -41,7 +41,7 @@ import { and, desc, eq } from "drizzle-orm";
 import type { DbOrTx } from "@/db/events";
 import * as schema from "@/db/schema";
 import { getConfig } from "@/lib/jobs/common";
-import { isFakeGateway } from "@/env";
+import { env, isFakeGateway } from "@/env";
 import { servingProvenance, type Provenance } from "@/lib/provenance";
 import { tokenState, type TokenState } from "./token";
 
@@ -102,6 +102,7 @@ export type StatusDeps = {
   provenance?: (slug: string) => Promise<Provenance>;
   /** default `src/env.ts`; the Hermes gateway URL as configured */
   gatewayIsFake?: () => boolean;
+  gatewayIsConfigured?: () => boolean;
 };
 
 export type StatusEntity = { id: string; slug: string; paused_at?: Date | string | null };
@@ -126,6 +127,7 @@ export async function connectStatus(db: DbOrTx, entity: StatusEntity, deps: Stat
 
   const provenance = await (deps.provenance ?? servingProvenance)(entity.slug);
   const gatewayFake = (deps.gatewayIsFake ?? (() => isFakeGateway()))();
+  const gatewayConfigured = (deps.gatewayIsConfigured ?? (() => Boolean(env.HERMES_GATEWAY_URL.trim())))();
   const heartbeat = await getConfig<string>(db, "gpu_last_seen_at");
 
   const signals: Signal[] = [
@@ -150,7 +152,7 @@ export async function connectStatus(db: DbOrTx, entity: StatusEntity, deps: Stat
       : provenance.source === "profile"
         ? signal("gate", "waiting", null, now, provenance.model)
         : signal("gate", "not_configured", null, now),
-    gatewayFake
+    gatewayFake || !gatewayConfigured
       ? signal("chat", "not_configured", null, now)
       : typeof heartbeat === "string"
         ? signal("chat", "seen", heartbeat, now)

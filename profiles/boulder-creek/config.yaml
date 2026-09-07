@@ -1,30 +1,34 @@
 # Hermes profile config — rendered by profiles/scripts/deploy-profile.ts. Do not hand-edit on the box.
-# Source of truth: docs/planning/02-technical-architecture.md §5.1 (verbatim, with placeholders).
+# Runtime keys checked against installed Hermes; architecture §5.1 supplies the constraints.
 # Placeholders: boulder-creek qwen3.5-9b http://127.0.0.1:8001/p/boulder-creek/v1 http://127.0.0.1:3000 https://data.bioregionaltwin.org false
 model:
   default: qwen3.5-9b
   provider: custom
+  api_mode: chat_completions
   base_url: http://127.0.0.1:8001/p/boulder-creek/v1          # the gate, never vLLM directly (ADR-E04)
   context_length: 65536
   reasoning_effort: low
-agent:
-  # verify: exact Hermes v0.21.0 toolset names, including `delegate` (docs/verify.md #1).
-  # Hermes has no allowlist mode (PRD §8.2): everything not needed is disabled here,
-  # and every MCP server below carries an include list.
-  disabled_toolsets: [terminal, browser, web, file, image, email, sms, kanban, delegate]
+# Never route a failed gate call directly to another model provider.
+fallback_providers: []
+fallback_model: []
+# Hermes uses bare MCP server names in this CLI allowlist.
+platform_toolsets:
+  cli: [twin, platform, treasury]
 memory:
-  memory_enabled: true
-  write_approval: true            # PRD §4.5: memory writes need steward approval
-skills:
-  write_approval: true            # PRD §4.5: skill writes need steward approval
-  guard_agent_created: true
+  memory_enabled: false
+# Preload the checked-in instructions with `hermes chat --skills entity-steward`.
+# No memory/skill write-approval policy is claimed: autonomous memory is disabled,
+# and filesystem/skill-management tools are outside the CLI allowlist.
 mcp_servers:
   twin:
-    type: stdio
-    command: npx
-    args: ["-y", "@bioregionaltwin/mcp", "--tree", "https://data.bioregionaltwin.org", "--binding", "./binding.json"]
+    # Public discovery is independent of the platform's configured static tree:
+    # https://data.bioregionaltwin.org. Use a built local checkout for custom trees/bindings.
+    # The hosted twin has no private entity registry; platform.get_needs_snapshot
+    # supplies this being's scoped pulse. No npm package is published.
+    type: http
+    url: https://mcp.bioregionaltwin.org/mcp
     tools:
-      include: [get_entity_status, get_alerts, get_reading_history, get_place, explain, get_health, compare_to_normal]
+      include: [list_datasets, find_places, find_species, get_species, query_ecology, read_artifact, resolve_entity, get_reading_history, get_place, get_live, explain, get_health, compare_to_normal]
   treasury:
     type: stdio
     command: uv
@@ -41,8 +45,6 @@ mcp_servers:
 cron:
   model: qwen3.5-9b
   max_parallel_jobs: 2            # verify: whether this applies across profiles in multiplexed mode (PRD App. C #1)
-approval:
-  dangerous_commands: true
-# Written by deploy-profile when the entity is paused (architecture §5.9) so a gateway restart
-# does not resurrect it. Enforcement lives at the gate; this is belt and braces. verify: the key Hermes honours.
+# Provisioning metadata only: stock Hermes does not enforce this field.
+# The gate is authoritative for pause; scheduler jobs require a separate verified pause.
 paused: false

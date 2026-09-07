@@ -20,7 +20,7 @@ export const envSchema = z.object({
   RESEND_FROM: z.string().default("Kami <hello@kami.local>"),
   KAMI_DATA_DIR: z.string().optional(),
   KAMI_DATA_BASE_URL: optionalUrl,
-  HERMES_GATEWAY_URL: z.string().default("fake:"),
+  HERMES_GATEWAY_URL: z.string().default(""),
   HERMES_API_SERVER_KEY: z.string().optional(),
   CHAT_COOKIE_SECRET: z.string().optional(),
   SKIP_ENV_VALIDATION: z.string().optional(),

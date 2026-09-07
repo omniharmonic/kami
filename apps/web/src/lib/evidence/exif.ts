@@ -76,7 +76,9 @@ export async function parseExif(bytes: Uint8Array | ArrayBuffer | Buffer): Promi
       jfif: false,
       ihdr: false,
       mergeOutput: true,
-      reviveValues: true,
+      // Keep camera wall-clock strings for our deterministic normalizer.
+      // exifr Date revival applies the server timezone to timezone-less EXIF.
+      reviveValues: false,
       translateValues: true,
     });
     return exifFromParsed(raw ?? null);

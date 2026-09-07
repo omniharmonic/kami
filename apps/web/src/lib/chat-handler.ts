@@ -23,7 +23,7 @@ export type ChatDeps = {
   getOrCreateSession(input: { entityId: string; anonKey: string | null; userId: string | null; ipHash: string }): Promise<ChatSessionRef>;
   checkLimits(input: { sessionId: string; ipHash: string }): Promise<LimitResult>;
   reminderEvery(): Promise<number>;
-  gateway(input: { slug: string; messages: ChatMessage[]; user: string }): Promise<GatewayResult>;
+  gateway(input: { slug: string; messages: ChatMessage[]; user: string; signal?: AbortSignal }): Promise<GatewayResult>;
   /** called once per turn, after the stream ends */
   persistTurn(input: {
     sessionId: string;
@@ -54,7 +54,6 @@ export type ChatRequestContext = {
 };
 
 const enc = new TextEncoder();
-const dec = new TextDecoder();
 
 function json(status: number, body: unknown, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "cache-control": "no-store", ...headers } });
@@ -105,7 +104,7 @@ export async function handleChat(deps: ChatDeps, ctx: ChatRequestContext): Promi
   const reminderDue = turn % every === 0;
   const reminderText = disclosure.reminder(entity.name);
 
-  const upstream = await deps.gateway({ slug: entity.slug, messages, user: session.id });
+  const upstream = await deps.gateway({ slug: entity.slug, messages, user: session.id, ...(ctx.signal ? { signal: ctx.signal } : {}) });
 
   if (upstream.kind === "paused") return json(423, { reason: "paused", message: copy.paused }, { "x-kami-state": "paused" });
   if (upstream.kind === "over_budget") {
@@ -124,9 +123,11 @@ export async function handleChat(deps: ChatDeps, ctx: ChatRequestContext): Promi
 
   // Relay the upstream SSE, watching for content deltas and the trailing toolcalls event.
   let buffer = "";
+  // A decoder owns partial UTF-8 bytes: sharing it between requests corrupts
+  // concurrent replies whenever a character spans transport chunks.
+  const dec = new TextDecoder();
   let assistant = "";
   let toolcalls: ToolcallsEvent | null = null;
-  let currentEvent = "message";
   let doneSeen = false;
 
   const handleFrame = (frame: string) => {
@@ -137,7 +138,6 @@ export async function handleChat(deps: ChatDeps, ctx: ChatRequestContext): Promi
       else if (line.startsWith("data:")) dataLines.push(line.slice(5).trimStart());
     }
     const data = dataLines.join("\n");
-    currentEvent = event;
     if (event === "toolcalls") {
       try {
         const j = JSON.parse(data) as Partial<ToolcallsEvent>;
@@ -162,35 +162,37 @@ export async function handleChat(deps: ChatDeps, ctx: ChatRequestContext): Promi
     }
   };
 
+  const emitFrame = (frame: string, controller: TransformStreamDefaultController<Uint8Array>) => {
+    const wasDone = doneSeen;
+    handleFrame(frame);
+    if (doneSeen && !wasDone && reminderDue) {
+      controller.enqueue(enc.encode(sseEvent("reminder", { text: reminderText, turn })));
+    }
+    controller.enqueue(enc.encode(frame + "\n\n"));
+  };
+
   const relay = new TransformStream<Uint8Array, Uint8Array>({
     transform(chunk, controller) {
       buffer += dec.decode(chunk, { stream: true });
-      let idx: number;
-      while ((idx = buffer.indexOf("\n\n")) !== -1) {
-        const frame = buffer.slice(0, idx);
-        buffer = buffer.slice(idx + 2);
-        const wasDone = doneSeen;
-        handleFrame(frame);
-        if (doneSeen && !wasDone) {
-          // Inject the reminder before [DONE] so the client renders it in order.
-          if (reminderDue) controller.enqueue(enc.encode(sseEvent("reminder", { text: reminderText, turn })));
-          controller.enqueue(enc.encode(frame + "\n\n"));
-          continue;
-        }
-        controller.enqueue(enc.encode(frame + "\n\n"));
+      let separator: RegExpExecArray | null;
+      // Both LF and CRLF are valid SSE line endings, including when split
+      // across chunks. Normalize frames for the browser's LF parser.
+      while ((separator = /\r?\n\r?\n/.exec(buffer)) !== null) {
+        const frame = buffer.slice(0, separator.index).replace(/\r\n/g, "\n");
+        buffer = buffer.slice(separator.index + separator[0].length);
+        emitFrame(frame, controller);
       }
     },
     async flush(controller) {
+      buffer += dec.decode();
       if (buffer.trim()) {
-        handleFrame(buffer);
-        controller.enqueue(enc.encode(buffer.endsWith("\n\n") ? buffer : buffer + "\n\n"));
+        emitFrame(buffer.replace(/\r\n/g, "\n"), controller);
         buffer = "";
       }
       if (!doneSeen) {
         if (reminderDue) controller.enqueue(enc.encode(sseEvent("reminder", { text: reminderText, turn })));
         controller.enqueue(enc.encode("data: [DONE]\n\n"));
       }
-      void currentEvent;
       await safePersist(deps, {
         sessionId: session.id,
         turn,

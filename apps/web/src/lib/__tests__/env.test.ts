@@ -25,3 +25,7 @@ describe("env", () => {
     expect(env.DATABASE_URL).toBeUndefined();
   });
 });
+
+it("requires an explicit opt-in to a fake gateway", () => {
+  expect(parseEnv({NODE_ENV: "test"}).HERMES_GATEWAY_URL).toBe("");
+});

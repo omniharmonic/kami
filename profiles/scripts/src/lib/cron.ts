@@ -1,6 +1,6 @@
 /**
- * cron.yaml → `hermes cron add` commands. The flag names are the PLAN from profiles/templates/cron.yaml's
- * header comment — *verify* against `hermes cron add --help` on v0.21.0 (docs/verify.md #1).
+ * cron.yaml → installed Hermes CLI commands. Unsupported semantics fail closed.
+ * Verified against local `hermes cron add --help` on September 7, 2026.
  */
 import { parse as parseYaml } from "yaml";
 
@@ -49,27 +49,34 @@ export function shellQuote(s: string): string {
   return `'${s.replace(/'/g, `'\\''`)}'`;
 }
 
-export function cronAddCommand(job: CronJob, spec: CronSpec, o: CronRenderOptions): string {
-  const parts = [o.hermesCmd, "cron", "add", "--profile", shellQuote(o.slug), "--name", shellQuote(job.name)];
-  parts.push("--schedule", shellQuote(job.schedule), "--tz", shellQuote(job.timezone ?? spec.timezone));
-  if (job.pre_script) parts.push("--pre-script", shellQuote(`${o.remoteProfileDir}/${job.pre_script}`));
-  if (job.toolsets?.length) parts.push("--toolsets", shellQuote(job.toolsets.join(",")));
-  if (job.continuity) parts.push("--continuity");
-  if (job.context_from?.length) parts.push("--context-from", shellQuote(job.context_from.join(",")));
-  if (job.skill) parts.push("--skill", shellQuote(job.skill));
-  if (job.reasoning_effort) parts.push("--reasoning-effort", job.reasoning_effort);
-  if (job.model_override && o.largeModel && job.model_override === o.largeModel) {
-    parts.push("--model", shellQuote(o.largeModel));
+/** Features the installed Hermes CLI cannot preserve. Never silently drop them. */
+export function cronCompatibilityIssues(spec: CronSpec): string[] {
+  const issues: string[] = [];
+  if (spec.timezone) issues.push(`explicit timezone ${spec.timezone} (scheduler timezone must be verified)`);
+  for (const job of spec.jobs) {
+    const unsupported = [
+      job.pre_script && "pre-script wake gating",
+      job.toolsets?.length && "per-job toolsets",
+      job.continuity && "continuity",
+      job.context_from?.length && "context-from",
+      job.reasoning_effort && "reasoning effort",
+      job.model_override && "model override",
+    ].filter(Boolean);
+    if (unsupported.length) issues.push(`${job.name}: ${unsupported.join(", ")}`);
   }
-  if (o.paused) parts.push("--disabled");
-  parts.push(shellQuote(job.prompt.trim()));
+  return issues;
+}
+
+export function cronAddCommand(job: CronJob, spec: CronSpec, o: CronRenderOptions): string {
+  if (o.paused) throw new Error("Refusing to create an enabled cron job for a paused entity; Hermes create has no disabled flag");
+  const issues = cronCompatibilityIssues({ ...spec, jobs: [job] });
+  if (issues.length) throw new Error(`Hermes cron compatibility: ${issues.join("; ")}`);
+  const parts = [o.hermesCmd, "--profile", shellQuote(o.slug), "cron", "create", shellQuote(job.schedule), shellQuote(job.prompt.trim()), "--name", shellQuote(job.name)];
+  if (job.skill) parts.push("--skill", shellQuote(job.skill));
   return parts.join(" ");
 }
 
 export function cronCommands(spec: CronSpec, o: CronRenderOptions): string[] {
-  // remove-then-add keeps the deploy idempotent (verify: `hermes cron remove` name/flags)
-  return spec.jobs.flatMap((job) => [
-    `${o.hermesCmd} cron remove --profile ${shellQuote(o.slug)} --name ${shellQuote(job.name)} || true`,
-    cronAddCommand(job, spec, o),
-  ]);
+  if (o.paused) return []; // Never create-then-pause: a running scheduler could race us.
+  return spec.jobs.map(job => cronAddCommand(job, spec, o));
 }

@@ -36,6 +36,9 @@ export const summon = {
 
   // --- step 1 -------------------------------------------------------------
   place: {
+    selected: (name: string) => `${name} is selected.`,
+    selectedHelp: "Your place proposal is saved. Review its sensing below, or continue to shape your being.",
+    continueAppearance: "Continue to appearance →",
     title: STEP_TITLES[1]!,
     intro:
       "Search the twin's identity registry by name. Watersheds, gauges, reservoirs and monitoring sites are all here. Pick the place your kami will speak for.",

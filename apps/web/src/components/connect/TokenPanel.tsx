@@ -96,6 +96,7 @@ export function TokenPanel({ token, mayMint, slug, tokenVar, slugVar, action }: 
         <p className="faint" data-testid="token-cannot-mint">{copy.token.cannotMint}</p>
       ) : !token.exists ? (
         <form action={formAction}>
+          <input type="hidden" name="slug" value={slug} />
           <p className="muted">{copy.token.mintConsequence}</p>
           <button className="btn btn-primary" type="submit" disabled={pending} data-testid="mint">{copy.token.mint}</button>
         </form>
@@ -103,6 +104,7 @@ export function TokenPanel({ token, mayMint, slug, tokenVar, slugVar, action }: 
         <button type="button" className="btn" onClick={() => setConfirming(true)} data-testid="rotate-start">{copy.token.rotate}</button>
       ) : (
         <form action={formAction} data-testid="rotate-form">
+          <input type="hidden" name="slug" value={slug} />
           <div className="sunken" style={{ borderLeft: "4px solid var(--warm)" }}>
             <strong>{copy.token.rotateWarningHeading}</strong>
             <p style={{ margin: "0.4rem 0 0" }}>{copy.token.rotateWarning}</p>

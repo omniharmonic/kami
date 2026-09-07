@@ -135,3 +135,64 @@ describe("chat route handler", () => {
     expect(await last!.json()).toMatchObject({ reason: "rate_limited", scope: "session_hour" });
   });
 });
+
+describe("gateway stream transport", () => {
+  const encoder = new TextEncoder();
+  const delta = (content: string) => `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}`;
+  function stream(chunks: string[]) {
+    return new ReadableStream<Uint8Array>({ start(controller) {
+      for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
+      controller.close();
+    } });
+  }
+
+  it("normalizes CRLF frames and preserves provenance and reminders", async () => {
+    const { deps, persisted } = makeDeps({ turns: 11, gateway: async () => ({ kind: "stream", body: stream([
+      `${delta("Hello, little river 🌿")}\r`,
+      `\n\r\nevent: toolcalls\r\ndata: ${JSON.stringify(FAKE_TOOLCALLS)}\r\n\r\ndata: [DONE]\r\n\r\n`,
+    ]) }) });
+    const result = frames(await readAll(await handleChat(deps, ctx(ask()))));
+    expect(result.map((frame) => frame.event)).toEqual(["message", "toolcalls", "reminder", "message"]);
+    expect(persisted[0]?.assistant).toBe("Hello, little river 🌿");
+    expect(persisted[0]?.toolcalls).toEqual(FAKE_TOOLCALLS);
+  });
+
+  it("puts the reminder before a terminal frame lacking a final newline", async () => {
+    const { deps } = makeDeps({ turns: 11, gateway: async () => ({ kind: "stream", body: stream([`${delta("Hello")}\n\ndata: [DONE]`]) }) });
+    const result = frames(await readAll(await handleChat(deps, ctx(ask()))));
+    expect(result.at(-2)?.event).toBe("reminder");
+    expect(result.at(-1)?.data).toBe("[DONE]");
+  });
+
+  it("forwards browser cancellation to the gateway", async () => {
+    const controller = new AbortController();
+    let received: AbortSignal | undefined;
+    const { deps } = makeDeps({ gateway: async ({ signal }) => {
+      received = signal;
+      return { kind: "asleep", error: "not connected" };
+    } });
+    await handleChat(deps, { ...ctx(ask()), signal: controller.signal });
+    expect(received).toBe(controller.signal);
+    controller.abort();
+    expect(received?.aborted).toBe(true);
+  });
+
+  it("keeps partially decoded UTF-8 isolated between simultaneous conversations", async () => {
+    const controllers: ReadableStreamDefaultController<Uint8Array>[] = [];
+    const { deps, persisted } = makeDeps({ gateway: async () => ({ kind: "stream", body: new ReadableStream({ start(controller) { controllers.push(controller); } }) }) });
+    const first = readAll(await handleChat(deps, ctx(ask("first"))));
+    const second = readAll(await handleChat(deps, ctx(ask("second"))));
+    const bytes = encoder.encode(`${delta("🌿")}\n\ndata: [DONE]\n\n`);
+    const split = bytes.indexOf(0xf0) + 1;
+    controllers[0]!.enqueue(bytes.slice(0, split));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    controllers[1]!.enqueue(encoder.encode(`${delta("A different conversation")}\n\ndata: [DONE]\n\n`));
+    controllers[1]!.close();
+    await second;
+    controllers[0]!.enqueue(bytes.slice(split));
+    controllers[0]!.close();
+    const text = await first;
+    expect(text).toContain("🌿");
+    expect(persisted.find((turn) => turn.user === "first")?.assistant).toBe("🌿");
+  });
+});

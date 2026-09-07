@@ -104,6 +104,13 @@ export default async function SummonStep({ params, searchParams }: Props) {
         {place ? (
           <>
             <SiblingsFirst siblings={siblings} placeName={place.picked_name} />
+            <div className="card stack" role="status">
+              <strong>{summon.place.selected(place.name)}</strong>
+              <p style={{ margin: 0 }}>{summon.place.selectedHelp}</p>
+              <Link className="btn btn-primary" href={`/summon/${id}/2`}>
+                {summon.place.continueAppearance}
+              </Link>
+            </div>
 
             <section className="section" aria-labelledby="proposal-h">
               <h2 id="proposal-h">{summon.place.proposalHeading}</h2>

@@ -9,8 +9,8 @@
  * renaming or re-annotating a tool in `src/lib/mcp/server.ts` moves this page
  * on the next request; there is no second list to forget to update.
  *
- * The twin half comes from `twin-tools.ts`, which is generated from that
- * package's registry and pinned by a test that re-reads the real one.
+ * The twin half comes from `twin-tools.ts`, which uses the captured public
+ * hosted discovery contract; the old vendored local package is independent.
  */
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";

@@ -34,8 +34,9 @@ test.describe("prefers-reduced-motion: reduce", () => {
     // The image itself resolves — the pose is really there, not a broken icon.
     expect(await svg.evaluate((el: HTMLImageElement) => el.naturalWidth)).toBeGreaterThan(0);
 
-    // Nothing animated: no canvas anywhere on the page, and no Rive request.
-    await expect(page.locator("canvas")).toHaveCount(0);
+    // No Rive canvas in the avatar. The illustrated landscape has its own
+    // WebGL canvas and disables motion when this preference is active.
+    await expect(page.locator(".avatar-stage canvas")).toHaveCount(0);
     expect(page.url()).toContain(`/e/${SLUG}`);
   });
 
@@ -49,7 +50,7 @@ test.describe("prefers-reduced-motion: reduce", () => {
 
     expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
     expect(rivRequests, "a rig was fetched despite reduced motion").toEqual([]);
-    await expect(page.locator("canvas")).toHaveCount(0);
+    await expect(page.locator(".avatar-stage canvas")).toHaveCount(0);
   });
 
   test("without the preference the page still renders the SVG, because no rig is commissioned yet (T1.8)", async ({ browser }) => {
@@ -61,7 +62,7 @@ test.describe("prefers-reduced-motion: reduce", () => {
     // This is the honest current reason. When a `.riv` ships, this becomes
     // "reduced-motion" only under the preference, and this expectation flips.
     await expect(stage).toHaveAttribute("data-avatar-reason", "rig-unavailable");
-    await expect(page.locator("canvas")).toHaveCount(0);
+    await expect(page.locator(".avatar-stage canvas")).toHaveCount(0);
     await ctx.close();
   });
 });

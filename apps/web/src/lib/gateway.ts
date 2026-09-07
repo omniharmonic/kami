@@ -57,6 +57,7 @@ function tunnelHeaders(): Record<string, string> {
 }
 
 export async function chatCompletion(req: GatewayRequest, baseUrl: string = env.HERMES_GATEWAY_URL): Promise<GatewayResult> {
+  if (!baseUrl.trim()) return { kind: "asleep", error: "gateway is not configured" };
   if (baseUrl.startsWith("fake:")) return fakeGateway(req, baseUrl.slice("fake:".length));
   const url = `${baseUrl.replace(/\/$/, "")}/p/${encodeURIComponent(req.slug)}/v1/chat/completions`;
   let res: Response;
@@ -65,7 +66,7 @@ export async function chatCompletion(req: GatewayRequest, baseUrl: string = env.
       method: "POST",
       headers: tunnelHeaders(),
       body: JSON.stringify({ model: req.slug, messages: req.messages, stream: true, user: req.user }),
-      signal: req.signal ?? AbortSignal.timeout(60_000),
+      signal: req.signal ? AbortSignal.any([req.signal, AbortSignal.timeout(60_000)]) : AbortSignal.timeout(60_000),
       cache: "no-store",
     });
   } catch (err) {
@@ -84,6 +85,10 @@ export async function chatCompletion(req: GatewayRequest, baseUrl: string = env.
     return { kind: "over_budget", people_ahead, retry_after_s: ra ? Number(ra) || null : null };
   }
   if (!res.ok || !res.body) return { kind: "asleep", error: `upstream ${res.status}` };
+  if (!res.headers.get("content-type")?.toLowerCase().includes("text/event-stream")) {
+    await res.body.cancel();
+    return { kind: "asleep", error: "upstream did not return an event stream" };
+  }
   return { kind: "stream", body: res.body };
 }
 

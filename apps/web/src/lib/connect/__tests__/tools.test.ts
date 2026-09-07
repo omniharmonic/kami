@@ -7,8 +7,8 @@
  *
  *  - the platform half is read out of the live MCP server, so a tool added in
  *    `src/lib/mcp/server.ts` appears without anyone editing this page;
- *  - the twin half is a generated table, and the last test here re-reads the
- *    twin package's real registry and fails on any drift.
+ *  - the twin half is the captured public hosted discovery contract, independent
+ *    of the older vendored local implementation.
  */
 import { describe, expect, it } from "vitest";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -88,23 +88,10 @@ describe("connect · the tool catalogue comes from the registries", () => {
     expect(firstSentence("")).toBe("");
   });
 
-  /**
-   * The twin MCP is a separate package `@kami/web` does not depend on, so its
-   * tool list is pinned in `twin-tools.ts`. This is what keeps the pin honest:
-   * it reads the package's own registry and compares. Needs `pnpm
-   * build:packages` first — the dist build is what a fresh checkout lacks.
-   */
-  it("matches the twin package's real registry, tool for tool and word for word", async () => {
-    let real: Array<{ name: string; description: string }>;
-    try {
-      const mod = (await import("../../../../../../packages/twin-mcp/dist/index.js")) as { TOOLS: Array<{ name: string; description: string }> };
-      real = mod.TOOLS;
-    } catch (err) {
-      throw new Error(`could not read the twin MCP registry — run \`pnpm build:packages\` first. (${(err as Error).message})`);
-    }
-    expect(TWIN_TOOLS.map((t) => t.name)).toEqual(real.map((t) => t.name));
-    for (const t of real) {
-      expect(TWIN_TOOLS.find((x) => x.name === t.name)!.description, `description drifted for ${t.name}`).toBe(t.description);
-    }
+  it("exposes the published discovery contract, including species and polygon queries", () => {
+    expect(TWIN_TOOLS).toHaveLength(20);
+    expect(new Set(TWIN_TOOLS.map(t => t.name)).size).toBe(20);
+    for (const name of ["list_datasets", "query_ecology", "find_species", "get_species", "read_artifact"])
+      expect(TWIN_TOOLS.find(t => t.name === name)?.description).toBeTruthy();
   });
 });

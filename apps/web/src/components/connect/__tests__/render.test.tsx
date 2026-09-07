@@ -29,7 +29,7 @@ function panel(token: TokenState, action: (p: MintFormState, fd: FormData) => Pr
 
 describe("TokenPanel", () => {
   it("shows a minted token once, and loses it when the person says they have copied it", async () => {
-    const action = vi.fn(async (): Promise<MintFormState> => ({ ok: true, token: TOKEN, replaced: false }));
+    const action = vi.fn(async (_prev: MintFormState, _fd: FormData): Promise<MintFormState> => ({ ok: true, token: TOKEN, replaced: false }));
     const { container } = panel(noToken, action);
     expect(container.innerHTML).not.toContain(TOKEN);
 
@@ -37,6 +37,7 @@ describe("TokenPanel", () => {
       fireEvent.click(screen.getByTestId("mint"));
     });
     expect(action).toHaveBeenCalledOnce();
+    expect(action.mock.calls[0]![1].get("slug")).toBe("boulder-creek");
     expect(screen.getByTestId("token-value").textContent).toBe(TOKEN);
     expect(screen.getByTestId("token-once").textContent).toContain("only time this token will ever be displayed");
 
@@ -68,6 +69,7 @@ describe("TokenPanel", () => {
       fireEvent.click(screen.getByTestId("rotate-go"));
     });
     expect(action).toHaveBeenCalledOnce();
+    expect(action.mock.calls[0]![1].get("slug")).toBe("boulder-creek");
     expect(action.mock.calls[0]![1].get("confirm")).toBe("yes");
   });
 
@@ -107,7 +109,7 @@ describe("StatusPanel", () => {
     expect(screen.getByTestId("state-token").textContent).toBe("not set up");
     // each "not set up" line names the thing to do or the setting to change
     expect(screen.getByText("Mint one above. Nothing else on this list can happen first.")).toBeTruthy();
-    expect(screen.getByText(/HERMES_GATEWAY_URL is unset or 'fake:'/)).toBeTruthy();
+    expect(screen.getByText(/Configure HERMES_GATEWAY_URL/)).toBeTruthy();
     expect(screen.getByText(/Nothing has reported where the model runs/)).toBeTruthy();
   });
 

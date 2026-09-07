@@ -66,7 +66,7 @@ export type HermesDelivery = z.infer<typeof deliverySchema>;
 export type DeliveryOutcome =
   | { ok: true; replay: true; id: string }
   | { ok: true; replay: false; id: string; job: string; stored: Record<string, unknown> }
-  | { ok: false; status: 400 | 404 | 422; reason: string; details?: unknown };
+  | { ok: false; status: 400 | 404 | 410 | 422 | 423; reason: string; details?: unknown };
 
 function guardFrom(delivery: HermesDelivery, header: string | null): GuardResult | null {
   const body = delivery.kami_guard ?? delivery.guard;
@@ -117,9 +117,16 @@ export async function handleHermesDelivery(db: DbOrTx, raw: unknown, opts: { gua
   if (!parsed.success) return { ok: false, status: 400, reason: "bad_delivery", details: parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`) };
   const d = parsed.data;
   if (d.type !== "cron.delivery") return { ok: false, status: 400, reason: `unsupported type ${d.type}` };
-  const slug = (d.slug ?? d.profile ?? d.entity ?? "").replace(/^entity\//, "").replace(/-staging$/, "");
+  const slug = (d.slug ?? d.profile ?? d.entity ?? "").replace(/^entity\//, "");
+  // A preview has no production memory or publication rights. Never strip
+  // its suffix and turn a staging delivery into a real being's update.
+  if ([d.slug, d.profile, d.entity].some((value) => value?.endsWith("-staging"))) {
+    return { ok: false, status: 422, reason: "staging_delivery" };
+  }
   const entity = await entityBySlug(db, slug);
   if (!entity) return { ok: false, status: 404, reason: `unknown entity ${slug}` };
+  if (entity.retiredAt) return { ok: false, status: 410, reason: "retired" };
+  if (entity.pausedAt) return { ok: false, status: 423, reason: "paused" };
 
   const claimed = await claimConfigKey(db, `hermes_events.${d.id}`, { job: d.job, slug, at: now.toISOString() }, now);
   if (!claimed) return { ok: true, replay: true, id: d.id };
