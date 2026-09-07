@@ -36,6 +36,7 @@
     "@rive-app/react-canvas": "4.34.1",
     "@safe-global/api-kit": "5.0.3",
     "@safe-global/protocol-kit": "8.0.6",
+    "@vercel/blob": "2.8.0",
     "better-auth": "1.7.3",
     "drizzle-orm": "0.45.2",
     "exifr": "7.1.3",

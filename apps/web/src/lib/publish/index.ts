@@ -9,6 +9,7 @@
  */
 import { env } from "@/env";
 import { defaultDataDir, statusFileSchema } from "@/lib/status";
+import { BlobPublisher } from "./blob";
 import { LocalDirPublisher } from "./local";
 import { CACHE_CONTROL, type Publisher } from "./publisher";
 import { R2Publisher, r2EnvFrom } from "./r2";
@@ -23,11 +24,12 @@ export function getPublisher(): Publisher {
   if (cached) return cached;
   const r2 = r2EnvFrom();
   if (r2) return (cached = new R2Publisher(r2));
+  if (process.env.BLOB_READ_WRITE_TOKEN) return (cached = new BlobPublisher());
   // In production the bucket is the only honest target: writing into the shipped
   // fixture directory would either fail on a read-only filesystem or, worse,
   // succeed on one instance and be invisible to every other one.
-  if (env.NODE_ENV === "production" && !env.KAMI_DATA_DIR) {
-    throw new Error("no publisher configured: set the R2 credentials (R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID or R2_ENDPOINT) or KAMI_DATA_DIR");
+  if (env.NODE_ENV === "production") {
+    throw new Error("no publisher configured: set R2 credentials or BLOB_READ_WRITE_TOKEN");
   }
   const dir = env.KAMI_DATA_DIR ?? defaultDataDir();
   return (cached = new LocalDirPublisher(dir));

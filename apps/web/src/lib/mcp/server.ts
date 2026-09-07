@@ -85,7 +85,7 @@ export function createEntityMcpServer(ctx: ToolContext): McpServer {
   );
   server.registerTool(
     "post_update",
-    { title: "Post update", description: "Publish a pulse, reflection or note (→ pulses), a strategy draft, or a donor-report paragraph. The platform decides where it renders.", inputSchema: postUpdateSchema.shape, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
+    { title: "Post update", description: "Publish a pulse, reflection or note (→ pulses), a strategy draft, or a donor-report paragraph. The platform decides where it renders. Disabled while paused or retired.", inputSchema: postUpdateSchema.shape, annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
     (args) => run(ctx, () => postUpdate(ctx, args)),
   );
   server.registerTool(
@@ -102,7 +102,7 @@ export function createEntityMcpServer(ctx: ToolContext): McpServer {
     "draft_bounty",
     {
       title: "Draft bounty",
-      description: "Draft one structured bounty in the PRD §7.6 shape. Tier 1 requires a prediction; twin_refs must be ids from this entity's binding; cap_usdc within the configured range; at most three drafts per ISO week. Lands as `drafted` for guardians.",
+      description: "Draft one structured bounty in the PRD §7.6 shape. Tier 1 requires a prediction; twin_refs must be ids from this entity's binding; cap_usdc within the configured range; at most three drafts per ISO week. Lands as `drafted` for guardians. Disabled while paused or retired.",
       // Deliberately permissive at the protocol edge: the strict PRD §7.6 check
       // runs in `storeBountyDraft`, so a refusal reaches the agent as a tool
       // result naming the rule it broke rather than as a protocol error.

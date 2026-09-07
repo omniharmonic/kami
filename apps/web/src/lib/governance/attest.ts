@@ -51,3 +51,22 @@ export function proposalOutcomeSchemaString(): string {
 export async function signOffchain(payload: ProposalOutcomePayload, signer: SignAttestation = stubSigner): Promise<SignedAttestation> {
   return signer.signOffchain(payload);
 }
+
+/** Eligibility only, not signature verification. Chain-indexed UIDs remain valid;
+ * offchain records must carry their actual signature, never a pending reference.
+ * Cryptographic EAS verification belongs to the signer/index ingestion boundary.
+ */
+export function eligibleOutcomeUid(easUid: unknown, offchain: unknown): `0x${string}` | null {
+  const uid = (value: unknown): `0x${string}` | null => typeof value === "string" && /^(?:0x)?[a-f0-9]{64}$/i.test(value) ? `0x${value.replace(/^0x/i, "").toLowerCase()}` : null;
+  const row = offchain && typeof offchain === "object" ? offchain as { uid?: unknown; signature?: unknown } : null;
+  const chain = uid(easUid), local = uid(row?.uid);
+  // A matching offchain record identifies this as an offchain UID even when
+  // older writers also copied its UID into the eas_uid column.
+  if (row && (row.uid !== undefined || row.signature !== undefined)) {
+    const signature = row.signature;
+    const signed = typeof signature === "string" && /^0x[0-9a-f]{130}$/i.test(signature) && !/^0x0+$/i.test(signature);
+    if (local && signed && (!chain || chain === local)) return local;
+    if (!chain || chain === local || typeof row.uid === "string" && row.uid.startsWith("pending:")) return null;
+  }
+  return chain;
+}

@@ -170,6 +170,20 @@ export async function loadStatus(
   const dataDir = opts.dataDir ?? env.KAMI_DATA_DIR ?? (env.NODE_ENV === "production" ? null : defaultDataDir());
   let text: string | null = null;
   if (baseUrl) text = await readRemote(baseUrl, slug);
+  if (text === null && process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      // No stale private publication can escape when consultation is removed.
+      // Read the current DB record, never a caller-supplied public flag.
+      const [{ getDb }, schema, { and, eq, isNotNull, isNull }, { BlobPublisher }] = await Promise.all([
+        import("@/db/client"), import("@/db/schema"), import("drizzle-orm"), import("./publish/blob"),
+      ]);
+      const db = getDb();
+      if (!db) return null;
+      const [released] = await db.select({ id: schema.entities.id }).from(schema.entities).where(and(eq(schema.entities.slug, slug), isNotNull(schema.entities.consultationDoneAt), isNull(schema.entities.retiredAt))).limit(1);
+      if (!released) return null;
+      text = (await new BlobPublisher().get(`entity/${slug}/status.json`))?.body ?? null;
+    } catch { return null; }
+  }
   if (text === null && dataDir) text = await readLocal(dataDir, slug);
   if (text === null) return null;
   return parseStatus(text);

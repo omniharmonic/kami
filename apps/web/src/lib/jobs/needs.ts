@@ -260,7 +260,9 @@ export type NeedsJobOptions = {
 export async function runNeedsJob(opts: NeedsJobOptions): Promise<{ as_of: string; results: EntityNeedsResult[] }> {
   const now = opts.now ?? new Date();
   const twin = opts.twin ?? getTwinClient();
-  const publisher = opts.publisher ?? getPublisher();
+  // Private beings still need their sensing loop before public storage exists.
+  // Resolve the publisher only after the publication gate below has passed.
+  const publisher = opts.publisher;
   const entities = await activeEntities(opts.db, opts.slug);
   const gpu = opts.gpuOnline ?? (await gpuOnline(opts.db, now));
   const results: EntityNeedsResult[] = [];
@@ -274,7 +276,7 @@ export async function runNeedsJob(opts: NeedsJobOptions): Promise<{ as_of: strin
   return { as_of: now.toISOString(), results };
 }
 
-async function runEntity(a: { db: DbOrTx; twin: TwinClient; publisher: Publisher; now: Date; entity: EntityRow; gpu: boolean }): Promise<EntityNeedsResult> {
+async function runEntity(a: { db: DbOrTx; twin: TwinClient; publisher?: Publisher; now: Date; entity: EntityRow; gpu: boolean }): Promise<EntityNeedsResult> {
   const { db, entity, now } = a;
   const current = await loadCurrentBinding(db, entity);
   if ("error" in current) return { slug: entity.slug, status: "skipped", reason: current.error };
@@ -358,7 +360,7 @@ async function runEntity(a: { db: DbOrTx; twin: TwinClient; publisher: Publisher
       stale_driving: published.stale_driving,
     };
   }
-  const out = await publishStatus(entity.slug, file, a.publisher);
+  const out = await publishStatus(entity.slug, file, a.publisher ?? getPublisher());
   return {
     slug: entity.slug,
     status: "published",

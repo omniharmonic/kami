@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Landscape } from "@/components/world/Landscape";
 import { Sprite } from "@/components/world/Sprite";
@@ -15,6 +16,9 @@ import type { PulseEntry } from "@/lib/status";
 
 export type PublicBeing = {
   slug: string;
+  private?: boolean;
+  longitude?: number;
+  latitude?: number;
   name: string;
   archetype: string;
   paused: boolean;
@@ -28,6 +32,8 @@ type Visit = {
   kind: string;
   note: string;
   description: string;
+  longitude?: number;
+  latitude?: number;
   x?: number;
   y?: number;
   slug?: string;
@@ -35,6 +41,7 @@ type Visit = {
   status?: string;
 };
 export function WorldExplorer({ entities }: { entities: PublicBeing[] }) {
+  const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
   const [tab, setTab] = useState<(typeof c.tabs)[number]>("Visit");
   const [filter, setFilter] = useState("All beings");
@@ -51,7 +58,9 @@ export function WorldExplorer({ entities }: { entities: PublicBeing[] }) {
         kind: e.archetype,
         paused: e.paused,
         status: e.snapshot?.mood ?? "asleep",
-        note: e.paused ? "Paused by guardians" : "Public being",
+        note: e.private ? "Your private being" : e.paused ? "Paused" : "Public being",
+        longitude: e.longitude,
+        latitude: e.latitude,
         description:
           "An AI voice for this place, with observations, a public strategy, and human guardians.",
         x: 0.55 + (i % 3) * 0.14,
@@ -81,6 +90,8 @@ export function WorldExplorer({ entities }: { entities: PublicBeing[] }) {
     else if (!being) dialog.current?.close();
   }, [being]);
   function visit(id: string) {
+    const connected = entities.find(e => e.slug === id);
+    if (connected) { router.push(`/e/${connected.slug}`); return; }
     setSelected(id);
     setTab("Visit");
   }

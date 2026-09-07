@@ -67,6 +67,12 @@ describe("reputation job", () => {
     expect(deps.easFake.attested).toHaveLength(0); // snapshot suppressed
   });
 
+  it("excludes a valid-shaped offchain UID without its signature", async () => {
+    const s = await seedPayoutChain(db);
+    await db.update(schema.evaluations).set({ offchainAttestation: { uid: `0x${"1".repeat(64)}`, signature: null } }).where(eq(schema.evaluations.id, s.evaluationId));
+    expect((await gatherReputationInputs(db, { now: NOW })).attestations).toHaveLength(0);
+  });
+
   it("attests a weekly ReputationSnapshot when asked", async () => {
     const s = await seedPayoutChain(db);
     const out = await runReputation(db, deps, { publisher: new MemoryPublisher(), resolveDirection: async () => null, snapshot: true });

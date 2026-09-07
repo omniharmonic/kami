@@ -210,3 +210,14 @@
     max-width: none;
   }
 }
+/* A pocket atlas: the world carries the ornament; controls stay legible. */
+.world { background: #cbe9df; }
+.haze { background: linear-gradient(180deg,#d6efea22,transparent 55%,#d4e8ce33); box-shadow: inset 0 -50px 100px -65px #37685b; }
+.markerLabel { border-radius: 18px; background:#fffdf0e8; border-color:#ffffffb3; color:#315f53; box-shadow:0 4px 0 #78a38b33,0 8px 24px #315f5320; }
+.markerSprite { filter:drop-shadow(0 9px 10px #496e6240); }
+.caption { display:block; max-width:calc(100% - 32px); color:#214e43; background:#f6fff0bf; border-radius:12px; padding:4px 8px; text-shadow:none; font-size:9px; letter-spacing:0; }
+.ready .marker[data-physical="true"] .markerSprite { visibility:hidden; }
+.habitat .caption { bottom:8px; font-size:8px; opacity:.8; }
+.sprite[data-mood="asleep"] .spriteBody { animation: breathe 7s ease-in-out infinite; }
+@keyframes breathe { 0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-2px) scaleY(1.025)} }
+@media(prefers-reduced-motion:reduce){.sprite[data-mood="asleep"] .spriteBody{animation:none}}

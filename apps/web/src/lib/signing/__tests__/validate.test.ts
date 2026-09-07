@@ -30,6 +30,13 @@ describe("validatePayoutProposal", () => {
     expect(v.outcomeUid).toMatch(/^0x[0-9a-f]{64}$/);
   });
 
+  it("refuses a valid-shaped offchain UID that has no signature", async () => {
+    const s = await seedPayoutChain(db);
+    await db.update(schema.evaluations).set({ offchainAttestation: { uid: `0x${"1".repeat(64)}`, signature: null } }).where(eq(schema.evaluations.id, s.evaluationId));
+    const result = await validatePayoutProposal(db, { slug: s.slug, submissionId: s.submissionId }, { now: NOW });
+    expect(result).toMatchObject({ ok: false, code: "attestation_missing" });
+  });
+
   it("refuses when the entity is paused", async () => {
     const s = await seedPayoutChain(db, { paused: true });
     const v = await validatePayoutProposal(db, { slug: s.slug, submissionId: s.submissionId }, { now: NOW });
@@ -75,10 +82,10 @@ describe("validatePayoutProposal", () => {
     }
   });
 
-  it("refuses when no ProposalOutcome UID is present, and accepts an offchain uid", async () => {
+  it("refuses when no ProposalOutcome UID is present, and accepts a signed offchain uid", async () => {
     const s = await seedPayoutChain(db, { easUid: null });
     expect(await validatePayoutProposal(db, { slug: s.slug, submissionId: s.submissionId }, { now: NOW })).toMatchObject({ ok: false, code: "attestation_missing" });
-    await db.update(schema.evaluations).set({ offchainAttestation: { uid: `0x${"2".repeat(64)}` } }).where(eq(schema.evaluations.id, s.evaluationId));
+    await db.update(schema.evaluations).set({ offchainAttestation: { uid: `0x${"2".repeat(64)}`, signature: `0x${"12".repeat(65)}` } }).where(eq(schema.evaluations.id, s.evaluationId));
     const v = await validatePayoutProposal(db, { slug: s.slug, submissionId: s.submissionId }, { now: NOW });
     expect(v.ok).toBe(true);
     if (v.ok) expect(v.outcomeUid).toBe(`0x${"2".repeat(64)}`);

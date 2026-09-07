@@ -15,6 +15,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function check(req: Request, key: string): NextResponse | null {
+  if (process.env.NODE_ENV === "production") return NextResponse.json({ error: "not_found" }, { status: 404 });
   const url = new URL(req.url);
   const exp = Number(url.searchParams.get("exp"));
   const sig = url.searchParams.get("sig");

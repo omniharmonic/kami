@@ -5,11 +5,15 @@ export function EntityHabitat({
   kind,
   slug,
   mood,
+  longitude,
+  latitude,
 }: {
   name: string;
   kind: string;
   slug: string;
   mood: string;
+  longitude?: number;
+  latitude?: number;
 }) {
   return (
     <div
@@ -17,7 +21,7 @@ export function EntityHabitat({
       aria-label={`Illustrated digital home for ${name}`}
     >
       <Landscape
-        beings={[{ id: slug, name, kind, status: mood }]}
+        beings={[{ id: slug, name, kind, status: mood, longitude, latitude }]}
         selected={slug}
         habitat
       />

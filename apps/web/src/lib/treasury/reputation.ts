@@ -25,6 +25,7 @@ import { activeEntities, getConfig } from "@/lib/jobs/common";
 import { CACHE_CONTROL, type Publisher } from "@/lib/publish";
 import { attest } from "@/lib/signing/attester";
 import { bytes32 } from "@/lib/signing/validate";
+import { eligibleOutcomeUid } from "@/lib/governance/attest";
 import type { TreasuryDeps } from "./deps";
 
 export type Direction = "up" | "down";
@@ -69,7 +70,7 @@ export async function gatherReputationInputs(db: Db, opts: { now: Date; resolveD
 
   const attestations: OutcomeAttestation[] = [];
   for (const r of rows) {
-    const uid = bytes32(r.evaluation.easUid) ?? bytes32((r.evaluation.offchainAttestation as { uid?: unknown } | null)?.uid);
+    const uid = eligibleOutcomeUid(r.evaluation.easUid, r.evaluation.offchainAttestation);
     if (!uid) continue;
     const tier = r.bounty.verificationTier;
     if (tier < 1 || tier > 4) continue;

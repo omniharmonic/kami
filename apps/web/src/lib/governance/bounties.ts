@@ -10,7 +10,7 @@
  * for it). Every transition appends an `entity_events` row.
  */
 import { createHash } from "node:crypto";
-import { and, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { canonicalJson } from "@kami/reputation";
 import { appendEntityEvent, type DbOrTx } from "@/db/events";
@@ -251,9 +251,12 @@ export type ApproveResult = {
 
 /**
  * Guardian approval, optionally with edits (any field except `entity_id` and
- * `twin_refs`). Approvals are keyed to the resulting `spec_sha256`, so an edit
- * restarts the count. When `approvals ≥ config.bounty_approvals_required` the
- * bounty opens.
+ * `twin_refs`). Approvals are keyed to the resulting `spec_sha256` AND the
+ * latest spec-changing event, so even restoring an earlier spec restarts the
+ * count. Event ids preserve ordering when multiple edits share a timestamp.
+ * When `approvals ≥ config.bounty_approvals_required` the bounty opens.
+ * PRD §7.1's 72 hours is the approval-latency SLA, not an expiry policy;
+ * the architecture specifies no automatic expiry of a pending draft.
  */
 export async function approveBounty(db: DbOrTx, id: string, guardianUserId: string, edits: ApproveEdits = {}, deps: { now?: Date } = {}): Promise<ApproveResult> {
   const now = deps.now ?? new Date();
@@ -289,6 +292,19 @@ export async function approveBounty(db: DbOrTx, id: string, guardianUserId: stri
       payload: { bounty_id: id, spec_sha256: values.specSha256, previous_sha256: row.specSha256, edited_fields: changed ? edited_fields : [] },
       at: now,
     });
+    // Restoring an old hash must not revive the approvals from its previous
+    // incarnation. Existing audit payloads already record both hashes, so no
+    // migration or mutable revision counter is needed. The bounty row remains
+    // locked for the entire edit, event append, and approval count.
+    const [revision] = await tx
+      .select({ id: sql<number | null>`max(${schema.entityEvents.id})` })
+      .from(schema.entityEvents)
+      .where(and(
+        eq(schema.entityEvents.entityId, row.entityId!),
+        eq(schema.entityEvents.kind, "bounty_approved"),
+        sql`${schema.entityEvents.payload} ->> 'bounty_id' = ${id}`,
+        sql`(${schema.entityEvents.payload} ->> 'previous_sha256') is distinct from (${schema.entityEvents.payload} ->> 'spec_sha256')`,
+      ));
     const [cnt] = await tx
       .select({ n: sql<number>`count(distinct ${schema.entityEvents.actor})::int` })
       .from(schema.entityEvents)
@@ -298,6 +314,7 @@ export async function approveBounty(db: DbOrTx, id: string, guardianUserId: stri
           eq(schema.entityEvents.kind, "bounty_approved"),
           sql`${schema.entityEvents.payload} ->> 'bounty_id' = ${id}`,
           sql`${schema.entityEvents.payload} ->> 'spec_sha256' = ${values.specSha256}`,
+          gte(schema.entityEvents.id, revision?.id ?? 0),
         ),
       );
     const approvals = cnt?.n ?? 1;

@@ -4,6 +4,7 @@ import type { HealthSnapshot } from "@kami/needs";
 import { closeTestDb, type TestDb } from "@/db/test-utils";
 import * as schema from "@/db/schema";
 import { CACHE_CONTROL } from "@/lib/publish";
+import * as publishing from "@/lib/publish";
 import { runNeedsJob, specsFromBinding, loadCurrentBinding } from "../needs";
 import { precheck } from "../precheck";
 import { setConfig } from "../common";
@@ -182,7 +183,12 @@ describe("the hourly needs job", () => {
     // screen: the page published regardless of whether anyone had been consulted.
     const { db, entity, publisher } = await seedBoulderCreek({ slug: "unconsulted-creek", consultationDone: false });
     dbs.push(db);
-    const out = await runNeedsJob({ db, twin: twinFromFixtures(), publisher, now: NOW, gpuOnline: true });
+    const unavailablePublisher = vi.spyOn(publishing, "getPublisher").mockImplementation(() => { throw new Error("No public storage configured"); });
+    let out;
+    try {
+      out = await runNeedsJob({ db, twin: twinFromFixtures(), now: NOW, gpuOnline: true });
+      expect(unavailablePublisher).not.toHaveBeenCalled();
+    } finally { unavailablePublisher.mockRestore(); }
 
     expect(out.results[0]!.status).toBe("withheld");
     expect(out.results[0]!.reason).toBe("consultation_not_done");

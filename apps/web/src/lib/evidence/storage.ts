@@ -15,7 +15,7 @@ export const PRESIGN_TTL_S = 15 * 60;
 export type PresignedPut = { url: string; method: "PUT"; headers: Record<string, string>; expires_at: string };
 
 export interface EvidenceStorage {
-  kind: "r2" | "local";
+  kind: "r2" | "local" | "blob";
   presignPut(key: string, mime: string, bytes: number): Promise<PresignedPut>;
   getObject(key: string): Promise<Buffer | null>;
   deleteObject(key: string): Promise<void>;
@@ -105,8 +105,10 @@ let cached: Promise<EvidenceStorage> | null = null;
 export function getEvidenceStorage(): Promise<EvidenceStorage> {
   if (!cached) {
     const cfg = r2Env();
-    cached = cfg ? r2Storage(cfg) : Promise.resolve(localStorage());
-    if (!cfg && process.env.NODE_ENV === "production") console.warn("[evidence] no R2 credentials; evidence uploads use the local dev store");
+    if (cfg) cached = r2Storage(cfg);
+    else if (process.env.BLOB_READ_WRITE_TOKEN) cached = import("./blob").then(({ blobStorage }) => blobStorage());
+    else if (process.env.NODE_ENV === "production") throw new Error("No persistent evidence storage configured");
+    else cached = Promise.resolve(localStorage());
   }
   return cached;
 }

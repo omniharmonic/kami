@@ -8,7 +8,7 @@ export const worldCopy = {
   welcomeBody:
     "I’m your guide to beings.earth. Choose a little being on the landscape to visit its world.",
   illustration:
-    "Illustrated habitats · not a geographic or live conditions map",
+    "Measured Front Range terrain · artistic habitats · not a live conditions map",
   preview: "Habitat preview",
   previewBody:
     "This is an imagined digital home. This being has not been summoned or connected to ecological observations.",

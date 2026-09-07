@@ -14,6 +14,7 @@
  * sha256, so this reply is the only place it will ever exist outside the
  * agent's environment.
  */
+import { sensingCopy as c } from "@/copy/sensing";
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/db/client";
 import { entityBySlug, slugOk } from "@/lib/jobs/common";
@@ -43,4 +44,20 @@ export async function mintConnectTokenAction(_prev: MintFormState, formData: For
   const outcome = await mintConnectToken(db, { id: entity.id, slug: entity.slug }, session?.user.id ?? null);
   revalidatePath(`/e/${slug}/connect`);
   return { ok: true, token: outcome.token, replaced: outcome.replaced };
+}
+
+export async function sensingAction(_prev: {message:string;ok:boolean;warnings?:string[];warningHash?:string},formData:FormData):Promise<{message:string;ok:boolean;warnings?:string[];warningHash?:string}>{
+ const {approveSensing,refreshSensing,SensingError,SensingWarnings}=await import("@/lib/connect/sensing");
+ const slug=String(formData.get("slug")??"");const db=getDb();const session=await getSession();
+ if(!db || !session || !slugOk(slug))return {ok:false,message:c.signIn};
+ try{
+  if(formData.get("operation")==="approve"){
+   if(formData.get("reviewed")!=="yes")return {ok:false,message:c.checkboxRequired};
+   await approveSensing(db,{slug,userId:session.user.id,version:Number(formData.get("version")),hash:String(formData.get("hash")??""),acceptedWarningHash:formData.get("warnings_reviewed")==="yes"?String(formData.get("warning_hash")??""):undefined});
+  }else if(formData.get("operation")==="refresh"){
+   await refreshSensing(db,{slug,userId:session.user.id});
+  }else return {ok:false,message:c.unknownAction};
+  revalidatePath(`/e/${slug}/connect`);revalidatePath(`/e/${slug}`);
+  return {ok:true,message:formData.get("operation")==="approve"?c.approved:c.refreshed};
+ }catch(error){if(error instanceof SensingWarnings)return {ok:false,message:error.message,warnings:error.warnings,warningHash:error.warningHash};return {ok:false,message:error instanceof SensingError?error.message:c.failed};}
 }

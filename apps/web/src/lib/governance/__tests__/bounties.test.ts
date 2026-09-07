@@ -157,6 +157,44 @@ describe("guardian approval (T2.7)", () => {
     }
   });
 
+  it("does not revive old approvals when a spec changes A → B → A at the same timestamp", async () => {
+    await setConfig(db, "bounty_approvals_required", 2);
+    try {
+      const now = new Date("2026-09-07T12:00:00Z");
+      const spec = specFor(w.entityId);
+      const draft = await createBountyDraft(db, spec, { actor: null, now });
+      const original = await approveBounty(db, draft.id, w.guardianA, {}, { now });
+      expect(original.approvals).toBe(1);
+      await approveBounty(db, draft.id, w.guardianB, { cap_usdc: spec.cap_usdc + 1 }, { now });
+      const restored = await approveBounty(db, draft.id, w.guardianB, { cap_usdc: spec.cap_usdc }, { now });
+      expect(restored.spec_sha256).toBe(original.spec_sha256);
+      expect(restored.approvals).toBe(1);
+      expect(restored.opened).toBe(false);
+      // Repeated confirmation by B is still one current-revision approval.
+      expect((await approveBounty(db, draft.id, w.guardianB, {}, { now })).approvals).toBe(1);
+      const renewed = await approveBounty(db, draft.id, w.guardianA, {}, { now });
+      expect(renewed.approvals).toBe(2);
+      expect(renewed.opened).toBe(true);
+    } finally {
+      await setConfig(db, "bounty_approvals_required", 1);
+    }
+  });
+
+  it("does not reset approvals for an edit that leaves the spec unchanged", async () => {
+    await setConfig(db, "bounty_approvals_required", 2);
+    try {
+      const spec = specFor(w.entityId);
+      const draft = await createBountyDraft(db, spec, { actor: null });
+      await approveBounty(db, draft.id, w.guardianA);
+      const second = await approveBounty(db, draft.id, w.guardianB, { cap_usdc: spec.cap_usdc });
+      expect(second.edited_fields).toEqual([]);
+      expect(second.approvals).toBe(2);
+      expect(second.opened).toBe(true);
+    } finally {
+      await setConfig(db, "bounty_approvals_required", 1);
+    }
+  });
+
   it("refuses approval by someone who is not a guardian", async () => {
     const draft = await createBountyDraft(db, specFor(w.entityId), { actor: null });
     await expect(approveBounty(db, draft.id, w.contributor)).rejects.toThrow(/forbidden/);

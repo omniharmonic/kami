@@ -587,3 +587,81 @@ textarea {
 /* The observatory uses the same light palette regardless of OS appearance. */
 :root { --ink-faint: #456154; --ink-soft: #425f52; --stale-soft: #dce4d7; --stale: #798776; --danger: #993e38; }
 .site-sign-in { min-height: 44px; }
+
+/* Habitat: a field console carried into the being's home. */
+body:has(.habitat-shell) { background: #c5ded2; }
+body:has(.habitat-shell) .site-header { position: relative; z-index: 5; background: #f3fff1cf; backdrop-filter: blur(18px); }
+.page-main:has(.habitat-shell) { max-width: none; padding: 0 3vw 36px; }
+.page-main > article.habitat-shell { position: relative; isolation: isolate; max-width: 1480px; margin: auto; border: 0; border-radius: 0; padding: 0; background: transparent; box-shadow: none; }
+.habitat-shell .entity-habitat { position: fixed; inset: 0; height: 100dvh; width: 100vw; border-radius: 0; z-index: -1; }
+.habitat-shell .habitat-identity { position: relative; margin: 26px 0 0; width: min(330px, 100%); padding: 20px; background: #f5fff3e3; border: 1px solid #ffffffb3; border-radius: 26px 26px 26px 7px; backdrop-filter: blur(20px); color: #174d50; box-shadow: 0 10px 45px #193f4920; }
+.habitat-shell .habitat-identity h1 { font-family: inherit; font-weight: 650; line-height: 1.05; letter-spacing: -1.2px; font-size: clamp(25px, 3vw, 36px) !important; margin: 14px 0 10px !important; padding: 0; display: block; border-radius: 0; background: none; text-align: left; }
+.habitat-back { font-size: 12px; color: #245652; text-decoration: none; }
+.habitat-specimen .avatar-wrap { display: flex; flex-direction: row; align-items: center; gap: 12px; }
+.habitat-specimen .avatar-wrap > div { flex: 0 0 48px; width: 48px !important; height: 56px; aspect-ratio: auto !important; }
+.habitat-specimen .avatar-wrap img, .habitat-specimen .avatar-wrap canvas { width: 48px !important; height: 56px !important; object-fit: contain; }
+.habitat-specimen .avatar-wrap figcaption { text-align: left !important; font-size: 11px !important; }
+.habitat-shell .disclosure { font-size: 11px; line-height: 1.5; padding: 9px 0 0; margin: 9px 0 0; background: none; border: 0; }
+.habitat-timestamp { font-size: 10px; line-height: 1.5; color: #466a62; margin: 9px 0; overflow-wrap: anywhere; }
+.habitat-timestamp span { display: block; }
+.habitat-route-nav { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; padding-top: 8px; }
+.habitat-route-nav a { color: #174d50; text-underline-offset: 4px; }
+.habitat-scene-space { height: 105px; display: flex; align-items: start; justify-content: center; margin-top: -60px; pointer-events: none; }
+.habitat-phrase { max-width: 310px; margin: 0 0 0 100px; padding: 13px 19px; background: #fbfff3f0; color: #245453; border: 1px solid #fff; border-radius: 22px 22px 22px 4px; font-size: 13px; line-height: 1.5; box-shadow: 0 8px 30px #24545315; }
+.habitat-shell .habitat-content { display: block; position: relative; margin-top: 14px; }
+.habitat-content > .notice { width: fit-content; max-width: 100%; margin: 0 0 10px; padding: 8px 14px; font-size: 11px; background: #f7ffe5ed; border-radius: 12px; }
+.habitat-console { background: #f5fff0df; backdrop-filter: blur(28px) saturate(1.2); border: 1px solid #ffffffe0; border-radius: 28px; overflow: hidden; box-shadow: 0 20px 65px #173e4b25, inset 0 1px #fff; color: #174d50; }
+.habitat-console-top { display: flex; justify-content: space-between; gap: 16px; padding: 16px 24px 8px; font-size: 13px; font-weight: 650; }
+.habitat-console-hint { font-size: 11px; font-weight: 400; color: #496b64; }
+.habitat-tabs { display: flex; gap: 4px; overflow-x: auto; padding: 0 14px 10px; border-bottom: 1px solid #497b641c; }
+.habitat-tabs button { flex: 1 0 112px; display: grid; grid-template-columns: 22px 1fr; align-content: center; text-align: left; gap: 1px 7px; min-height: 58px; padding: 10px 12px; border: 1px solid transparent; border-radius: 16px; background: transparent; color: #315e58; cursor: pointer; font: inherit; font-size: 12px; }
+.habitat-tabs button[aria-selected="true"] { background: #174d50; color: #f2fff7; box-shadow: 0 4px 14px #174d5020; }
+.habitat-tab-icon { grid-row: span 2; font-size: 23px; align-self: center; }
+.habitat-tabs small { grid-column: 2; font-size: 9px; opacity: .85; }
+.habitat-panel { padding: 22px 26px 26px; min-height: 240px; }
+.habitat-panel[hidden] { display: none; }
+.habitat-panel:focus-visible, .habitat-tabs button:focus-visible, .habitat-shell a:focus-visible { outline: 3px solid #925c87; outline-offset: 3px; }
+.habitat-panel-intro { display: flex; justify-content: space-between; gap: 20px; align-items: center; }
+.habitat-panel-intro h2 { margin: 0 0 6px; font-size: 24px; font-weight: 550; letter-spacing: -.6px; }
+.habitat-panel-intro p { margin: 0; max-width: 65ch; color: #45665d; font-size: 12px; line-height: 1.6; }
+.habitat-sense-strip { list-style: none; display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 12px; padding: 0; margin: 22px 0 14px; }
+.habitat-sense-strip li { padding: 15px; border-radius: 18px 18px 18px 5px; background: #ffffffb0; border: 1px solid #fff; min-width: 0; }
+.habitat-sense-strip li > span:first-child { font-size: 12px; }
+.habitat-sense-strip strong { display: block; margin: 8px 0 12px; font-size: 19px; font-weight: 600; overflow-wrap: anywhere; }
+.habitat-sense-strip small { font-size: 10px; color: #42665e; display: block; margin-top: 7px; }
+.habitat-sense-track { display: block; height: 5px; border-radius: 4px; background: #d6e5d9; overflow: hidden; }
+.habitat-sense-track > span { display: block; height: 100%; background: #43806c; }
+.habitat-sense-strip li[data-stale="true"] .habitat-sense-track { background: repeating-linear-gradient(90deg,#9fac9f 0 4px,transparent 4px 8px); }
+.habitat-source-note, .habitat-senses-empty { font-size: 11px; color: #49685f; }
+.habitat-content .section { background: transparent; border: 0; box-shadow: none; border-radius: 0; padding: 10px 0; margin: 0 0 12px; }
+.habitat-content .section h2 { font-family: inherit; font-size: 23px; letter-spacing: -.5px; font-weight: 550; color: #174d50; }
+.habitat-content .card { background: #ffffffa8; border-color: #ffffffd0; border-radius: 16px; }
+.habitat-content .btn { background: #f7fff4; border-color: #aacbbb; color: #174d50; border-radius: 12px; font-size: 12px; }
+.habitat-content > .habitat-chat-room, .habitat-content > .section { padding: 25px; background: #f5fff1e8; border: 1px solid #fff; border-radius: 26px; backdrop-filter: blur(24px); }
+.habitat-chat-room .chat-log { max-height: 40dvh; overflow-y: auto; }
+body:has(.habitat-shell) footer.wrap { position: relative; background: #f1fff0ed; max-width: none; padding-inline: 4vw; font-size: 11px !important; }
+@media(min-width: 1100px) { .habitat-scene-space { height: 130px; } }
+@media(max-width: 700px) {
+  .page-main:has(.habitat-shell) { padding-inline: 12px; }
+  .habitat-shell .habitat-identity { width: min(270px, 85%); padding: 14px; margin-top: 16px; }
+  .habitat-shell .habitat-identity h1 { font-size: 26px !important; }
+  .habitat-specimen { display: none; }
+  .habitat-shell .disclosure { font-size: 10px; }
+  .habitat-timestamp { font-size: 9px; }
+  .habitat-scene-space { margin-top: 0; height: 160px; align-items: end; justify-content: end; padding-bottom: 8px; }
+  .habitat-phrase { max-width: 230px; margin-left: 0; font-size: 11px; padding: 10px 14px; }
+  .habitat-console { border-radius: 23px; }
+  .habitat-console-top { padding: 14px 16px 9px; }
+  .habitat-console-hint { display: none; }
+  .habitat-tabs { padding-inline: 8px; }
+  .habitat-tabs button { flex-basis: 102px; }
+  .habitat-panel { padding: 18px 16px; }
+  .habitat-panel-intro { display: block; }
+  .habitat-panel-intro .btn { margin-top: 12px; }
+  .habitat-panel-intro h2 { font-size: 22px; }
+  .habitat-sense-strip { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .habitat-sense-strip li { padding: 12px; }
+  .habitat-sense-strip strong { font-size: 16px; }
+}
+
+.page-main > article.habitat-shell > header.habitat-identity h1 { font-family: inherit !important; font-weight: 650 !important; line-height: 1.05 !important; }

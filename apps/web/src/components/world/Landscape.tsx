@@ -3,6 +3,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import type * as THREE from "three";
 import { Sprite } from "./Sprite";
+import { validTerrain, terrainHeight, type TerrainGrid } from "./terrain";
 import styles from "./world.module.css";
 
 export type WorldBeing = {
@@ -12,6 +13,9 @@ export type WorldBeing = {
   x?: number;
   y?: number;
   status?: string;
+  /** Public map placement only, never passed into agent prompts. */
+  longitude?: number;
+  latitude?: number;
 };
 export type LandscapeProps = {
   beings: WorldBeing[];
@@ -22,24 +26,10 @@ export type LandscapeProps = {
   className?: string;
 };
 
-// A scenic interpretation, not a geographic data layer. The warm horizon/cool shadow
-// lighting follows Benjamin Life's Front Range Twin art direction (Apache-2.0),
-// bioregional_twin/web/src/map/atmosphere.ts. No DEM or sensor geometry is fabricated.
-function heightAt(x: number, z: number): number {
-  const ridge = Math.exp(-(((z + 30) / 15) ** 2));
-  const peaks =
-    9 + 5 * Math.sin(x * 0.13 + 1) ** 2 + 3 * Math.sin(x * 0.29) ** 2;
-  const hills =
-    1.5 +
-    2.1 * Math.sin(x * 0.08 + z * 0.045) +
-    1.1 * Math.cos(z * 0.14 - x * 0.055);
-  const creek = Math.exp(-(((x - riverX(z)) / 3.3) ** 2));
-  return Math.max(0.1, hills * (1 - creek * 0.85) + ridge * peaks);
-}
-function riverX(z: number): number {
-  return 6 + Math.sin(z * 0.115) * 5 + Math.sin(z * 0.055) * 4;
-}
 function positionFor(being: WorldBeing, index: number): [number, number] {
+  if (Number.isFinite(being.longitude) && Number.isFinite(being.latitude) && being.longitude! >= -105.8 && being.longitude! <= -104.95 && being.latitude! >= 39.65 && being.latitude! <= 40.35) {
+    return [((being.longitude! + 105.8) / .85 - .5) * 150, ((40.35 - being.latitude!) / .7 - .5) * 162];
+  }
   const placements = [
     [5, 6],
     [-9, -5],
@@ -67,14 +57,18 @@ export function Landscape({
   const current = useRef({ beings, selected, zoom, habitat });
   current.current = { beings, selected, zoom, habitat };
   const [ready, setReady] = useState(false);
+  const [measured, setMeasured] = useState(false);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     let destroyed = false;
     let cleanup = () => {};
-    void import("three")
-      .then((T) => {
+    void Promise.all([import("three"), fetch("/world/front-range-dem.json").then(r => r.ok ? r.json() : null).catch(() => null)])
+      .then(([T, rawGrid]) => {
         if (destroyed) return;
+        const grid: TerrainGrid | null = validTerrain(rawGrid) ? rawGrid : null;
+        const heightAt = (x:number,z:number) => grid ? terrainHeight(grid,x,z) : 1.5 + Math.sin(x*.07)*Math.cos(z*.08);
+        setMeasured(Boolean(grid));
         let renderer: THREE.WebGLRenderer;
         try {
           renderer = new T.WebGLRenderer({
@@ -91,21 +85,21 @@ export function Landscape({
         renderer.toneMapping = T.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.05;
         const scene = new T.Scene();
-        scene.background = new T.Color("#c5d8cf");
-        scene.fog = new T.FogExp2("#c5d8cf", 0.0085);
+        scene.background = new T.Color("#cbe9df");
+        scene.fog = new T.FogExp2("#cbe9df", 0.0035);
         const camera = new T.PerspectiveCamera(43, 1, 0.1, 260);
         camera.position.set(15, 31, 49);
         const look = new T.Vector3(0, 2, -8);
         const sun = new T.DirectionalLight("#fff0cf", 2.0);
         sun.position.set(-28, 38, 12);
         scene.add(sun, new T.HemisphereLight("#e7f1de", "#375d48", 1.4));
-        const terrain = new T.PlaneGeometry(150, 135, 180, 160);
+        const terrain = new T.PlaneGeometry(150, 162, 192, 192);
         terrain.rotateX(-Math.PI / 2);
         const pos = terrain.attributes.position!;
         const colors = new Float32Array(pos.count * 3);
-        const low = new T.Color("#4d855f"),
-          high = new T.Color("#829a77"),
-          snow = new T.Color("#e4e8d9");
+        const low = new T.Color("#83b99a"),
+          high = new T.Color("#a6b9ab"),
+          snow = new T.Color("#fff6ed");
         for (let i = 0; i < pos.count; i++) {
           const x = pos.getX(i),
             z = pos.getZ(i),
@@ -130,37 +124,6 @@ export function Landscape({
             }),
           ),
         );
-        const streamPositions: number[] = [],
-          streamIndices: number[] = [];
-        for (let i = 0; i <= 230; i++) {
-          const z = -30 + i * 0.4,
-            x = riverX(z),
-            width = 0.48 + (z + 30) * 0.018;
-          for (const side of [-1, 1])
-            streamPositions.push(x + side * width, heightAt(x, z) + 0.14, z);
-          if (i < 230) {
-            const a = i * 2;
-            streamIndices.push(a, a + 2, a + 1, a + 1, a + 2, a + 3);
-          }
-        }
-        const riverGeometry = new T.BufferGeometry();
-        riverGeometry.setAttribute(
-          "position",
-          new T.Float32BufferAttribute(streamPositions, 3),
-        );
-        riverGeometry.setIndex(streamIndices);
-        riverGeometry.computeVertexNormals();
-        scene.add(
-          new T.Mesh(
-            riverGeometry,
-            new T.MeshStandardMaterial({
-              color: "#92d8ce",
-              metalness: 0.3,
-              roughness: 0.26,
-              side: T.DoubleSide,
-            }),
-          ),
-        );
         // Deterministic groves: shared instanced geometry keeps the miniature world light.
         let seed = 37;
         const random = () => {
@@ -169,18 +132,18 @@ export function Landscape({
         };
         const treeCount = 1150;
         const crown = new T.InstancedMesh(
-          new T.ConeGeometry(0.8, 2.7, 7),
+          new T.IcosahedronGeometry(0.9, 1),
           new T.MeshStandardMaterial({
-            color: "#4e7958",
+            color: "#a2c9a1",
             roughness: 1,
             flatShading: true,
           }),
           treeCount,
         );
         const lower = new T.InstancedMesh(
-          new T.ConeGeometry(1, 2.8, 7),
+          new T.ConeGeometry(1, 2.8, 9),
           new T.MeshStandardMaterial({
-            color: "#3b6950",
+            color: "#649f86",
             roughness: 1,
             flatShading: true,
           }),
@@ -198,9 +161,13 @@ export function Landscape({
           for (let attempt = 0; attempt < 20; attempt++) {
             x = (random() - 0.5) * 105;
             z = (random() - 0.5) * 77;
-            if (Math.abs(x - riverX(z)) > 2.3 && heightAt(x, z) < 13) break;
+            if (heightAt(x, z) > 2 && heightAt(x, z) < 10) break;
           }
-          const size = 0.45 + random() * 0.75,
+          const nearHome = current.current.beings.some((being, index) => {
+            const [hx, hz] = positionFor(being, index);
+            return Math.hypot(x - hx, z - hz) < 12;
+          });
+          const size = nearHome ? 0 : 0.45 + random() * 0.75,
             y = heightAt(x, z);
           dummy.rotation.set(0, random() * Math.PI, 0);
           dummy.scale.setScalar(size);
@@ -216,7 +183,7 @@ export function Landscape({
           const tint = new T.Color().setHSL(
             0.27 + random() * 0.065,
             0.19 + random() * 0.13,
-            0.28 + random() * 0.17,
+            0.45 + random() * 0.17,
           );
           crown.setColorAt(i, tint);
         }
@@ -232,7 +199,7 @@ export function Landscape({
         );
         for (let i = 0; i < 160; i++) {
           const z = random() * 70 - 30,
-            x = riverX(z) + (random() > 0.5 ? 1 : -1) * (2 + random() * 4);
+            x = (random() - .5) * 95;
           dummy.position.set(x, heightAt(x, z), z);
           dummy.scale.set(
             0.25 + random() * 0.7,
@@ -259,7 +226,7 @@ export function Landscape({
             16 + random() * 8,
             -48 - random() * 15,
           );
-          cloud.scale.set(8 + random() * 13, 0.8 + random(), 2 + random() * 3);
+          cloud.scale.set(4 + random() * 7, 1.5 + random() * 2, 2 + random() * 3);
           scene.add(cloud);
         }
         const motesGeo = new T.BufferGeometry();
@@ -282,6 +249,53 @@ export function Landscape({
           }),
         );
         scene.add(sparks);
+        // A small sculpted home appears when visiting. These are artistic habitat
+        // details, not mapped vegetation or a claim about present streamflow.
+        const home = new T.Group();
+        const mat = (color:string) => new T.MeshStandardMaterial({color,roughness:.85});
+        const moss=mat("#a9cba2"), petal=mat("#efb6c9"), cream=mat("#fff5dc");
+        const lagoon=mat("#81d6ce");
+        const add=(geo:THREE.BufferGeometry,material:THREE.Material,x:number,y:number,z:number,sx=1,sy=1,sz=1)=>{
+          const mesh=new T.Mesh(geo,material);mesh.position.set(x,y,z);mesh.scale.set(sx,sy,sz);home.add(mesh);return mesh;
+        };
+        add(new T.SphereGeometry(1,40,20),moss,0,-.65,0,7.7,.8,5.7);
+        const pond=add(new T.CircleGeometry(3.8,64),lagoon,-1,.07,1,1,.7,1);
+        pond.rotation.x=-Math.PI/2;
+        const pebbleGeo=new T.IcosahedronGeometry(1,1);
+        for(let i=0;i<38;i++){
+          const a=i/38*Math.PI*2; const r=4.1+random()*.5;
+          add(pebbleGeo,cream,Math.cos(a)*r,.12,Math.sin(a)*r*.72,.25+random()*.28,.18+random()*.25,.3);
+        }
+        const stemGeo=new T.CylinderGeometry(.025,.035,.45,5), flowerGeo=new T.SphereGeometry(.13,8,6);
+        for(let i=0;i<45;i++){
+          const a=random()*Math.PI*2,r=4.8+random()*1.8;
+          const x=Math.cos(a)*r,z=Math.sin(a)*r*.75;
+          add(stemGeo,moss,x,.3,z);
+          add(flowerGeo,i%3?petal:cream,x,.57,z,1.3,.7,1.3);
+        }
+        // The sprite is a real three-dimensional character, with a seed crown,
+        // petal ears, tiny limbs and a little field satchel.
+        const creature=new T.Group();home.add(creature);
+        const skin=mat("#c5eee0"), dark=mat("#315e58"), blush=mat("#edb0c0");
+        const part=(geo:THREE.BufferGeometry,material:THREE.Material,x:number,y:number,z:number,sx=1,sy=1,sz=1)=>{
+          const mesh=new T.Mesh(geo,material);mesh.position.set(x,y,z);mesh.scale.set(sx,sy,sz);creature.add(mesh);return mesh;
+        };
+        const sphere=new T.SphereGeometry(1,28,20);
+        part(sphere,skin,0,1.1,0,1.1,1.25,.85);
+        part(sphere,cream,0,.9,.66,.7,.64,.22);
+        for(const side of [-1,1]){
+          part(sphere,skin,side*.62,.04,.18,.35,.24,.43);
+          const ear=part(sphere,skin,side*1.04,1.7,-.05,.22,.67,.18);ear.rotation.z=side*-.7;
+          const eye=part(sphere,dark,side*.37,1.35,.79,.065,.09,.04);eye.name='eye';
+          part(sphere,blush,side*.65,1.08,.72,.18,.08,.035);
+          const arm=part(sphere,skin,side*1.05,.65,.2,.21,.4,.23);arm.rotation.z=side*.4;
+        }
+        part(sphere,dark,0,1.04,.87,.055,.025,.025);
+        const leaf=part(sphere,moss,.23,2.5,0,.17,.55,.07);leaf.rotation.z=-.7;
+        const leaf2=part(sphere,moss,-.2,2.43,0,.15,.42,.07);leaf2.rotation.z=.8;
+        part(new T.BoxGeometry(.48,.48,.24),mat("#c9ae7d"),.92,.65,.65);
+        const ripple=add(new T.TorusGeometry(.9,.025,5,50),cream,-1,.11,1);ripple.rotation.x=-Math.PI/2;
+        scene.add(home);
         const resize = () => {
           const rect = canvas.getBoundingClientRect();
           renderer.setSize(rect.width, rect.height, false);
@@ -311,12 +325,31 @@ export function Landscape({
           const chosen = state.beings[chosenIndex];
           if (state.habitat && chosen) {
             const [x, z] = positionFor(chosen, chosenIndex);
-            target.set(x + 10, heightAt(x, z) + 15, z + 24);
-            desiredLook.set(x, heightAt(x, z) + 2, z);
+            target.set(x + 5, heightAt(x, z) + 9, z + 17);
+            desiredLook.set(x - 1, heightAt(x, z) - 1.2, z);
           } else {
             const zoomLevel = Math.max(0.7, Math.min(2, state.zoom));
             target.set(15 / zoomLevel, 31 / zoomLevel, 49 / zoomLevel);
             desiredLook.set(0, 2, -8);
+          }
+          home.visible=Boolean(state.habitat && chosen);
+          if(chosen){
+            const [hx,hz]=positionFor(chosen,chosenIndex);
+            home.position.set(hx,heightAt(hx,hz)+.2,hz);
+            const forest=/forest|tree|wood|plant/.test(chosen.kind);
+            const alpine=/mountain|ridge|snow|alpine/.test(chosen.kind);
+            const animal=/bear|elk|animal|wildlife|species/.test(chosen.kind);
+            skin.color.set(forest?'#c8e4a6':alpine?'#e2d5ef':animal?'#efcfaa':'#c5eee0');
+            leaf.visible=!animal;leaf2.visible=!animal;
+            const asleep=!chosen.status || chosen.status==='asleep';
+            const t=reducedMotion.matches?0:time*.001;
+            creature.position.set(Math.sin(t*.22)*.35,asleep?.05:Math.sin(t*1.2)*.12+.1,0);
+            creature.rotation.y=.25+Math.sin(t*.2)*.15;
+            creature.rotation.z=asleep?-.08:Math.sin(t*.7)*.025;
+            creature.children.filter(o=>o.name==='eye').forEach(o=>o.scale.y=asleep?.018:(!reducedMotion.matches && (time%6500)>6300?.014:.09));
+            ripple.scale.setScalar(1+Math.sin(t*.6)*.1);
+            pond.visible=/creek|water|lake|river|reservoir/.test(chosen.kind);
+            ripple.visible=pond.visible;
           }
           camera.position.lerp(target, reducedMotion.matches ? 1 : 0.045);
           look.lerp(desiredLook, reducedMotion.matches ? 1 : 0.045);
@@ -343,6 +376,7 @@ export function Landscape({
             const hidden =
               projected.z > 1 || (state.habitat && being.id !== state.selected);
             marker.style.visibility = hidden ? "hidden" : "visible";
+            marker.dataset.physical = state.habitat ? "true" : "false";
           }
           renderer.render(scene, camera);
         };
@@ -464,8 +498,8 @@ export function Landscape({
         ))}
       </div>
       <div className={styles.caption}>
-        An illustrated Front Range habitat · ecological readings live in each
-        being’s journal
+        {measured ? "USGS elevation via Mapzen / AWS · 2.5× relief · artistic vegetation" : "Illustrated habitat · terrain unavailable"}
+        {habitat && " · Habitat details are artistic"}
       </div>
     </div>
   );

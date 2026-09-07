@@ -14,7 +14,7 @@ import * as schema from "@/db/schema";
 import { disclosureLabel } from "@/copy";
 import { deltasSince, hasNotableDelta, type Delta } from "@/lib/deltas";
 import { BountyDraftError, storeBountyDraft, storeDonorReportNarrative, storePulse, storeStrategy } from "@/lib/jobs/drafts";
-import { latestSnapshotRow, type CurrentBinding, type EntityRow } from "@/lib/jobs/needs";
+import { loadCurrentBinding, latestSnapshotRow, type CurrentBinding, type EntityRow } from "@/lib/jobs/needs";
 import { baselineSnapshot, snapshotAtLastPulse } from "@/lib/jobs/precheck";
 import { buildEntityConfig, entityConfigSystemMessage, type EntityConfig } from "./entity-config";
 import { sanitizeEvidenceSummary } from "./evidence";
@@ -29,6 +29,23 @@ export class ToolError extends Error {
   ) {
     super(message);
   }
+}
+
+/** Serialize agent writes with the row updated by guardian pause/retirement.
+ * Request-time state may already be stale by the time a tool starts. The lock
+ * is held until both the output and its audit event commit, so a completed
+ * pause cannot be followed by a write using an old ToolContext.
+ */
+async function withActiveEntityWrite<T>(ctx: ToolContext, write: (locked: ToolContext) => Promise<T>): Promise<T> {
+  return ctx.db.transaction(async (tx) => {
+    const [entity] = await tx.select().from(schema.entities)
+      .where(eq(schema.entities.id, ctx.entity.id)).limit(1).for("update");
+    if (!entity || entity.slug !== ctx.entity.slug) throw new ToolError("not_found", "entity unavailable");
+    if (entity.retiredAt) throw new ToolError("retired", "This being is retired; agent writes are disabled.");
+    if (entity.pausedAt) throw new ToolError("paused", "This being is paused; agent writes are disabled. Read tools remain available.");
+    const loaded = await loadCurrentBinding(tx, entity);
+    return write({ ...ctx, db: tx, entity, binding: "error" in loaded ? null : loaded });
+  });
 }
 
 export function disclosureFor(entity: EntityRow): string {
@@ -90,6 +107,10 @@ export const postUpdateSchema = z.object({
 export type PostUpdateInput = z.infer<typeof postUpdateSchema>;
 
 export async function postUpdate(ctx: ToolContext, raw: unknown): Promise<Record<string, unknown>> {
+  return withActiveEntityWrite(ctx, (locked) => postUpdateActive(locked, raw));
+}
+
+async function postUpdateActive(ctx: ToolContext, raw: unknown): Promise<Record<string, unknown>> {
   const parsed = postUpdateSchema.safeParse(raw);
   if (!parsed.success) throw new ToolError("bad_request", parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "));
   const input = parsed.data;
@@ -174,6 +195,10 @@ export async function listOpenBounties(ctx: ToolContext) {
 }
 
 export async function draftBounty(ctx: ToolContext, spec: unknown) {
+  return withActiveEntityWrite(ctx, (locked) => draftBountyActive(locked, spec));
+}
+
+async function draftBountyActive(ctx: ToolContext, spec: unknown) {
   try {
     const r = await storeBountyDraft(ctx.db, ctx.entity, ctx.binding, spec, { guard_result: null, actor: `mcp:${ctx.entity.slug}`, now: ctx.now });
     return { bounty_id: r.id, status: r.status, spec_sha256: r.spec_sha256 };

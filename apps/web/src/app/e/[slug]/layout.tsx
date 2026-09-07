@@ -1,3 +1,4 @@
+import { getVisibleWorldLocation } from "@/lib/world-location";
 import { EntityShell } from "@/components/EntityShell";
 import { entityPage } from "@/copy";
 import { getVisibleEntityDashboard } from "@/lib/entities-private";
@@ -17,9 +18,11 @@ export default async function EntityLayout({ params, children }: { params: Promi
   const { slug } = await params;
   const { entity, preview, snapshot, asOf } = await getVisibleEntityDashboard(slug);
 
+  const location = await getVisibleWorldLocation(slug);
+
   return (
     <EntityShell
-      entity={{ slug: entity.slug, name: entity.name, archetype: entity.archetype, paused: entity.paused }}
+      entity={{ slug: entity.slug, name: entity.name, archetype: entity.archetype, paused: entity.paused, ...location }}
       snapshot={snapshot}
       asOf={asOf}
     >

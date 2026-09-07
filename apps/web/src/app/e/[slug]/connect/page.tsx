@@ -21,7 +21,9 @@ import { FileList } from "@/components/connect/FileList";
 import { StatusPanel } from "@/components/connect/StatusPanel";
 import { ToolTable } from "@/components/connect/ToolTable";
 import { TokenPanel } from "@/components/connect/TokenPanel";
-import { mintConnectTokenAction } from "./actions";
+import { SensingPanel } from "@/components/connect/SensingPanel";
+import { sensingStatus, mayManageSensing } from "@/lib/connect/sensing";
+import { sensingAction, mintConnectTokenAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -139,6 +141,8 @@ export default async function ConnectPage({ params }: Props) {
   const origin = platformOrigin({ proto: hdrs.get("x-forwarded-proto"), host: hdrs.get("host") });
   const endpoint = mcpEndpoint(origin);
   const paused = entity.pausedAt !== null;
+  const sensing = await sensingStatus(db, entity);
+  const maySense = Boolean(session && await mayManageSensing(db, session.user.id, entity.id));
 
   const [token, catalog, soul, hardRules, status] = await Promise.all([
     tokenState(db, slug),
@@ -159,6 +163,8 @@ export default async function ConnectPage({ params }: Props) {
       <p className="muted">{copy.cannotSee}</p>
       {roleLine(access) ? <p className="faint" style={{ fontSize: "0.85rem" }} data-testid="role-line">{roleLine(access)}</p> : null}
       {paused ? <p className="notice" role="status" data-testid="connect-paused">{copy.paused}</p> : null}
+
+      <SensingPanel slug={slug} status={sensing} mayManage={maySense} action={sensingAction} />
 
       {/* 1 — where to point it */}
       <section className="section" aria-labelledby="endpoint-h">

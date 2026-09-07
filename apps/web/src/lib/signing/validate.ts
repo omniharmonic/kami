@@ -1,3 +1,4 @@
+import { eligibleOutcomeUid } from "@/lib/governance/attest";
 /**
  * `validatePayoutProposal` — the checks the signing service runs before the
  * proposer key touches anything (architecture §7.3, plan T2.3). Checks run in
@@ -113,8 +114,8 @@ export async function validatePayoutProposal(
 
   // 4. a ProposalOutcome UID (onchain uid or the offchain payload's uid)
   const offchain = (evaluation.offchainAttestation ?? null) as { uid?: unknown; awarded_usdc?: unknown } | null;
-  const outcomeUid = bytes32(evaluation.easUid) ?? bytes32(offchain?.uid);
-  if (!outcomeUid) return refuse("attestation_missing", `evaluation ${evaluation.id} has no ProposalOutcome attestation UID`);
+  const outcomeUid = eligibleOutcomeUid(evaluation.easUid, offchain);
+  if (!outcomeUid) return refuse("attestation_missing", `evaluation ${evaluation.id} has no signed or chain-indexed ProposalOutcome attestation UID`);
 
   // 5. amount: the evaluator's awarded amount when present, else the cap; never above the cap
   const cap = usdc2(sub.bounty.capUsdc);
