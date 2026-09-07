@@ -1,7 +1,6 @@
 import { EntityShell } from "@/components/EntityShell";
 import { entityPage } from "@/copy";
-import { getStatusCached } from "@/lib/entities";
-import { requireVisibleEntity } from "@/lib/entity-access";
+import { getVisibleEntityDashboard } from "@/lib/entities-private";
 
 export const revalidate = 60;
 
@@ -16,14 +15,13 @@ export const revalidate = 60;
  */
 export default async function EntityLayout({ params, children }: { params: Promise<{ slug: string }>; children: React.ReactNode }) {
   const { slug } = await params;
-  const { entity, preview } = await requireVisibleEntity(slug);
-  const status = await getStatusCached(slug);
+  const { entity, preview, snapshot, asOf } = await getVisibleEntityDashboard(slug);
 
   return (
     <EntityShell
       entity={{ slug: entity.slug, name: entity.name, archetype: entity.archetype, paused: entity.paused }}
-      snapshot={status?.snapshot ?? null}
-      asOf={status?.as_of ?? null}
+      snapshot={snapshot}
+      asOf={asOf}
     >
       {preview ? (
         <p className="notice" role="status" data-testid="consultation-preview">

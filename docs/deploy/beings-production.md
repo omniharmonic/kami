@@ -131,3 +131,7 @@ Website chat additionally requires authenticated per-slug routing, full sanitize
 On this device run `beings-agent doctor`. The private launcher supplies the existing entity credential and `KAMI_HERMES_PROFILE=beings-earth`; it invokes `bash scripts/kami-doctor --only agent`. Other installations can set `PLATFORM_URL`, `PLATFORM_MCP_TOKEN`, and `KAMI_ENTITY_SLUG` in their private environment and run the same repository command. The diagnostic uses MCP initialization and four read-only tool calls. It follows no credential-bearing redirects and prints no raw tool data or geometry.
 
 Live result on September 7: eight checks passed, zero failed, one data-freshness warning, and one explicitly skipped public-runtime check. Fifteen mocked diagnostic regressions and the existing secret-redaction self-test passed. The setup check consumes no model credits and changes no entity state.
+
+### Private dashboard preview
+
+The signed-in walkthrough found that the private page still read only published status, so it displayed no meters even though Hermes could read snapshot 1. The page and layout now authorize the viewer before loading a private DB snapshot. The public status cache, metadata and OG path are unchanged. The preview requires the currently pointed binding to be approved and the snapshot to be at least as new as that approval; absent provenance stays unavailable. No public file is written. This lets stewards review actual needs before completing consultation.

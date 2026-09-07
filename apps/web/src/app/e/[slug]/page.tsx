@@ -21,7 +21,7 @@ import {
   getStatusCached,
   getStrategy,
 } from "@/lib/entities";
-import { requireVisibleEntity } from "@/lib/entity-access";
+import { getVisibleEntityDashboard } from "@/lib/entities-private";
 
 export const revalidate = 60;
 
@@ -43,8 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 /** PRD §6.1 order: avatar + disclosure (layout) → chat → rings → strategy → board → treasury → people → siblings → how I work. */
 export default async function EntityPage({ params }: Props) {
   const { slug } = await params;
-  const { entity } = await requireVisibleEntity(slug);
-  const status = await getStatusCached(slug);
+  const { entity, status, snapshot } = await getVisibleEntityDashboard(slug);
   const [strategy, bounties, proposals, payouts, people, siblings] = await Promise.all([
     getStrategy(entity.id),
     getBounties(entity.id),
@@ -57,12 +56,12 @@ export default async function EntityPage({ params }: Props) {
     <>
       <section className="section" aria-labelledby="chat-h">
         <h2 id="chat-h">{chatCopy.title(entity.name)}</h2>
-        <Chat slug={entity.slug} name={entity.name} archetype={entity.archetype} paused={entity.paused} gpuOnline={status?.snapshot.gpu_online ?? true} compact />
+        <Chat slug={entity.slug} name={entity.name} archetype={entity.archetype} paused={entity.paused} gpuOnline={snapshot?.gpu_online ?? false} compact />
         <p style={{ marginTop: "0.5rem" }}>
           <Link href={`/e/${entity.slug}/chat`} className="btn">{chatCopy.openFull}</Link>
         </p>
       </section>
-      <Meters snapshot={status?.snapshot ?? null} />
+      <Meters snapshot={snapshot} />
       <PulseLog pulses={status?.pulses ?? []} />
       <Strategy strategy={strategy} />
       <Board bounties={bounties} proposals={proposals} summary={status?.board ?? null} entityId={entity.id} slug={entity.slug} />
