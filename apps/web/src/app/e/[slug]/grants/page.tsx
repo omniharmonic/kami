@@ -26,7 +26,10 @@ export default async function GrantsPage({ params }: { params: Promise<{ slug: s
       {board.rounds.map(round => <section key={round.id} id={round.id} className="card" aria-label={`${round.title} applications`} style={{ padding: 20, marginTop: 16 }}>
         <h3 style={{ marginTop: 0 }}>{round.title}</h3>
         {round.applications.length ? <ul className="stack">{round.applications.map(application => <li key={application.proposalId}><strong>{application.title}</strong><span className="faint"> — {application.status}</span>{application.bountyIds.map(id => <p key={id}><Link href={`/e/${slug}/proposals/${id}`}>View linked bounty</Link></p>)}</li>)}</ul> : <p className="muted">No applications submitted.</p>}
-        {board.mayManage && round.status !== "closed" && <GrantForm slug={slug} operation={round.status === "draft" ? "open" : "close"} roundId={round.id} disabled={entity.paused && round.status === "draft"} />}
+        {board.mayManage && round.status !== "closed" && <>
+          {round.status === "draft" && <GrantForm slug={slug} operation="open" roundId={round.id} disabled={entity.paused} />}
+          <GrantForm slug={slug} operation="close" roundId={round.id} />
+        </>}
         {round.acceptingApplications && (session ? board.eligibleProposals.length ? <GrantForm slug={slug} operation="apply" roundId={round.id} proposals={board.eligibleProposals} disabled={entity.paused} /> : <p><Link className="btn" href={`/e/${slug}/proposals`}>Write a proposal to apply</Link></p> : <p><Link className="btn" href="/sign-in">Sign in to apply</Link></p>)}
       </section>)}
       {board.mayManage && <details className="card" style={{ padding: 20, marginTop: 20 }}><summary style={{ cursor: "pointer" }}>{grants.create}</summary><GrantForm slug={slug} operation="create" /></details>}

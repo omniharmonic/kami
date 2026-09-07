@@ -6,7 +6,7 @@ import { grants } from "@/copy/grants";
 type Props = { slug: string; operation: "create" | "open" | "close" | "apply"; roundId?: string; disabled?: boolean; proposals?: Array<{ id: string; title: string }> };
 export function GrantForm({ slug, operation, roundId, disabled, proposals = [] }: Props) {
   const [state, action, pending] = useActionState(grantAction, { ok: false, message: "" });
-  const label = operation === "create" ? grants.create : operation === "open" ? "Open applications" : operation === "close" ? "Close applications" : grants.apply;
+  const label = operation === "create" ? grants.create : operation === "open" ? "Open applications" : operation === "close" ? "Close round" : grants.apply;
   return <form action={action} className="stack" style={{ marginTop: 16 }}>
     <input type="hidden" name="slug" value={slug} /><input type="hidden" name="operation" value={operation} />
     {roundId && <input type="hidden" name="roundId" value={roundId} />}
