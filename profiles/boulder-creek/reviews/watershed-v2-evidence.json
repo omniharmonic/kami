@@ -1,0 +1,1022 @@
+{
+  "retrieved_at": "2026-09-07T17:11:10.472860+00:00",
+  "source": "https://mcp.bioregionaltwin.org/mcp",
+  "places": [
+    {
+      "id": "place/boulder-creek-near-orodell-co",
+      "name": "BOULDER CREEK NEAR ORODELL, CO.",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050404",
+      "huc12": "101900050404",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:08Z",
+      "tree_generated_at": "2026-09-07T16:27:21Z",
+      "props": {
+        "awdb_elevation_m": 1780.03,
+        "awdb_huc": "101900050404",
+        "awdb_network": "USGS",
+        "awdb_por_start": "1906-10-01",
+        "cdwr_data_source": "Co. Division of Water Resources",
+        "cdwr_huc10": "10190005",
+        "cdwr_parameters": [
+          "DISCHRG"
+        ],
+        "cdwr_por_start": "1985-04-15",
+        "cdwr_station_status": "Active",
+        "cdwr_station_type": "Stream Gage",
+        "cdwr_stream_gnis_id": "00178354",
+        "cdwr_structure_type": "Stream Gage",
+        "cdwr_sw_data_source": "DWR",
+        "cdwr_sw_meas_unit": "cfs",
+        "cdwr_sw_por_end": "2026-09-02",
+        "cdwr_sw_por_start": "1906-10-01",
+        "cdwr_sw_station_num": 978,
+        "cdwr_water_source": "BOULDER CREEK",
+        "cdwr_wdid": "0603603",
+        "huc12": "101900050404",
+        "usgs_drainage_area_sqmi": 102,
+        "usgs_huc": "101900050404",
+        "usgs_id": "USGS-06727000",
+        "usgs_site_type": "Stream",
+        "usgs_site_type_code": "ST"
+      },
+      "readings": [
+        {
+          "property": "discharge",
+          "label": "Discharge",
+          "value": 14.7,
+          "unit": "[ft_i]3/s",
+          "time": "2026-09-07T16:15:00Z",
+          "source_id": "cdss.telemetry",
+          "stale": false,
+          "staleness_s": 3369,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:21:25Z",
+          "quality": "O",
+          "context": {
+            "band": {
+              "hi": 85.7,
+              "lo": 21.7,
+              "mid": 47.5
+            },
+            "basis_kind": "percentile_of_record",
+            "basis_source": "usgs.normals",
+            "class": "much_below",
+            "percentile": 5,
+            "provisional": true,
+            "sentence": "Lower than 19 in 20 years on this date at this gauge (88 years of approved USGS record; today's reading is provisional).",
+            "window": "same calendar day",
+            "years_of_record": 88
+          }
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/boulder-creek-near-orodell-co.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/boulder-creek-near-orodell-co"
+    },
+    {
+      "id": "place/boulder-creek-co-below-broadway-st",
+      "name": "Boulder Creek (CO) below Broadway St",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050406",
+      "huc12": "101900050406",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:08Z",
+      "tree_generated_at": "2026-09-07T16:17:21Z",
+      "props": {
+        "flood": {
+          "action": {
+            "flow": 1142,
+            "stage": 5.5
+          },
+          "flow_units": "cfs",
+          "major": {
+            "flow": 5500,
+            "stage": 12.5
+          },
+          "minor": {
+            "flow": 2300,
+            "stage": 8
+          },
+          "moderate": {
+            "flow": 3500,
+            "stage": 10
+          },
+          "stage_units": "ft"
+        },
+        "flood_category": "no_flooding",
+        "huc12": "101900050406",
+        "nwps_lid": "BOCC2",
+        "nwps_reach_id": "2889362",
+        "nwps_rfc": "MBRFC",
+        "nwps_wfo": "BOU"
+      },
+      "readings": [
+        {
+          "property": "discharge",
+          "label": "Discharge",
+          "value": 17.5,
+          "unit": "[ft_i]3/s",
+          "time": "2026-09-07T14:15:00Z",
+          "source_id": "nwps.gauges",
+          "stale": false,
+          "staleness_s": 10569,
+          "source_status": "ok",
+          "result_time": "2026-09-07T14:15:00Z"
+        },
+        {
+          "property": "stage",
+          "label": "Stage",
+          "value": 1.01,
+          "unit": "[ft_i]",
+          "time": "2026-09-07T14:15:00Z",
+          "source_id": "nwps.gauges",
+          "stale": false,
+          "staleness_s": 10569,
+          "source_status": "ok",
+          "result_time": "2026-09-07T14:15:00Z"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/boulder-creek-co-below-broadway-st.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/boulder-creek-co-below-broadway-st"
+    },
+    {
+      "id": "place/boulder-creek-at-north-75th-st-near-boulder-co",
+      "name": "BOULDER CREEK AT NORTH 75TH ST. NEAR BOULDER, CO",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050601",
+      "huc12": "101900050601",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-07T16:27:21Z",
+      "props": {
+        "cdwr_sw_data_source": "USGS",
+        "cdwr_sw_meas_unit": "cfs",
+        "cdwr_sw_por_end": "2026-09-02",
+        "cdwr_sw_por_start": "1986-10-01",
+        "cdwr_sw_station_num": 981,
+        "flood": {
+          "action": {
+            "flow": null,
+            "stage": 7.5
+          },
+          "flow_units": "cfs",
+          "major": {
+            "flow": null,
+            "stage": 10
+          },
+          "minor": {
+            "flow": null,
+            "stage": 8
+          },
+          "moderate": {
+            "flow": null,
+            "stage": 9
+          },
+          "stage_units": "ft"
+        },
+        "flood_category": "no_flooding",
+        "huc12": "101900050601",
+        "nwps_lid": "BOLC2",
+        "nwps_reach_id": "2889214",
+        "nwps_rfc": "MBRFC",
+        "nwps_wfo": "BOU",
+        "usgs_drainage_area_sqmi": 307,
+        "usgs_huc": "101900050601",
+        "usgs_id": "USGS-06730200",
+        "usgs_site_type": "Stream",
+        "usgs_site_type_code": "ST"
+      },
+      "readings": [
+        {
+          "property": "discharge",
+          "label": "Discharge",
+          "value": 36.2,
+          "unit": "[ft_i]3/s",
+          "time": "2026-09-07T16:15:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 3369,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:20:21Z",
+          "quality": "P",
+          "context": {
+            "band": {
+              "hi": 151,
+              "lo": 36.5,
+              "mid": 64
+            },
+            "basis_kind": "percentile_of_record",
+            "basis_source": "usgs.normals",
+            "class": "much_below",
+            "percentile": 6.3,
+            "provisional": true,
+            "sentence": "Lower than 9 in 10 years on this date at this gauge (40 years of approved USGS record; today's reading is provisional).",
+            "window": "same calendar day",
+            "years_of_record": 40
+          }
+        },
+        {
+          "property": "gage_height",
+          "label": "Gage height",
+          "value": 4.68,
+          "unit": "[ft_i]",
+          "time": "2026-09-07T16:15:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 3369,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:20:29Z",
+          "quality": "P"
+        },
+        {
+          "property": "stage",
+          "label": "Stage",
+          "value": 4.69,
+          "unit": "[ft_i]",
+          "time": "2026-09-07T15:15:00Z",
+          "source_id": "nwps.gauges",
+          "stale": false,
+          "staleness_s": 6969,
+          "source_status": "ok",
+          "result_time": "2026-09-07T15:15:00Z"
+        },
+        {
+          "property": "usgs_63160",
+          "label": "Stream elevation",
+          "value": 5110.33,
+          "unit": "[ft_i]",
+          "time": "2026-09-07T16:15:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 3369,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:20:25Z",
+          "quality": "P"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/boulder-creek-at-north-75th-st-near-boulder-co.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/boulder-creek-at-north-75th-st-near-boulder-co"
+    },
+    {
+      "id": "place/boulder-creek-at-mouth-near-longmont-co",
+      "name": "BOULDER CREEK AT MOUTH NEAR LONGMONT, CO",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050705",
+      "huc12": "101900050705",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:08Z",
+      "tree_generated_at": "2026-09-07T16:27:21Z",
+      "props": {
+        "cdwr_sw_data_source": "USGS",
+        "cdwr_sw_meas_unit": "cfs",
+        "cdwr_sw_por_end": "2026-09-02",
+        "cdwr_sw_por_start": "1927-04-01",
+        "cdwr_sw_station_num": 1084,
+        "huc12": "101900050705",
+        "usgs_drainage_area_sqmi": 447,
+        "usgs_huc": "101900050705",
+        "usgs_id": "USGS-06730500",
+        "usgs_site_type": "Stream",
+        "usgs_site_type_code": "ST"
+      },
+      "readings": [
+        {
+          "property": "discharge",
+          "label": "Discharge",
+          "value": 0.73,
+          "unit": "[ft_i]3/s",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 4269,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:07:26Z",
+          "quality": "P",
+          "context": {
+            "band": {
+              "hi": 36.2,
+              "lo": 1.15,
+              "mid": 6.075
+            },
+            "basis_kind": "percentile_of_record",
+            "basis_source": "usgs.normals",
+            "class": "much_below",
+            "percentile": 5.3,
+            "provisional": true,
+            "sentence": "Lower than 9 in 10 years on this date at this gauge (73 years of approved USGS record; today's reading is provisional).",
+            "window": "same calendar day",
+            "years_of_record": 73
+          }
+        },
+        {
+          "property": "gage_height",
+          "label": "Gage height",
+          "value": 9.07,
+          "unit": "[ft_i]",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 4269,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:07:23Z",
+          "quality": "P"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/boulder-creek-at-mouth-near-longmont-co.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/boulder-creek-at-mouth-near-longmont-co"
+    },
+    {
+      "id": "place/niwot",
+      "name": "Niwot",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050401",
+      "huc12": "101900050401",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-07T09:12:21Z",
+      "props": {
+        "awdb_elevation_m": 3029.71,
+        "awdb_huc": "101900050401",
+        "awdb_network": "SNTL",
+        "awdb_por_start": "1979-10-01",
+        "awdb_shef_id": "NIWC2",
+        "huc12": "101900050401"
+      },
+      "readings": [
+        {
+          "property": "air_temp",
+          "label": "Air temperature",
+          "value": 12.611111111111112,
+          "unit": "Cel",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "precip_accum",
+          "label": "Precipitation (accumulated)",
+          "value": 23.8,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "snow_depth",
+          "label": "Snow depth",
+          "value": 0,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "swe",
+          "label": "Snow water equivalent",
+          "value": 0,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/niwot.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/niwot"
+    },
+    {
+      "id": "place/lake-eldora",
+      "name": "Lake Eldora",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050402",
+      "huc12": "101900050402",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-07T09:12:21Z",
+      "props": {
+        "awdb_elevation_m": 2956.56,
+        "awdb_huc": "101900050402",
+        "awdb_network": "SNTL",
+        "awdb_por_start": "1978-10-01",
+        "awdb_shef_id": "LELC2",
+        "huc12": "101900050402"
+      },
+      "readings": [
+        {
+          "property": "air_temp",
+          "label": "Air temperature",
+          "value": 15.499999999999998,
+          "unit": "Cel",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "precip_accum",
+          "label": "Precipitation (accumulated)",
+          "value": 20.4,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "snow_depth",
+          "label": "Snow depth",
+          "value": 0,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "swe",
+          "label": "Snow water equivalent",
+          "value": 0,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/lake-eldora.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/lake-eldora"
+    },
+    {
+      "id": "place/university-camp-2",
+      "name": "University Camp",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050401",
+      "huc12": "101900050401",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-07T09:12:21Z",
+      "props": {
+        "awdb_elevation_m": 3148.58,
+        "awdb_huc": "101900050401",
+        "awdb_network": "SNTL",
+        "awdb_por_start": "1978-10-01",
+        "awdb_shef_id": "UVCC2",
+        "huc12": "101900050401"
+      },
+      "readings": [
+        {
+          "property": "air_temp",
+          "label": "Air temperature",
+          "value": 11.277777777777777,
+          "unit": "Cel",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "precip_accum",
+          "label": "Precipitation (accumulated)",
+          "value": 27.9,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "snow_depth",
+          "label": "Snow depth",
+          "value": 0,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        },
+        {
+          "property": "swe",
+          "label": "Snow water equivalent",
+          "value": 0,
+          "unit": "[in_i]",
+          "time": "2026-09-06T06:00:00Z",
+          "source_id": "nrcs.awdb",
+          "stale": true,
+          "staleness_s": 126669,
+          "source_status": "ok",
+          "result_time": "2026-09-06T06:00:00Z"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/university-camp-2.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/university-camp-2"
+    },
+    {
+      "id": "place/gross-reservoir",
+      "name": "Gross Reservoir ",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050503",
+      "huc12": "101900050503",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-06T11:50:17Z",
+      "props": {
+        "capacity_af": 41811,
+        "capacity_dam": "GROSS",
+        "capacity_match": "name+proximity (0.2 km)",
+        "capacity_source": "co.damsafety",
+        "cdwr_data_source": "Co. Division of Water Resources",
+        "cdwr_parameters": [
+          "STORAGE"
+        ],
+        "cdwr_por_end": "2021-09-20",
+        "cdwr_por_start": "2017-04-06",
+        "cdwr_station_status": "Active",
+        "cdwr_station_type": "Storage Structure",
+        "cdwr_stream_gnis_id": "00180974",
+        "cdwr_structure_type": "Reservoir",
+        "cdwr_water_source": "SOUTH BOULDER CREEK",
+        "cdwr_wdid": "0604199",
+        "huc12": "101900050503"
+      },
+      "readings": [
+        {
+          "property": "reservoir_storage",
+          "label": "Reservoir storage",
+          "value": 29281,
+          "unit": "[acr_us].[ft_i]",
+          "time": "2021-09-20T15:30:00Z",
+          "source_id": "cdss.telemetry",
+          "stale": true,
+          "staleness_s": 156649270,
+          "source_status": "ok",
+          "result_time": "2021-09-20T15:41:06Z",
+          "quality": "O"
+        },
+        {
+          "property": "reservoir_fill",
+          "label": "Reservoir fill",
+          "value": 70,
+          "unit": "%",
+          "time": "2021-09-20T15:30:00Z",
+          "source_id": "derived.fill",
+          "stale": true,
+          "staleness_s": 156649270,
+          "source_status": "unknown",
+          "result_time": "2021-09-20T15:41:06Z",
+          "derived": true,
+          "basis": [
+            "reservoir_storage",
+            "capacity_af"
+          ]
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/gross-reservoir.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/gross-reservoir"
+    },
+    {
+      "id": "place/union-reservoir",
+      "name": "Union Reservoir",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050706",
+      "huc12": "101900050706",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-06T11:50:17Z",
+      "props": {
+        "capacity_af": 12715,
+        "capacity_dam": "UNION",
+        "capacity_match": "wdid",
+        "capacity_source": "co.damsafety",
+        "cdwr_data_source": "Cooperative SDR Program of CDWR & NCWCD",
+        "cdwr_parameters": [
+          "STORAGE"
+        ],
+        "cdwr_por_end": "2026-08-25",
+        "cdwr_por_start": "2010-05-30",
+        "cdwr_station_status": "Active",
+        "cdwr_station_type": "Storage Structure",
+        "cdwr_stream_gnis_id": "00205012",
+        "cdwr_structure_type": "Reservoir",
+        "cdwr_water_source": "SAINT VRAIN CREEK",
+        "cdwr_wdid": "0503905",
+        "huc12": "101900050706"
+      },
+      "readings": [
+        {
+          "property": "reservoir_storage",
+          "label": "Reservoir storage",
+          "value": 7150.4,
+          "unit": "[acr_us].[ft_i]",
+          "time": "2026-08-26T01:15:00Z",
+          "source_id": "cdss.telemetry",
+          "stale": true,
+          "staleness_s": 1094170,
+          "source_status": "ok",
+          "result_time": "2026-08-26T02:22:53Z",
+          "quality": "U"
+        },
+        {
+          "property": "reservoir_fill",
+          "label": "Reservoir fill",
+          "value": 56.2,
+          "unit": "%",
+          "time": "2026-08-26T01:15:00Z",
+          "source_id": "derived.fill",
+          "stale": true,
+          "staleness_s": 1094170,
+          "source_status": "unknown",
+          "result_time": "2026-08-26T02:22:53Z",
+          "derived": true,
+          "basis": [
+            "reservoir_storage",
+            "capacity_af"
+          ]
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/union-reservoir.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/union-reservoir"
+    },
+    {
+      "id": "place/leggett-valmont-reservoir",
+      "name": "Leggett-Valmont Reservoir",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050504",
+      "huc12": "101900050504",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-07T16:27:21Z",
+      "props": {
+        "cdwr_data_source": "Co. Division of Water Resources",
+        "cdwr_parameters": [
+          "STORAGE"
+        ],
+        "cdwr_por_start": "2024-01-02",
+        "cdwr_station_status": "Active",
+        "cdwr_station_type": "Stream Gage",
+        "cdwr_stream_gnis_id": "00180974",
+        "cdwr_structure_type": "Reservoir System",
+        "cdwr_water_source": "SOUTH BOULDER CREEK",
+        "cdwr_wdid": "0604275",
+        "huc12": "101900050504"
+      },
+      "readings": [
+        {
+          "property": "reservoir_storage",
+          "label": "Reservoir storage",
+          "value": 8817,
+          "unit": "[acr_us].[ft_i]",
+          "time": "2026-09-07T15:00:00Z",
+          "source_id": "cdss.telemetry",
+          "stale": false,
+          "staleness_s": 7870,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:19:28Z",
+          "quality": "O"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/leggett-valmont-reservoir.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/leggett-valmont-reservoir"
+    },
+    {
+      "id": "place/six-mile-reservoir",
+      "name": "Six Mile Reservoir",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050704",
+      "huc12": "101900050704",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-07T16:12:21Z",
+      "props": {
+        "capacity_af": 1367,
+        "capacity_dam": "SIX MILE - MAIN",
+        "capacity_match": "wdid",
+        "capacity_source": "co.damsafety",
+        "cdwr_data_source": "Co. Division of Water Resources",
+        "cdwr_parameters": [
+          "STORAGE "
+        ],
+        "cdwr_por_start": "2025-04-25",
+        "cdwr_station_status": "Active",
+        "cdwr_station_type": "Storage Structure",
+        "cdwr_stream_gnis_id": "00178354",
+        "cdwr_structure_type": "Reservoir",
+        "cdwr_water_source": "BOULDER CREEK",
+        "cdwr_wdid": "0604187",
+        "huc12": "101900050704"
+      },
+      "readings": [
+        {
+          "property": "reservoir_storage",
+          "label": "Reservoir storage",
+          "value": 153,
+          "unit": "[acr_us].[ft_i]",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "cdss.telemetry",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:07:25Z",
+          "quality": "O"
+        },
+        {
+          "property": "reservoir_fill",
+          "label": "Reservoir fill",
+          "value": 11.2,
+          "unit": "%",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "derived.fill",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "unknown",
+          "result_time": "2026-09-07T16:07:25Z",
+          "derived": true,
+          "basis": [
+            "reservoir_storage",
+            "capacity_af"
+          ]
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/six-mile-reservoir.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/six-mile-reservoir"
+    },
+    {
+      "id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+      "name": "SOUTH BOULDER CR AT FOREBAY NR ELDORADO SPRINGS CO",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050503",
+      "huc12": "101900050503",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:09Z",
+      "tree_generated_at": "2026-09-07T16:27:21Z",
+      "props": {
+        "huc12": "101900050503",
+        "usgs_huc": "101900050503",
+        "usgs_id": "USGS-06729470",
+        "usgs_site_type": "Stream",
+        "usgs_site_type_code": "ST"
+      },
+      "readings": [
+        {
+          "property": "dissolved_oxygen",
+          "label": "Dissolved oxygen",
+          "value": 7.8,
+          "unit": "mg/L",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:13:30Z",
+          "quality": "P"
+        },
+        {
+          "property": "ph",
+          "label": "pH",
+          "value": 7.5,
+          "unit": "[pH]",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:13:30Z",
+          "quality": "P"
+        },
+        {
+          "property": "specific_conductance",
+          "label": "Specific conductance",
+          "value": 63,
+          "unit": "uS/cm",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:13:30Z",
+          "quality": "P"
+        },
+        {
+          "property": "turbidity",
+          "label": "Turbidity",
+          "value": 0.8,
+          "unit": "[FNU]",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:13:27Z",
+          "quality": "P"
+        },
+        {
+          "property": "water_temp",
+          "label": "Water temperature",
+          "value": 15.3,
+          "unit": "Cel",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "usgs.ogcapi.latest",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:13:36Z",
+          "quality": "P"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/south-boulder-cr-at-forebay-nr-eldorado-springs-co.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/south-boulder-cr-at-forebay-nr-eldorado-springs-co"
+    },
+    {
+      "id": "place/boulder-cu-2102-athens-st",
+      "name": "Boulder - CU - 2102 Athens St.",
+      "kind": "monitoring_site",
+      "parent_id": "watershed/huc12-101900050406",
+      "huc12": "101900050406",
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:10Z",
+      "tree_generated_at": "2026-09-07T16:17:21Z",
+      "props": {
+        "airnow_agency": "Colorado Department of Public Health and Environment",
+        "airnow_agency_id": "CO1",
+        "airnow_aqsid": "080131001",
+        "airnow_epa_region": "R8",
+        "airnow_gmt_offset": -7,
+        "airnow_msa": "Boulder, CO",
+        "airnow_site_code": "1001",
+        "airnow_status": "Active",
+        "county": "BOULDER",
+        "huc12": "101900050406",
+        "state": "CO"
+      },
+      "readings": [
+        {
+          "property": "aqi",
+          "label": "aqi",
+          "value": 9,
+          "unit": "{AQI}",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "epa.airnow",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:00:00Z"
+        },
+        {
+          "property": "aqi",
+          "label": "aqi",
+          "value": 16,
+          "unit": "{AQI}",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "epa.airnow",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:00:00Z"
+        },
+        {
+          "property": "pm10",
+          "label": "PM10",
+          "value": 10,
+          "unit": "ug/m3",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "epa.airnow",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:00:00Z"
+        },
+        {
+          "property": "pm25",
+          "label": "PM2.5",
+          "value": 2.9,
+          "unit": "ug/m3",
+          "time": "2026-09-07T16:00:00Z",
+          "source_id": "epa.airnow",
+          "stale": false,
+          "staleness_s": 4270,
+          "source_status": "ok",
+          "result_time": "2026-09-07T16:00:00Z"
+        }
+      ],
+      "latest_url": "https://data.bioregionaltwin.org/latest/place/boulder-cu-2102-athens-st.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=place/boulder-cu-2102-athens-st"
+    },
+    {
+      "id": "watershed/huc10-1019000504",
+      "name": "Headwaters Boulder Creek",
+      "kind": "watershed",
+      "parent_id": "watershed/huc8-10190005",
+      "huc12": null,
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:10Z",
+      "tree_generated_at": "2026-09-07T03:31:02Z",
+      "props": {
+        "area_sqkm": 434.78,
+        "huc": "1019000504",
+        "level": 10,
+        "states": "CO"
+      },
+      "readings": [],
+      "latest_url": "https://data.bioregionaltwin.org/latest/watershed/huc10-1019000504.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=watershed/huc10-1019000504"
+    },
+    {
+      "id": "watershed/huc10-1019000505",
+      "name": "South Boulder Creek",
+      "kind": "watershed",
+      "parent_id": "watershed/huc8-10190005",
+      "huc12": null,
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:10Z",
+      "tree_generated_at": "2026-09-07T03:31:02Z",
+      "props": {
+        "area_sqkm": 347.33,
+        "huc": "1019000505",
+        "level": 10,
+        "states": "CO"
+      },
+      "readings": [],
+      "latest_url": "https://data.bioregionaltwin.org/latest/watershed/huc10-1019000505.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=watershed/huc10-1019000505"
+    },
+    {
+      "id": "watershed/huc10-1019000506",
+      "name": "Coal Creek-Boulder Creek",
+      "kind": "watershed",
+      "parent_id": "watershed/huc8-10190005",
+      "huc12": null,
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:10Z",
+      "tree_generated_at": "2026-09-07T03:31:02Z",
+      "props": {
+        "area_sqkm": 325.3,
+        "huc": "1019000506",
+        "level": 10,
+        "states": "CO"
+      },
+      "readings": [],
+      "latest_url": "https://data.bioregionaltwin.org/latest/watershed/huc10-1019000506.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=watershed/huc10-1019000506"
+    },
+    {
+      "id": "watershed/huc10-1019000507",
+      "name": "Boulder Creek-Saint Vrain Creek",
+      "kind": "watershed",
+      "parent_id": "watershed/huc8-10190005",
+      "huc12": null,
+      "sensitivity": "public",
+      "superseded_by": null,
+      "as_of": "2026-09-07T17:11:10Z",
+      "tree_generated_at": "2026-09-07T03:31:02Z",
+      "props": {
+        "area_sqkm": 689.19,
+        "huc": "1019000507",
+        "level": 10,
+        "states": "CO"
+      },
+      "readings": [],
+      "latest_url": "https://data.bioregionaltwin.org/latest/watershed/huc10-1019000507.json",
+      "twin_url": "https://bioregionaltwin.org/front-range/twin?focus=watershed/huc10-1019000507"
+    }
+  ]
+}

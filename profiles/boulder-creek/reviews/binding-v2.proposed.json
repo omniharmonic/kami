@@ -1,0 +1,135 @@
+{
+  "schema_version": "1.0",
+  "binding_version": 2,
+  "entity_id": "entity/boulder-creek",
+  "archetype": "creek",
+  "anchor": "place/boulder-creek-near-orodell-co",
+  "stream_id": null,
+  "commons_handle": "wiki/places/named/boulder-creek",
+  "members": [
+    {
+      "id": "place/boulder-creek-near-orodell-co",
+      "role": "main_stem_gauge",
+      "name": "Boulder Creek near Orodell"
+    },
+    {
+      "id": "place/boulder-creek-co-below-broadway-st",
+      "role": "main_stem_gauge",
+      "name": "Boulder Creek below Broadway"
+    },
+    {
+      "id": "place/boulder-creek-at-north-75th-st-near-boulder-co",
+      "role": "main_stem_gauge",
+      "name": "Boulder Creek at North 75th St"
+    },
+    {
+      "id": "place/boulder-creek-at-mouth-near-longmont-co",
+      "role": "main_stem_gauge",
+      "name": "Boulder Creek at the mouth"
+    },
+    {
+      "id": "place/niwot",
+      "role": "snotel",
+      "name": "Niwot"
+    },
+    {
+      "id": "place/lake-eldora",
+      "role": "snotel",
+      "name": "Lake Eldora"
+    },
+    {
+      "id": "place/university-camp-2",
+      "role": "snotel",
+      "name": "University Camp"
+    },
+    {
+      "id": "place/gross-reservoir",
+      "role": "reservoir",
+      "name": "Gross Reservoir"
+    },
+    {
+      "id": "place/leggett-valmont-reservoir",
+      "role": "reservoir",
+      "name": "Leggett-Valmont Reservoir"
+    },
+    {
+      "id": "place/six-mile-reservoir",
+      "role": "reservoir",
+      "name": "Six Mile Reservoir"
+    },
+    {
+      "id": "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co",
+      "role": "water_quality",
+      "name": "South Boulder Creek at the forebay"
+    },
+    {
+      "id": "place/boulder-cu-2102-athens-st",
+      "role": "air",
+      "name": "Boulder CU, 2102 Athens St"
+    }
+  ],
+  "watersheds": [
+    "watershed/huc10-1019000504",
+    "watershed/huc10-1019000505",
+    "watershed/huc10-1019000506",
+    "watershed/huc10-1019000507"
+  ],
+  "reach_ids": [],
+  "boundary": {
+    "geometry_urls": [
+      "https://data.bioregionaltwin.org/geom/watershed/huc10-1019000504.geojson",
+      "https://data.bioregionaltwin.org/geom/watershed/huc10-1019000505.geojson",
+      "https://data.bioregionaltwin.org/geom/watershed/huc10-1019000506.geojson",
+      "https://data.bioregionaltwin.org/geom/watershed/huc10-1019000507.geojson"
+    ]
+  },
+  "needs": [
+    {
+      "need": "flow",
+      "property": "discharge",
+      "places": [
+        "place/boulder-creek-near-orodell-co"
+      ],
+      "agg": "single",
+      "weight": 1
+    },
+    {
+      "need": "snow",
+      "property": "swe",
+      "places": [
+        "place/niwot"
+      ],
+      "agg": "single",
+      "weight": 0.5
+    },
+    {
+      "need": "water",
+      "property": "dissolved_oxygen",
+      "places": [
+        "place/south-boulder-cr-at-forebay-nr-eldorado-springs-co"
+      ],
+      "agg": "single",
+      "weight": 0.5
+    },
+    {
+      "need": "air",
+      "property": "pm25",
+      "places": [
+        "place/boulder-cu-2102-athens-st"
+      ],
+      "agg": "mean_24h",
+      "weight": 0.5
+    },
+    {
+      "need": "drought",
+      "property": "dm",
+      "places": [],
+      "agg": "max_intersecting",
+      "weight": 1
+    }
+  ],
+  "membership_rule": "Proposed broad connected watershed scope: Headwaters Boulder Creek, South Boulder Creek, Coal Creek-Boulder Creek, and Boulder Creek-Saint Vrain HUC-10 areas. Main-stem gauges provide longitudinal observations; mountain snow stations, South Boulder Creek water quality, connected reservoirs, and nearby air monitoring supply explicitly local or tributary context. No individual site represents the whole watershed. Orodell remains the flow anchor. Reservoirs are observation-only until a valid storage assessment is reviewed. Union Reservoir is deferred because its published water source is Saint Vrain Creek and a direct Boulder Creek relationship has not been established. See reviews/watershed-v2-review.md for evidence and unresolved coverage.",
+  "frozen_at": "2026-09-07T17:11:10.472860+00:00",
+  "reviewed_by": null,
+  "twin_index_etag": null
+}
