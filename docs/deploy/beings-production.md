@@ -6,10 +6,10 @@ Updated 2026-09-07. This supersedes the hostname and email setup notes in `first
 
 - Site: https://beings.earth
 - Project: `kami-web`, `prj_fSbKysNQvRIsM9lYA0JL6k6BJiLx`, team `omniharmonics-projects`.
-- Deployment: `dpl_6G5PCs87UgtGttceroJn91mZwFb9` (production, READY).
-- Deployment URL: https://kami-2b2tlpr7u-omniharmonics-projects.vercel.app
+- Deployment: `dpl_FExA1pXRafzjEJp5tehvXNKVqTpx` (production, READY).
+- Deployment URL: https://kami-8qebpawuj-omniharmonics-projects.vercel.app
 - Aliases: beings.earth, www.beings.earth, kami-web-one.vercel.app.
-- Deployed from the local working tree with Vercel CLI. The production work was pushed to `main` at `857af8a`. Local main is synchronized with origin.
+- Deployed from the local working tree with Vercel CLI. Application changes through `25a3d9b` are deployed and pushed to `main`; later documentation-only commits record verification.
 
 Namecheap DNS now has two `@` A records (`216.150.1.1`, `216.150.16.1`) and a `www` CNAME to `be008f89f6fff621.vercel-dns-016.com`. Default parking records were removed. Vercel verified both names; the apex returned HTTP 200 over valid HTTPS. DNS remains on Namecheap BasicDNS.
 
@@ -135,3 +135,5 @@ Live result on September 7: eight checks passed, zero failed, one data-freshness
 ### Private dashboard preview
 
 The signed-in walkthrough found that the private page still read only published status, so it displayed no meters even though Hermes could read snapshot 1. The page and layout now authorize the viewer before loading a private DB snapshot. The public status cache, metadata and OG path are unchanged. The preview requires the currently pointed binding to be approved and the snapshot to be at least as new as that approval; absent provenance stays unavailable. No public file is written. This lets stewards review actual needs before completing consultation.
+
+Final production browser verification: the signed-in private dashboard renders flow, snow, water quality, air and drought, with source/time details and stale snow preserved. Anonymous HTTP requests return 404 and contain no private meter data or snapshot timestamp. The final deployment’s sampled error-log check returned no logs. All 34 targeted MCP/bundle/needs/aggregation tests, seven private-preview tests, 15 doctor tests, typecheck, and the redaction self-test passed.
