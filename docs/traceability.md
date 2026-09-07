@@ -1,5 +1,10 @@
 # PRD traceability and honest gaps
 
+> **This is a dated audit, not a live status.** It was written against `1c1370d`, before the
+> deployment, the connect flow and the fixes in §6 and after. For where the project is *now*,
+> read [`STATUS.md`](STATUS.md); come back here for the row-by-row justification, which is
+> still the authority on what each verdict rests on.
+
 **Audit date:** 2026-09-06 · **HEAD at start:** `1c1370d`; `25f4859` (an e2e fix by a concurrent
 agent) landed mid-audit and is reflected in §5 · **Auditor:** an agent reading the code, not the
 commit messages.
