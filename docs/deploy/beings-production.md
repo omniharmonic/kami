@@ -9,7 +9,7 @@ Updated 2026-09-07. This supersedes the hostname and email setup notes in `first
 - Deployment: `dpl_6G5PCs87UgtGttceroJn91mZwFb9` (production, READY).
 - Deployment URL: https://kami-2b2tlpr7u-omniharmonics-projects.vercel.app
 - Aliases: beings.earth, www.beings.earth, kami-web-one.vercel.app.
-- Deployed from the local working tree with Vercel CLI. Source changes are preserved on the local `codex/beings-earth-production` branch. A later Git deployment must include this branch to retain the fixes; it has not been pushed.
+- Deployed from the local working tree with Vercel CLI. The production work was pushed to `main` at `857af8a`. Local main is synchronized with origin.
 
 Namecheap DNS now has two `@` A records (`216.150.1.1`, `216.150.16.1`) and a `www` CNAME to `be008f89f6fff621.vercel-dns-016.com`. Default parking records were removed. Vercel verified both names; the apex returned HTTP 200 over valid HTTPS. DNS remains on Namecheap BasicDNS.
 
@@ -79,3 +79,18 @@ The published endpoint is https://mcp.bioregionaltwin.org/mcp, Streamable HTTP, 
 Installed Hermes exposes `/v1/chat/completions` for one active profile, while the web relay expects `/p/<slug>/v1/chat/completions`. It does not forward the gate's structured evidence event. The old cron flags and claimed write-approval fields were unsupported. The Mac launcher now uses the supported foreground command and loopback API settings; automated deployment fails before remote mutation when required runtime semantics remain unavailable. A dry run reports those blockers.
 
 Website chat is still not configured. A working launch needs an authenticated per-profile route adapter, a funded model through the fact guard, working pause integration, evidence forwarding, and a reachable gateway. The connection page now correctly reports an empty gateway as not set up, even if an old heartbeat exists. A successful MCP handshake does not establish that those runtime components are running.
+
+
+## OpenAI-backed local agent (September 7 follow-up)
+
+The user's existing Hermes OpenAI Codex sign-in is active. The dedicated beings-earth profile now uses their preferred `gpt-5.6-luna` model through that existing sign-in; no API credential was copied into the repository.
+
+A live model-driven, read-only `list_datasets` diagnostic passed and returned `conditions` and `alerts`. The installed CLI backgrounds MCP discovery and waits only briefly before its initial tool snapshot; the first one-shot test had no ecological tools. `scripts/run-beings-hermes.py` now discovers both MCP servers synchronously before chat and refuses to start when either required discovery tool is missing. The private `beings-agent` launcher uses that adapter for chat while preserving normal Hermes management commands.
+
+Start a local session from this checkout:
+
+```sh
+beings-agent hermes --skills entity-steward
+```
+
+The saved credential is injected by the private launcher. `beings-agent hermes mcp test kami-platform` checks the platform independently. This local model diagnostic does not verify the public website chat, guarded hosting adapter, or recurring work. Those remain unconfigured; Boulder Creek remains private and paused.
