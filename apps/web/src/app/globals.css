@@ -549,8 +549,11 @@ textarea {
 }
 @media (max-width: 650px) {
   .site-header {
-    height: 72px;
-    padding: 0 5%;
+    min-height: 72px;
+    height: auto;
+    padding: 12px 5%;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .site-brand {
     font-size: 22px;
@@ -560,8 +563,12 @@ textarea {
     font-size: 27px;
   }
   .site-nav {
-    display: none;
+    order: 3;
+    width: 100%;
+    justify-content: flex-end;
   }
+  .site-nav:not(:has(a:not(.site-nav-secondary))), .site-nav-secondary { display: none; }
+  .site-nav a { padding: 8px 0; }
   .site-sign-in {
     font-size: 11px;
     padding: 8px 13px;

@@ -111,3 +111,9 @@ done
 ```
 
 To pause only the schedules while retaining the website's guarded runtime, rerun `infra/mac/install-steward-schedules.py` without `--enable`, using the installed Hermes virtualenv Python. The entity's independent governance pause remains authoritative.
+
+## Guardian resume synchronization fix — September 7
+
+Two guardian resume requests legitimately cleared Boulder Creek's production pause at 2026-09-08T00:24:04.508Z. The local installer had also placed its slug in a static pause seed; the runtime unions that seed with synchronized platform state, so the seed incorrectly survived resume. The installed seed was removed after verifying the production resume. Future installations use no permanent seed and remain fail-closed until platform synchronization succeeds. The gate then reported an empty paused set and accepted a real measured-reading chat.
+
+The habitat also displayed the pause explanation from an older health snapshot. Current governance pause is now passed separately to the avatar; historical health evidence remains unchanged and is labelled while an updated snapshot is pending. Actual pause/resume actions invalidate the entity layout and schedule a needs refresh after the response. A live refresh at 00:31:12.633Z confirmed the entity's resumed state. Signed-in navigation and My Account now expose the Guardian dashboard, including on narrow screens.

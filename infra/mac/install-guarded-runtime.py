@@ -40,7 +40,7 @@ settings.update({'GATE_ADMIN_SECRET':secret,'KAMI_PLATFORM_TOKEN':secret,'KAMI_E
 fd=os.open(settings_path,os.O_WRONLY|os.O_CREAT|os.O_TRUNC,0o600)
 with os.fdopen(fd,'w') as f:json.dump(settings,f)
 os.chmod(settings_path,0o600)
-gate={'upstream_url':'http://127.0.0.1:8002','upstream_api_key_env':'KAMI_CODEX_BRIDGE_KEY','upstream_model':'gpt-5.6-luna','paused':[a.slug],'events_dir':str(private/'events'),'provenance':{'placement':'hosted','provider':'OpenAI Codex via guarded Hermes','model':'gpt-5.6-luna','slug':a.slug},'platform':{'base_url':'https://beings.earth','pause_set_url':'https://beings.earth/api/gate/pause-set','token_env':'KAMI_PLATFORM_TOKEN','fail_closed':True,'poll_seconds':15}}
+gate={'upstream_url':'http://127.0.0.1:8002','upstream_api_key_env':'KAMI_CODEX_BRIDGE_KEY','upstream_model':'gpt-5.6-luna','paused':[],'events_dir':str(private/'events'),'provenance':{'placement':'hosted','provider':'OpenAI Codex via guarded Hermes','model':'gpt-5.6-luna','slug':a.slug},'platform':{'base_url':'https://beings.earth','pause_set_url':'https://beings.earth/api/gate/pause-set','token_env':'KAMI_PLATFORM_TOKEN','fail_closed':True,'poll_seconds':15}}
 (private/'gate.yaml').write_text(yaml.safe_dump(gate))
 (private/'tunnel.yaml').write_text(yaml.safe_dump({'tunnel':a.tunnel_id,'credentials-file':str(home/'.cloudflared'/f'{a.tunnel_id}.json'),'ingress':[{'hostname':a.hostname,'service':'http://127.0.0.1:8643'},{'service':'http_status:404'}]}))
 logs=home/'Library/Logs/beings-runtime';logs.mkdir(parents=True,exist_ok=True);logs.chmod(0o700)
@@ -55,4 +55,4 @@ for component in ['bridge','gate','hermes','router','tunnel']:
  subprocess.run(['launchctl','enable',domain+'/'+label],check=True)
 print('Installed five guarded runtime launch agents. Secrets:',settings_path)
 print('Router URL: https://'+a.hostname)
-print(a.slug+' remains explicitly paused in gate configuration.')
+print(a.slug+' follows the production guardian pause state; startup fails closed until synchronization succeeds.')

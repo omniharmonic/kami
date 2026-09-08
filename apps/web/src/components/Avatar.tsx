@@ -8,6 +8,8 @@ export type AvatarProps = {
   /** needed for the rig and the fallback path; not part of the snapshot */
   archetype: string;
   name: string;
+  /** Authoritative operational state; does not alter the historical health evidence. */
+  currentPaused?: boolean;
 };
 
 /**
@@ -19,17 +21,19 @@ export type AvatarProps = {
  * headline need's label, and the mood word + mood_reason as visible text so
  * colour never carries the state alone. No snapshot → asleep, never distressed.
  */
-export function Avatar({ snapshot, archetype, name }: AvatarProps) {
-  const inputs = snapshot ? snapshotToRiveInputs(snapshot) : offlineInputs();
+export function Avatar({ snapshot, archetype, name, currentPaused }: AvatarProps) {
+  const recordedInputs = snapshot ? snapshotToRiveInputs(snapshot) : offlineInputs();
+  const inputs = currentPaused === undefined ? recordedInputs : { ...recordedInputs, paused: currentPaused };
+  const awaitingSnapshot = currentPaused !== undefined && snapshot !== null && snapshot.paused !== currentPaused;
   const mood = moodOf(snapshot);
-  const reason = moodReason(snapshot);
-  const label = ariaLabel(snapshot, name);
+  const reason = moodReason(snapshot, currentPaused);
+  const label = ariaLabel(snapshot, name, currentPaused);
   return (
     <figure className="avatar-wrap" style={{ margin: 0 }} data-mood={mood} data-stale={inputs.stale ? "true" : "false"}>
       <RiveAvatar archetype={archetype} inputs={inputs} label={label} />
       <figcaption className="muted" style={{ fontSize: "0.9rem", textAlign: "center" }}>
         <span className={inputs.stale ? "chip chip-stale" : "chip"} data-testid="mood-word">
-          {moodLabel[mood] ?? mood}
+          {awaitingSnapshot ? `Last observed: ${moodLabel[mood] ?? mood}` : moodLabel[mood] ?? mood}
         </span>{" "}
         <span data-testid="mood-reason">{reason}</span>
       </figcaption>

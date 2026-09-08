@@ -34,7 +34,22 @@ describe("EntityShell (ADR-E13 invariant)", () => {
       </EntityShell>,
     );
     expect(screen.getByTestId("disclosure").textContent).toBe(LABEL);
-    expect(screen.getByText(/paused by my guardians/)).toBeTruthy();
+    expect(screen.getByTestId("mood-reason").textContent).toBe("agent paused");
+  });
+
+  it("does not present an old paused snapshot as the current operational state", () => {
+    const historical = Object.freeze({ ...snapshot, paused: true, mood_reason: "paused by my guardians" });
+    const before = JSON.stringify(historical);
+    const { container } = render(
+      <EntityShell entity={{ slug: "boulder-creek", name: "Boulder Creek", archetype: "creek", paused: false }} snapshot={historical} asOf={fixture.as_of}>
+        <span />
+      </EntityShell>,
+    );
+    expect(screen.getByTestId("mood-reason").textContent).toContain("has resumed");
+    expect(screen.getByTestId("mood-word").textContent).toBe("Last observed: asleep");
+    expect(container.querySelector(".habitat-phrase")?.textContent).toContain("fresh health snapshot");
+    expect(container.querySelector("img.avatar-fallback")?.getAttribute("aria-label")).not.toContain("paused by");
+    expect(JSON.stringify(historical)).toBe(before);
   });
 
   it("uses the archetype noun and the 'for' wording", () => {

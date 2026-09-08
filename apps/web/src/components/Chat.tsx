@@ -209,7 +209,7 @@ export function Chat({ slug, name, archetype, paused, gpuOnline, compact = false
                     <ul>
                       {m.toolcalls.calls.map((c, i) => (
                         <li key={i}>
-                          <code>{c.place_id ?? "—"}</code> · {c.time ?? "no time"} · {c.source_id ?? "no source"} · {c.stale === null ? "staleness unknown" : c.stale ? states.cantFeelIt : "live"}
+                          <code>{c.place_id ?? c.tool ?? "—"}</code> · {c.time ?? "no time"} · {c.source_id ?? "no source"} · {typeof c.stale !== "boolean" ? "freshness unknown" : c.stale ? states.cantFeelIt : "current reading"}
                           {c.source_status ? ` (${c.source_status})` : ""}
                         </li>
                       ))}

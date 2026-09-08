@@ -41,6 +41,7 @@ export default async function MePage({ searchParams }: Props) {
   return (
     <section className="section">
       <h1>{copy.title}</h1>
+      <p><Link href="/guardian" className="btn">Guardian dashboard</Link> <span className="muted">Review invitations, agent controls, and stewardship decisions.</span></p>
       <FormMessage
         ok={typeof sp.ok === "string" ? sp.ok : null}
         error={typeof sp.error === "string" ? sp.error : null}

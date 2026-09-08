@@ -42,8 +42,9 @@ export default async function RootLayout({
             {nav.home}
           </Link>
           <nav aria-label="Main navigation" className="site-nav">
-            <Link href="/">Explore</Link>
-            <Link href="/summon">Summon a being</Link>
+            <Link href="/" className="site-nav-secondary">Explore</Link>
+            <Link href="/summon" className="site-nav-secondary">Summon a being</Link>
+            {session ? <Link href="/guardian">Guardian dashboard</Link> : null}
           </nav>
           <Link href={session ? "/me" : "/sign-in"} className="site-sign-in" aria-label={session ? `My account: ${session.user.email}` : undefined}>
             {session ? nav.account : landing.signIn} <span aria-hidden="true">↗</span>

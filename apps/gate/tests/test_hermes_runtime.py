@@ -42,3 +42,31 @@ def test_installed_hermes_result_envelope_is_normalized_for_guard():
     assert log['sources']==['cdss.telemetry']
     assert log['place_ids']==['place/creek']
     assert build_sheet(messages).atoms
+
+
+def test_source_footer_preserves_each_gauges_provenance_pairing():
+    import json
+    from entity_gate.hermes_runtime import source_footer
+    messages=[{'role':'assistant','tool_calls':[{'id':'c1','function':{'name':'get_place'}}]},
+      {'role':'tool','tool_call_id':'c1','content':json.dumps({'places':[
+          {'id':'place/upper','readings':[{'time':'2026-09-08T00:00:00Z','source_id':'cdss','stale':False,'source_status':'ok'}]},
+          {'id':'place/lower','readings':[{'time':'2026-09-07T20:00:00Z','source_id':'usgs','stale':True,'source_status':'warning'}]},
+      ]})}]
+    rows=source_footer(messages)['calls']
+    assert rows==[
+       {'tool':'get_place','place_id':'place/upper','time':'2026-09-08T00:00:00Z','source_id':'cdss','stale':False,'source_status':'ok'},
+       {'tool':'get_place','place_id':'place/lower','time':'2026-09-07T20:00:00Z','source_id':'usgs','stale':True,'source_status':'warning'}]
+
+
+def test_source_footer_never_labels_configuration_as_live():
+    from entity_gate.hermes_runtime import source_footer
+    rows=source_footer([{'role':'tool','name':'get_entity_config','content':'{"members":12}'}])['calls']
+    assert rows[0]['stale'] is None and rows[0]['source_status']=='unknown'
+    assert rows[0]['time'] is None and rows[0]['source_id'] is None
+
+
+def test_source_footer_is_bounded():
+    from entity_gate.hermes_runtime import source_footer
+    rows = [{'id': f'place/{i}', 'source_id': 'sensor', 'time': '2026-09-08T00:00:00Z'} for i in range(100)]
+    result = source_footer([{'role':'tool','name':'get_place','content':{'places':rows}}])
+    assert len(result['calls']) == 50

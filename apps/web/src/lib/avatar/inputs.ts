@@ -139,7 +139,9 @@ export function moodOf(snapshot: HealthSnapshot | null | undefined): MoodName {
   return snapshot && isMoodName(snapshot.mood) ? snapshot.mood : "asleep";
 }
 
-export function moodReason(snapshot: HealthSnapshot | null | undefined): string {
+export function moodReason(snapshot: HealthSnapshot | null | undefined, currentPaused?: boolean): string {
+  if (currentPaused === true) return states.asleepPaused;
+  if (currentPaused === false && snapshot?.paused) return "My agent has resumed. Waiting for a fresh health snapshot.";
   const reason = snapshot?.mood_reason?.trim();
   return reason && reason.length > 0 ? reason : states.cannotReachSenses;
 }
@@ -153,8 +155,8 @@ export function headlineText(snapshot: HealthSnapshot | null | undefined): strin
 }
 
 /** §9.4: aria-label = mood_reason + the headline label. */
-export function ariaLabel(snapshot: HealthSnapshot | null | undefined, name: string): string {
-  const reason = moodReason(snapshot);
+export function ariaLabel(snapshot: HealthSnapshot | null | undefined, name: string, currentPaused?: boolean): string {
+  const reason = moodReason(snapshot, currentPaused);
   const headline = headlineText(snapshot);
   const body = headline ? `${reason}. ${headline}` : reason;
   return name ? `${name} — ${body}` : body;

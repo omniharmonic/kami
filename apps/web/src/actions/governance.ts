@@ -6,6 +6,7 @@
  * back with `?ok=` or `?error=<code>`.
  */
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { eq } from "drizzle-orm";
 import * as schema from "@/db/schema";
 import { approveBounty, withdrawBounty, type ApproveEdits } from "@/lib/governance/bounties";
@@ -138,6 +139,18 @@ export async function proposeAction(fd: FormData): Promise<never> {
   });
 }
 
+function refreshOperationalSnapshot(slug: string) {
+  after(async () => {
+    try {
+      const { runNeedsJob } = await import("@/lib/jobs/needs");
+      await runNeedsJob({ db: dbOrThrow(), slug });
+      revalidatePath(`/e/${slug}`, "layout");
+    } catch {
+      console.error("[governance] snapshot refresh failed; current governance state remains authoritative");
+    }
+  });
+}
+
 // --- pause / resume / retire ----------------------------------------------
 
 export async function pauseAction(fd: FormData): Promise<never> {
@@ -145,9 +158,12 @@ export async function pauseAction(fd: FormData): Promise<never> {
   return actionRedirect(back, "paused", async () => {
     const user = await requireUserOrThrow();
     const entityId = formString(fd, "entity_id");
-    await pauseEntity(dbOrThrow(), entityId, user.id);
+    const result = await pauseEntity(dbOrThrow(), entityId, user.id);
     const slug = await slugOf(entityId);
-    if (slug) revalidatePath(`/e/${slug}`);
+    if (slug) {
+      revalidatePath(`/e/${slug}`, "layout");
+      if (!result.already) refreshOperationalSnapshot(slug);
+    }
     revalidatePath("/guardian");
   });
 }
@@ -157,9 +173,12 @@ export async function requestResumeAction(fd: FormData): Promise<never> {
   return actionRedirect(back, "resume_requested", async () => {
     const user = await requireUserOrThrow();
     const entityId = formString(fd, "entity_id");
-    await requestResume(dbOrThrow(), entityId, user.id);
+    const result = await requestResume(dbOrThrow(), entityId, user.id);
     const slug = await slugOf(entityId);
-    if (slug) revalidatePath(`/e/${slug}`);
+    if (slug) {
+      revalidatePath(`/e/${slug}`, "layout");
+      if (result.resumed) refreshOperationalSnapshot(slug);
+    }
     revalidatePath("/guardian");
   });
 }

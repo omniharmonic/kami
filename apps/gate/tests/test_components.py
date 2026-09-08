@@ -182,3 +182,17 @@ def test_fail_closed_is_the_default():
     from entity_gate.config import Platform
 
     assert Platform().fail_closed is True
+
+
+async def test_platform_managed_pause_resumes_without_a_permanent_installation_seed():
+    state = {"paused": ["boulder-creek"]}
+    def handler(request):
+        return httpx.Response(200, json=state)
+    pause = PauseSet([], Platform(pause_set_url="http://platform/pause", fail_closed=True),
+                     _client_factory(handler))
+    assert pause.is_paused("boulder-creek")  # fail closed before the first sync
+    assert await pause.refresh_once()
+    assert pause.is_paused("boulder-creek")
+    state["paused"] = []  # the platform has accepted the guardian resume
+    assert await pause.refresh_once()
+    assert not pause.is_paused("boulder-creek")

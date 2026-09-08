@@ -21,7 +21,7 @@ export function EntityShell({ entity, snapshot, asOf, children }: EntityShellPro
       <header className="habitat-identity">
         <Link href="/" className="habitat-back">‹ Return to the living world</Link>
         <h1>{entity.name}</h1>
-        <div className="habitat-specimen"><Avatar snapshot={snapshot} archetype={entity.archetype} name={entity.name} /></div>
+        <div className="habitat-specimen"><Avatar currentPaused={entity.paused} snapshot={snapshot} archetype={entity.archetype} name={entity.name} /></div>
         <DisclosureLabel name={entity.name} archetype={entity.archetype} />
         <p className="habitat-timestamp">{asOf ? <time dateTime={asOf}>{states.asOf(asOf)}</time> : states.cannotReachSenses}
           {entity.paused && <span>{states.asleepPaused}</span>}

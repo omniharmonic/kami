@@ -48,6 +48,51 @@ def evidence_document(value):
     return value
 
 
+def source_footer(messages):
+    """Flatten actual reading records without inventing pairings between arrays."""
+    names = {}
+    calls = []
+    for message in messages:
+        for call in message.get('tool_calls', []):
+            names[call.get('id')] = call.get('function', {}).get('name', 'unknown_tool')
+        if message.get('role') != 'tool':
+            continue
+        tool = names.get(message.get('tool_call_id'), message.get('name') or 'unknown_tool')
+        document = evidence_document(message.get('content'))
+        rows = []
+        def visit(node, place=None):
+            if len(rows) >= 50:
+                return
+            if isinstance(node, list):
+                for item in node:
+                    visit(item, place)
+            elif isinstance(node, dict):
+                candidate = node.get('place_id') or node.get('id')
+                if isinstance(candidate, str) and candidate.startswith(('place/', 'watershed/')):
+                    place = candidate
+                # Time/source/freshness must belong to this same object. Do not
+                # pair aggregate arrays or borrow another gauge's metadata.
+                if 'source_id' in node or ('time' in node and ('stale' in node or 'value' in node)):
+                    rows.append({'tool': tool, 'place_id': place,
+                        'time': node.get('time') if isinstance(node.get('time'), str) else None,
+                        'source_id': node.get('source_id') if isinstance(node.get('source_id'), str) else None,
+                        'stale': node.get('stale') if isinstance(node.get('stale'), bool) else None,
+                        'source_status': node.get('source_status') if node.get('source_status') in ('ok', 'warning', 'critical', 'unknown') else 'unknown'})
+                for value in node.values():
+                    if isinstance(value, (dict, list)):
+                        visit(value, place)
+        visit(document)
+        if not rows:
+            rows = [{'tool': tool, 'place_id': None, 'time': None, 'source_id': None,
+                     'stale': None, 'source_status': 'unknown'}]
+        for row in rows:
+            if row not in calls:
+                calls.append(row)
+                if len(calls) >= 50:
+                    return {'calls': calls}
+    return {'calls': calls}
+
+
 def install_mcp_sanitizer(write_guard=None):
     """Wrap handlers before discovery; also covers later reconnect registration."""
     import tools.mcp_tool as mcp
@@ -166,7 +211,7 @@ def create_runtime(*, key, agent_factory):
             async with turn_lock:
                 try:
                     await asyncio.to_thread(run)
-                    await queue.put(sse(toolcall_log([{'role':'user','content':''}]+evidence),'toolcalls'))
+                    await queue.put(sse(source_footer(evidence),'toolcalls'))
                     await queue.put(sse('[DONE]'))
                 except Exception:
                     await queue.put(sse({'error':{'type':'runtime_error','message':'Agent unavailable'}}))
