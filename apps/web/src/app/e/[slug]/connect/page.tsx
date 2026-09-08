@@ -23,7 +23,8 @@ import { ToolTable } from "@/components/connect/ToolTable";
 import { TokenPanel } from "@/components/connect/TokenPanel";
 import { SensingPanel } from "@/components/connect/SensingPanel";
 import { sensingStatus, mayManageSensing } from "@/lib/connect/sensing";
-import { sensingAction, mintConnectTokenAction } from "./actions";
+import { PublishPanel } from "@/components/connect/PublishPanel";
+import { sensingAction, mintConnectTokenAction, publishConnectEntityAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -163,6 +164,8 @@ export default async function ConnectPage({ params }: Props) {
       <p className="muted">{copy.cannotSee}</p>
       {roleLine(access) ? <p className="faint" style={{ fontSize: "0.85rem" }} data-testid="role-line">{roleLine(access)}</p> : null}
       {paused ? <p className="notice" role="status" data-testid="connect-paused">{copy.paused}</p> : null}
+
+      {!entity.publishedAt && !entity.retiredAt && (access.role === "steward" || access.role === "admin") && <PublishPanel slug={slug} action={publishConnectEntityAction} />}
 
       <SensingPanel slug={slug} status={sensing} mayManage={maySense} action={sensingAction} />
 

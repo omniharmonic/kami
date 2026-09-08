@@ -25,7 +25,8 @@ import { closeTestDb, type TestDb } from "@/db/test-utils";
 import { EMPTY_MINT_STATE } from "@/components/connect/TokenPanel";
 import { verifyEntityToken } from "@/lib/mcp/tokens";
 import { connectTestDb, seedConnectEntity } from "@/lib/connect/__tests__/helpers";
-import { mintConnectTokenAction } from "../actions";
+import { eq } from "drizzle-orm";
+import { mintConnectTokenAction, publishConnectEntityAction } from "../actions";
 
 const maya: User = { id: "u-maya", email: "maya@example.org", name: "Maya", age_gate_ok: true, platform_admin: false };
 const ada: User = { id: "u-ada", email: "ada@example.org", name: "Ada", age_gate_ok: true, platform_admin: false };
@@ -96,5 +97,26 @@ describe("mintConnectTokenAction", () => {
     await seedConnectEntity(db, "left-hand-creek", { createdBy: "u-maya" });
     const res = await mintConnectTokenAction(EMPTY_MINT_STATE, form({ slug: "left-hand-creek" }));
     expect(res.ok).toBe(true);
+  });
+});
+
+
+describe("publishConnectEntityAction", () => {
+  it("lets an accepted steward publish without a summon draft or consultation", async () => {
+    await db.update(schema.entities).set({ publishedAt: null, consultationDoneAt: null, pausedAt: new Date() }).where(eq(schema.entities.slug, "boulder-creek"));
+    const result = await publishConnectEntityAction({ ok: false, message: "" }, form({ slug: "boulder-creek" }));
+    expect(result.ok).toBe(true);
+    const [entity] = await db.select().from(schema.entities).where(eq(schema.entities.slug, "boulder-creek"));
+    expect(entity!.publishedAt).not.toBeNull();
+    expect(entity!.consultationDoneAt).toBeNull();
+    expect(entity!.pausedAt).not.toBeNull();
+  });
+  it("refuses guardians and anonymous callers without changing publication", async () => {
+    currentUser = ada;
+    expect((await publishConnectEntityAction({ ok: false, message: "" }, form({ slug: "boulder-creek" }))).ok).toBe(false);
+    currentUser = null;
+    expect((await publishConnectEntityAction({ ok: false, message: "" }, form({ slug: "boulder-creek" }))).ok).toBe(false);
+    const [entity] = await db.select().from(schema.entities).where(eq(schema.entities.slug, "boulder-creek"));
+    expect(entity!.publishedAt).toBeNull();
   });
 });

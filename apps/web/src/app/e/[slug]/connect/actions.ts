@@ -61,3 +61,22 @@ export async function sensingAction(_prev: {message:string;ok:boolean;warnings?:
   return {ok:true,message:formData.get("operation")==="approve"?c.approved:c.refreshed};
  }catch(error){if(error instanceof SensingWarnings)return {ok:false,message:error.message,warnings:error.warnings,warningHash:error.warningHash};return {ok:false,message:error instanceof SensingError?error.message:c.failed};}
 }
+
+/** Existing beings need no summon draft or platform-admin role to publish. */
+export async function publishConnectEntityAction(_previous: { ok: boolean; message: string }, form: FormData): Promise<{ ok: boolean; message: string }> {
+  const session = await getSession();
+  const db = getDb();
+  const slug = String(form.get("slug") ?? "");
+  if (!session || !db || !slugOk(slug)) return { ok: false, message: "Sign in as this being’s steward to publish it." };
+  try {
+    const entity = await entityBySlug(db, slug);
+    if (!entity) return { ok: false, message: "Being not found." };
+    const { publishEntity } = await import("@/lib/summon/draft");
+    // This is the authority: accepted steward/admin, including any Hat check.
+    await publishEntity(db, entity.id, session.user.id);
+    revalidatePath(`/e/${slug}/connect`); revalidatePath(`/e/${slug}`); revalidatePath("/");
+    return { ok: true, message: "This being’s page is now public. Its consultation record and agent pause are unchanged." };
+  } catch {
+    return { ok: false, message: "Publication was not completed. An accepted steward or administrator is required, and the being must not be retired." };
+  }
+}
