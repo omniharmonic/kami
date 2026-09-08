@@ -1,5 +1,7 @@
 # Vercel, Neon, R2, Resend — the hosted half
 
+> **Current publication policy (September 7, 2026):** Consultation is encouraged as a being grows and is never required for setup, publication, chat or grant rounds. `entities.published_at` independently controls public visibility. Consultation records remain truthful and optional; publishing does not mark consultation complete. Guardian approval, spending safeguards and sensitive-data rules remain unchanged. Any older consultation-gate descriptions below are historical and superseded.
+
 Everything the public sees runs here. The Mac mini in `infra/mac/` (and later the DGX Spark
 with `infra/box/`) only supplies the voice; the site keeps working without it, rendering
 `status.json` and saying "I'm asleep — my thinking machine is off". Set this half up so that

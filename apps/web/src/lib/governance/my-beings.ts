@@ -16,7 +16,7 @@ export async function getMyBeings(db: Db, user: SessionUser) {
     id: entity.id,
     slug: entity.slug,
     name: entity.name,
-    private: entity.consultationDoneAt === null,
+    private: entity.publishedAt === null,
     paused: entity.pausedAt !== null,
     retired: entity.retiredAt !== null,
     access: await connectAccess({ id: entity.id, created_by: entity.createdBy }, user),

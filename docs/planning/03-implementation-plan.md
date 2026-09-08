@@ -295,7 +295,7 @@ Belongs to the twin's next round anyway: TW-3, TW-5, TW-6 (enrichment); TW-1, TW
 - **Done when:** `failure_streak ≥ 3` pages a steward within one gateway tick; the tunnel-down state renders "asleep" on the page and an alert.
 
 #### T1.13 — The "how I work" page · 1 d
-- Model name and version, guard description with the drop rate, cadence, links to `SOUL.md`, `binding.json`, twin `health.json`, the drill log, the consultation record (`entities.consultation_md`; the page stays unpublished until a steward marks consultation done — PRD §13 #4), the no-token policy, licences (CC0 facts, CC BY-SA prose with attribution).
+- Model name and version, guard description with the drop rate, cadence, links to `SOUL.md`, `binding.json`, twin `health.json`, the drill log, the consultation record (`entities.consultation_md`; an optional record, independent of `published_at` — PRD §13 #4), the no-token policy, licences (CC0 facts, CC BY-SA prose with attribution).
 
 #### T1.14 — Production smoke and phase-1 review · 1 d · **owner review gate**
 - Vercel production build; e2e suite green against production; the owner and two guardians run the pause drill; consultation record started (PRD §11 #17). Decision: public launch of one entity.
@@ -504,7 +504,7 @@ Ordered by likelihood × impact (H = 3, M = 2, L = 1; product in brackets).
 | 3 | vLLM tool/reasoning parser bugs on Qwen3.5/3.8 (vllm#42021) | H×M (6) | T0.2 smoke fails; tool-call validity < 95 % | Settle in T0.2 before anything depends on it; pin the vLLM tag | Disable the reasoning parser; `qwen3_coder` parser; llama.cpp on a Mac Studio |
 | 4 | GPU availability/price (GEX44 unavailable; 5090 rising) | H×M (6) | Hetzner console shows no stock; monthly bill > budget line | Rent 20 GB for 9B; buy nothing at Sept-2026 prices; scale-to-zero windows | Owned used 4090; RunPod by the hour for cron; DO-alarm pulse queue if the box is often off |
 | 5 | Legal wrapper / counsel not ready when phase 2 code is | M×H (6) | T2.0 checklist unticked at T1.14 | Start T2.0 in phase 1; Sepolia end-to-end without money | Fiscal sponsor fiat rails (`payouts.rail = fiat`); attestations still record outcomes |
-| 6 | Community rejects an AI voice for the creek; "cute" trivialises rights of nature | M×H (6) | Consultation stalls; guardian candidates decline | "Voice *for*"; guardians named; no standing claims; plurality shown; consultation before launch | Launch unlisted for guardians only until consultation completes |
+| 6 | Community rejects an AI voice for the creek; "cute" trivialises rights of nature | M×H (6) | Consultation stalls; guardian candidates decline | "Voice *for*"; guardians named; no standing claims; plurality shown; consultation encouraged as the being grows | Invite community input without making consultation a publication requirement |
 | 7 | Sybil / bounty fraud | M×H (6) | Audit fail rate > 5 %; same wallet across claims | Tiers, in-app capture, second attestation > $100, caps, Passport, audits (T2.15) | Freeze payouts for the entity; tier-3/4 only until resolved |
 | 8 | Safe SDK / Transaction Service changes (delegate API, no webhooks) | M×M (4) | T2.2 Sepolia test breaks on a dependency bump | Pin `@safe-global/*`; poll not push; Safe{Wallet} as an escape hatch | Guardians sign in Safe{Wallet} directly; the platform only records |
 | 9 | Rive licence / plan changes; runtime licence terms | M×M (4) | Plan price change notice; T1.7 build warning | *Verify* licence before commissioning; keep rig sources; SVG fallback exists | Lottie or SVG state machine; VRM path later |
@@ -554,7 +554,7 @@ Ordered by likelihood × impact (H = 3, M = 2, L = 1; product in brackets).
 | Guardian pause drill | once, < 60 s | `pause_events` + drill log (T1.11) |
 | Hallucination-probe pass rate | ≥ 95 % | `evals-live` badge (X.4) |
 | Entity prediction accuracy | reported | `reputation/v1` entity score (T2.13) |
-| Consultation done | before launch | `entities.consultation_done_at` (T1.13) |
+| Consultation record | optional, grows over time | `entities.consultation_done_at` (T1.13) |
 | Sibling entities | ≥ 1 by day 90 | `entities` by anchor (T3.1) |
 
 ---

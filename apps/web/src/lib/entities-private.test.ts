@@ -15,7 +15,7 @@ import { getVisibleEntityDashboard } from "./entities-private";
 
 let db: TestDb;
 let fixture: Status;
-const entity = { id: "entity/boulder-creek", slug: "boulder-creek", from_db: true, consultation_done_at: null };
+const entity = { id: "entity/boulder-creek", slug: "boulder-creek", from_db: true, published_at: null };
 const beforeApproval = new Date(NOW.getTime() - 60_000);
 
 beforeAll(async () => {
@@ -54,7 +54,7 @@ describe("authorized private dashboard snapshots", () => {
     expect(mocks.published).not.toHaveBeenCalled();
   });
   it("keeps public retrieval on the existing published status path", async () => {
-    mocks.access.mockResolvedValue({ entity: { ...entity, consultation_done_at: NOW.toISOString() }, preview: false });
+    mocks.access.mockResolvedValue({ entity: { ...entity, published_at: NOW.toISOString() }, preview: false });
     const read = vi.spyOn(client, "withDb");
     const result = await getVisibleEntityDashboard("boulder-creek");
     expect(result.status).toBe(fixture);

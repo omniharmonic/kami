@@ -10,7 +10,7 @@
  * treasury, and the People section, which names the entity's guardians. The
  * status code was right and the data still left the building.
  *
- * So the assertion here is not "it throws". It is: an unconsulted entity's page
+ * So the assertion here is not "it throws". It is: an unpublished entity's page
  * component must refuse *before* it reads anything about the entity, in every
  * segment under /e/[slug] that renders entity content. A test that only checked
  * for a thrown 404 would have passed against the broken build.
@@ -52,8 +52,8 @@ async function isNotFound(fn: () => Promise<unknown>): Promise<boolean> {
   }
 }
 
-describe("the consultation gate", () => {
-  it("refuses every segment of an unconsulted entity, not just the layout", async () => {
+describe("the publication gate", () => {
+  it("refuses every segment of an unpublished entity, not just the layout", async () => {
     await seedEntity(db, { slug: "unconsulted", name: "Unconsulted Creek", consultationDone: false });
 
     // The layout is the gate everyone remembers.
@@ -87,8 +87,8 @@ describe("the consultation gate", () => {
     expect(rendered).toBeNull();
   });
 
-  it("still serves an entity whose consultation is recorded", async () => {
-    await seedEntity(db, { slug: "open-creek", name: "Open Creek" });
+  it("still serves an entity published without consultation", async () => {
+    await seedEntity(db, { slug: "open-creek", name: "Open Creek", published: true, consultationDone: false });
     expect(await isNotFound(() => EntityPage({ params: params("open-creek") }))).toBe(false);
     expect(await isNotFound(() => EntityLayout({ params: params("open-creek"), children: null }))).toBe(false);
   });

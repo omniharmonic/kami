@@ -178,9 +178,8 @@ describe("the hourly needs job", () => {
     expect(first!.snapshotHash).not.toBe(out.results[0]!.snapshot_hash);
   });
 
-  it("withholds status.json until a steward records consultation, but still stores the snapshot", async () => {
-    // PRD §13 #4. Before this, consultation_done_at was a label on an admin
-    // screen: the page published regardless of whether anyone had been consulted.
+  it("withholds status.json until a steward publishes, without requiring consultation, but still stores the snapshot", async () => {
+    // A private draft stays private. Publication does not assert consultation.
     const { db, entity, publisher } = await seedBoulderCreek({ slug: "unconsulted-creek", consultationDone: false });
     dbs.push(db);
     const unavailablePublisher = vi.spyOn(publishing, "getPublisher").mockImplementation(() => { throw new Error("No public storage configured"); });
@@ -191,7 +190,7 @@ describe("the hourly needs job", () => {
     } finally { unavailablePublisher.mockRestore(); }
 
     expect(out.results[0]!.status).toBe("withheld");
-    expect(out.results[0]!.reason).toBe("consultation_not_done");
+    expect(out.results[0]!.reason).toBe("entity_not_published");
     expect(await publisher.get("entity/unconsulted-creek/status.json")).toBeNull();
 
     // The record exists from day one; only the publication waits.
@@ -201,11 +200,13 @@ describe("the hourly needs job", () => {
       .where(eq(schema.needSnapshots.entityId, entity.id));
     expect(n!.n).toBe(1);
 
-    // Once a steward records it, the very next run publishes.
-    await db.update(schema.entities).set({ consultationDoneAt: new Date("2026-09-01T00:00:00Z") }).where(eq(schema.entities.id, entity.id));
+    // A steward can publish without any consultation record.
+    await db.update(schema.entities).set({ publishedAt: new Date("2026-09-01T00:00:00Z") }).where(eq(schema.entities.id, entity.id));
     const later = new Date(NOW.getTime() + 3600_000);
     const after = await runNeedsJob({ db, twin: twinFromFixtures(undefined, () => later.getTime()), publisher, now: later, gpuOnline: true });
     expect(after.results[0]!.status).toBe("published");
+    const [publishedEntity] = await db.select().from(schema.entities).where(eq(schema.entities.id, entity.id));
+    expect(publishedEntity!.consultationDoneAt).toBeNull();
     expect(await publisher.get("entity/unconsulted-creek/status.json")).not.toBeNull();
   });
 });

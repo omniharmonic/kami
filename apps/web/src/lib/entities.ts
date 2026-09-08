@@ -23,6 +23,7 @@ export type EntityView = {
   paused: boolean;
   retired: boolean;
   safe_address: string | null;
+  published_at: string | null;
   consultation_md: string | null;
   consultation_done_at: string | null;
   binding_version: number | null;
@@ -57,6 +58,7 @@ export const getEntityBySlug = cache(async (slug: string): Promise<EntityView | 
       paused: row.pausedAt !== null,
       retired: row.retiredAt !== null,
       safe_address: row.safeAddress,
+      published_at: row.publishedAt?.toISOString() ?? null,
       consultation_md: row.consultationMd,
       consultation_done_at: row.consultationDoneAt?.toISOString() ?? null,
       binding_version: row.bindingVersion,
@@ -75,6 +77,7 @@ export const getEntityBySlug = cache(async (slug: string): Promise<EntityView | 
     paused: status.snapshot.paused,
     retired: false,
     safe_address: status.treasury.safe_address,
+    published_at: status.as_of,
     consultation_md: null,
     consultation_done_at: null,
     binding_version: null,
@@ -90,7 +93,7 @@ export async function listPublicEntities(): Promise<Array<{ slug: string; name: 
       db
         .select({ slug: schema.entities.slug, name: schema.entities.name, archetype: schema.entities.archetype, pausedAt: schema.entities.pausedAt })
         .from(schema.entities)
-        .where(and(isNull(schema.entities.retiredAt), isNotNull(schema.entities.consultationDoneAt)))
+        .where(and(isNull(schema.entities.retiredAt), isNotNull(schema.entities.publishedAt)))
         .orderBy(schema.entities.name),
     null,
   );

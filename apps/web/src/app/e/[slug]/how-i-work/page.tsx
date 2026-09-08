@@ -56,8 +56,8 @@ export default async function HowIWorkPage({ params }: Props) {
   ]);
   const placement = placementSentence(provenance);
   const guardians = people.filter((p) => p.role === "guardian");
-  // PRD §13 #4: the consultation record is public only once a steward marks it done.
-  // Before that, only a signed-in user sees the placeholder (stewards/admins in later WPs).
+  // Consultation is optional and independent of publication. Share only a
+  // completed record; unfinished relationship notes remain private.
   const consultationPublished = entity.consultation_done_at !== null;
 
   return (
@@ -162,7 +162,7 @@ export default async function HowIWorkPage({ params }: Props) {
         ) : (
           <p className="muted" style={{ margin: 0 }}>
             {copy.consultationUnpublished}
-            {session ? " (You are signed in; stewards mark it done from the guardian console.)" : ""}
+
           </p>
         )}
         <p className="faint" style={{ margin: "0.6rem 0 0" }}>{copy.consultationNever}</p>

@@ -20,6 +20,7 @@ import {
   deleteDraft,
   loadDraft,
   markConsultationDone,
+  publishEntity,
   saveStep,
   setConsultationNote,
   isSummonError,
@@ -217,8 +218,7 @@ export async function completeSummonAction(fd: FormData): Promise<never> {
 }
 
 /**
- * The steward action behind the consultation gate (PRD §13 #4). Platform
- * admins hold it in phase 1; `/admin` has the same toggle.
+ * Optional consultation recording. This never changes page publication.
  */
 export async function markConsultationDoneAction(fd: FormData): Promise<never> {
   const id = str(fd, "draft_id");
@@ -228,6 +228,22 @@ export async function markConsultationDoneAction(fd: FormData): Promise<never> {
     const entityId = str(fd, "entity_id");
     await markConsultationDone(d, entityId, admin.id);
     revalidatePath(`/e/${entityId.replace(/^entity\//, "")}`);
+    revalidatePath("/admin");
+  });
+}
+
+/** Publish the completed being explicitly, without changing consultation. */
+export async function publishSummonedEntityAction(fd: FormData): Promise<never> {
+  const id = str(fd, "draft_id");
+  return run(stepPath(id, "done"), "published", async () => {
+    const user = await requireUser();
+    const d = db();
+    const draft = await loadDraft(id, user.id, { db: d });
+    const entityId = draft.data.completed?.entity_id;
+    if (!entityId) throw new Error("Complete this summon before publication");
+    await publishEntity(d, entityId, user.id);
+    revalidatePath("/");
+    revalidatePath(`/e/${draft.data.completed!.slug}`);
     revalidatePath("/admin");
   });
 }

@@ -628,7 +628,7 @@ Phase 0–1: the SOUL's hard rules + refusal templates in persona + a regex cris
 - **SB 243 reminders:** the chat component injects a system-rendered reminder every `config.reminder_every_turns` (default 12; *verify* the statutory cadence for minors) and a crisis template on detection; annual reporting fields (`config.sb243_report_due`) tracked in `/admin`; the posture is "companion chatbot in scope" (PRD §11 #10).
 - **EU AI Act Art. 50:** the same label; generated text is marked in the HTML (`data-generated="ai"` on reply nodes) and in the commons notes' frontmatter (`generated_by: entity-agent`) — *verify* the accepted machine-readable marker.
 - **Data retention:** `chat_messages` deleted after 90 days by a nightly job unless `chat_sessions.contribute_opt_in`; `usage_events` aggregated after 90 days; evidence files removable on request except where an attestation references them (the hash stays in `evidence_files.sha256`; the object is deleted). No personal data beyond email and, for payees, tax forms held by `config.tax_collector`.
-- **CARE / Indigenous data:** inherited from the twin — the platform reads only gated artifacts; a binding may not include a `generalized` place's geometry; the summon flow shows the consultation record field (`entities.consultation_md`) and blocks publication of an entity page until a steward marks consultation done (PRD §13 #4); TK-labelled commons material is never quoted by the entity (the platform MCP's commons reader skips notes with TK/BC labels in metadata).
+- **CARE / Indigenous data:** inherited from the twin — the platform reads only gated artifacts; a binding may not include a `generalized` place's geometry; the summon flow shows the consultation record field (`entities.consultation_md`) as an optional relationship record; publication is controlled independently by `entities.published_at` (PRD §13 #4); TK-labelled commons material is never quoted by the entity (the platform MCP's commons reader skips notes with TK/BC labels in metadata).
 - **Cookies/consent:** one session cookie and one anonymous chat cookie, both essential; no analytics cookies; Stripe's own cookies on its hosted page only.
 
 ---
@@ -751,7 +751,7 @@ creator ─► /summon step 1: search id/index.json (find_places) ─► platfor
         ─► step 5 (optional): donate
         ─► deploy-profile.ts <slug> → box → hermes cron add pulse/daily/weekly/quarterly/donor-report → first pulse
         ─► commons: entity/page note created in `entities` vault (tags at create; place_id = anchor)
-        ─► status.json published → /e/<slug> live (read-only until consultation_md is marked done by a steward)
+        ─► status.json published → /e/<slug> live after an explicit steward publication action; consultation is optional
 ```
 
 ### A.2 Pulse
@@ -834,7 +834,7 @@ create table entities (
   binding_version int, soul_version int,
   safe_address text, chain_id int, proposer_address text, guardians_hat_id numeric,
   hermes_profile text unique, rive_config jsonb not null default '{}', cosmetics jsonb not null default '{}',
-  consultation_md text, consultation_done_at timestamptz,
+  consultation_md text, consultation_done_at timestamptz, published_at timestamptz,
   paused_at timestamptz, retired_at timestamptz,
   eas_uid_registered text, created_by text references users(id), created_at timestamptz default now());
 create index on entities (archetype) where retired_at is null;

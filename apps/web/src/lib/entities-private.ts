@@ -32,7 +32,7 @@ export async function getVisibleEntityDashboard(slug: string) {
       .innerJoin(schema.needSnapshots, eq(schema.needSnapshots.entityId, schema.entities.id))
       .where(and(
         eq(schema.entities.id, visible.entity.id),
-        isNull(schema.entities.consultationDoneAt),
+        isNull(schema.entities.publishedAt),
         eq(schema.entityBindings.review, "approved"),
         isNotNull(schema.entityBindings.reviewedAt),
         // Snapshot rows predate binding-version provenance. Reject snapshots from

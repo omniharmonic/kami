@@ -492,6 +492,7 @@ export type AdminEntity = {
   name: string;
   paused: boolean;
   retired: boolean;
+  published_at: string | null;
   consultation_done_at: string | null;
   guard_drop_pct: number | null;
   pulse_skip_pct: number | null;
@@ -558,6 +559,7 @@ export async function getAdminData(days = 14): Promise<AdminData> {
           name: e.name,
           paused: e.pausedAt !== null,
           retired: e.retiredAt !== null,
+          published_at: e.publishedAt?.toISOString() ?? null,
           consultation_done_at: e.consultationDoneAt?.toISOString() ?? null,
           guard_drop_pct: g && g.total > 0 ? (100 * g.dropped) / g.total : null,
           pulse_skip_pct: p && p.total > 0 ? (100 * p.skipped) / p.total : null,

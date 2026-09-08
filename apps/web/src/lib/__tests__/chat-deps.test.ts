@@ -5,7 +5,7 @@ vi.mock("@/lib/entities", () => ({ getEntityBySlug: mocks.getEntityBySlug, getCo
 vi.mock("@/lib/entity-access", () => ({ mayPreview: mocks.mayPreview }));
 import { productionChatDeps } from "../chat-deps";
 
-const entity = { id: "entity/creek", slug: "creek", name: "Creek", archetype: "creek", paused: false, retired: false, from_db: true, consultation_done_at: null };
+const entity = { id: "entity/creek", slug: "creek", name: "Creek", archetype: "creek", paused: false, retired: false, from_db: true, published_at: null };
 beforeEach(() => { vi.clearAllMocks(); mocks.getEntityBySlug.mockResolvedValue(entity); mocks.mayPreview.mockResolvedValue(false); });
 
 describe("public chat visibility", () => {
@@ -18,14 +18,14 @@ describe("public chat visibility", () => {
     expect(await productionChatDeps.getEntity("creek")).toMatchObject({ id: entity.id });
   });
   it("allows published beings without a preview role", async () => {
-    mocks.getEntityBySlug.mockResolvedValue({ ...entity, consultation_done_at: "2026-09-06" });
+    mocks.getEntityBySlug.mockResolvedValue({ ...entity, published_at: "2026-09-06" });
     expect(await productionChatDeps.getEntity("creek")).toMatchObject({ id: entity.id });
     expect(mocks.mayPreview).not.toHaveBeenCalled();
   });
   it("allows steward-published status files but not retired beings", async () => {
     mocks.getEntityBySlug.mockResolvedValue({ ...entity, from_db: false });
     expect(await productionChatDeps.getEntity("creek")).toMatchObject({ id: entity.id });
-    mocks.getEntityBySlug.mockResolvedValue({ ...entity, retired: true, consultation_done_at: "2026-09-06" });
+    mocks.getEntityBySlug.mockResolvedValue({ ...entity, retired: true, published_at: "2026-09-06" });
     expect(await productionChatDeps.getEntity("creek")).toBeNull();
   });
 });

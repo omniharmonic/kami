@@ -24,7 +24,7 @@ describe("copy", () => {
   it("carries the templated state lines verbatim", () => {
     expect(copy.states.asleepStale).toBe("I can't feel my gauge");
     expect(copy.states.asleepGpuOff).toBe("I'm asleep — my thinking machine is off");
-    expect(copy.states.asleepPaused).toBe("paused by my guardians");
+    expect(copy.states.asleepPaused).toBe("agent paused");
     expect(copy.states.overBudget).toBe("I've talked a lot today; back tomorrow");
   });
   it("has no urgency language anywhere", () => {

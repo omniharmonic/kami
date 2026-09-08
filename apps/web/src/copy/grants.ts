@@ -10,7 +10,7 @@ export const grants = {
   deadlineLabel: "Applications close",
   applicationLabel: "Your proposal",
   apply: "Apply to this round",
-  paused: "This being is paused. Stewards can prepare drafts or close a round. Opening and applying resume after guardian approval and consultation.",
+  paused: "This being is paused. Stewards can prepare drafts or close a round. Opening and applying resume after guardian approval and publication.",
   reviewNote: "Applications are reviewed by people. Any resulting bounty still needs its usual approvals, evidence and payment signatures.",
   status: { draft: "Draft", open: "Open for applications", closed: "Applications closed", archived: "Archived" } as Record<string, string>,
 };
@@ -19,7 +19,7 @@ export const grantsBackendCopy = {
  notFound: "Being not found.",
  retired: "This being is retired.",
  paused: "This being is paused. Opening a round and accepting applications are disabled.",
- consultation: "Complete consultation before opening a public grant round.",
+ consultation: "Publish this being before opening a public grant round.",
  invalid: "Provide a title, purpose, positive budget with at most two decimal places, and a valid UTC deadline.",
  future: "The application deadline must be in the future.",
  roundNotFound: "Round not found for this being.",

@@ -24,8 +24,8 @@ function canPublish(entity: typeof schema.entities.$inferSelect) {
         throw new GrantError(c.retired);
     if (entity.pausedAt)
         throw new GrantError(c.paused);
-    if (!entity.consultationDoneAt)
-        throw new GrantError(c.consultation);
+    if (!entity.publishedAt)
+        throw new GrantError(c.notPublic);
 }
 export async function createGrantRound(db: DbOrTx, input: {
     entityId: string;
@@ -133,11 +133,11 @@ export async function getGrantBoard(db: DbOrTx, entityId: string, viewerId: stri
     const entity = await entityRow(db, entityId);
     const mayManage = await manager(db, viewerId, entityId);
     const mayPreview = mayManage || Boolean(viewerId && await hatCheck(db, entityId, viewerId, "evaluator"));
-    if (!entity.consultationDoneAt && !mayPreview)
+    if (!entity.publishedAt && !mayPreview)
         throw new GrantError(c.notPublic);
     const rounds = await db.select().from(schema.grantRounds).where(and(eq(schema.grantRounds.entityId, entityId), mayManage ? undefined : and(inArray(schema.grantRounds.status, ["open", "closed"]), isNotNull(schema.grantRounds.openedAt)))).orderBy(desc(schema.grantRounds.createdAt)).limit(100);
     const applications = rounds.length ? await db.select({ roundId: schema.grantApplications.roundId, proposalId: schema.proposals.id, title: schema.proposals.title, status: schema.proposals.status }).from(schema.grantApplications).innerJoin(schema.proposals, eq(schema.proposals.id, schema.grantApplications.proposalId)).where(and(inArray(schema.grantApplications.roundId, rounds.map(r => r.id)), eq(schema.proposals.entityId, entityId))) : [];
     const bounties = applications.length ? await db.select({ id: schema.bounties.id, proposalId: schema.bounties.proposalId }).from(schema.bounties).where(and(eq(schema.bounties.entityId, entityId), mayManage ? undefined : inArray(schema.bounties.status, ["open", "claimed", "in_review", "paid", "deferred", "expired", "withdrawn"]), inArray(schema.bounties.proposalId, applications.map(a => a.proposalId)))) : [];
     const eligibleProposals = viewerId ? await db.select({ id: schema.proposals.id, title: schema.proposals.title }).from(schema.proposals).where(and(eq(schema.proposals.entityId, entityId), eq(schema.proposals.authorId, viewerId), eq(schema.proposals.authorKind, "human"), eq(schema.proposals.status, "open"))) : [];
-    return { mayManage, eligibleProposals, rounds: rounds.map(r => ({ ...r, acceptingApplications: r.status === "open" && r.applicationDeadline > now && !entity.pausedAt && !entity.retiredAt && Boolean(entity.consultationDoneAt), applications: applications.filter(a => a.roundId === r.id).map(a => ({ proposalId: a.proposalId, title: a.title, status: a.status, bountyIds: bounties.filter(b => b.proposalId === a.proposalId).map(b => b.id) })) })) };
+    return { mayManage, eligibleProposals, rounds: rounds.map(r => ({ ...r, acceptingApplications: r.status === "open" && r.applicationDeadline > now && !entity.pausedAt && !entity.retiredAt && Boolean(entity.publishedAt), applications: applications.filter(a => a.roundId === r.id).map(a => ({ proposalId: a.proposalId, title: a.title, status: a.status, bountyIds: bounties.filter(b => b.proposalId === a.proposalId).map(b => b.id) })) })) };
 }

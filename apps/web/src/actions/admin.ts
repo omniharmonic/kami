@@ -1,9 +1,8 @@
 "use server";
 
 /**
- * `/admin` mutations (T1.12): the per-entity consultation flag (PRD §13 #4 —
- * a page stays unpublished until consultation is marked done) and the two
- * `config` fields the operators edit.
+ * Admin publication and optional consultation are separate human actions.
+ * Neither action changes the being’s pause state or spending approvals.
  */
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
@@ -12,6 +11,7 @@ import * as schema from "@/db/schema";
 import { setConfigValue } from "@/lib/governance/config";
 import { GovernanceError } from "@/lib/governance/errors";
 import { requireAdmin } from "@/lib/session";
+import { publishEntity } from "@/lib/summon/draft";
 import { actionRedirect, dbOrThrow, formString } from "./util";
 
 export async function toggleConsultationAction(fd: FormData): Promise<never> {
@@ -48,5 +48,16 @@ export async function setConfigFieldAction(fd: FormData): Promise<never> {
     const value: unknown = raw === "" ? null : Number.isFinite(Number(raw)) && !/^\d{4}-\d{2}-\d{2}$/.test(raw) ? Number(raw) : raw;
     await setConfigValue(db, key, value);
     revalidatePath("/admin");
+  });
+}
+
+/** Explicit publication never fabricates a consultation record. */
+export async function publishEntityAction(fd: FormData): Promise<never> {
+  return actionRedirect("/admin", "saved", async () => {
+    const admin = await requireAdmin();
+    const entityId = formString(fd, "entity_id");
+    await publishEntity(dbOrThrow(), entityId, admin.id);
+    revalidatePath("/admin");
+    revalidatePath("/");
   });
 }

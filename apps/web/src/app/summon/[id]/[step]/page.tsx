@@ -22,6 +22,7 @@ import {
   choosePlaceAction,
   completeSummonAction,
   markConsultationDoneAction,
+  publishSummonedEntityAction,
   saveConsultationAction,
   saveFundAction,
   saveGuardiansAction,
@@ -462,7 +463,7 @@ export default async function SummonStep({ params, searchParams }: Props) {
       <ul className="stack" style={{ listStyle: "none", padding: 0 }}>
         <li className="sunken">{summon.review.bindingPending}</li>
         <li className="sunken">
-          {state.published ? summon.review.consultationDone(state.consultation_done_at!) : summon.review.consultationPending}
+          {state.published ? summon.review.published : summon.review.consultationPending}
         </li>
         <li className="sunken">{safe.state === "deployed" ? safe.reason : `${summon.guardians.safePending} ${safe.reason}`}</li>
         <li className="sunken">
@@ -478,7 +479,12 @@ export default async function SummonStep({ params, searchParams }: Props) {
         <Link className="btn" href={`/e/${completed.slug}`}>{summon.review.goToEntity}</Link>
         <Link className="btn" href={`/e/${completed.slug}/donate`}>{summon.fund.donateLink}</Link>
       </p>
-      {session.user.platform_admin && !state.published ? (
+      {!state.published && <form action={publishSummonedEntityAction} className="card">
+        <input type="hidden" name="draft_id" value={id} />
+        <p className="muted">Publication makes this being’s page visible. It does not complete consultation, unpause the agent or enable payments.</p>
+        <button className="btn btn-primary" type="submit">{summon.review.publish}</button>
+      </form>}
+      {session.user.platform_admin && !state.consultation_done_at ? (
         <form action={markConsultationDoneAction} className="card">
           <input type="hidden" name="draft_id" value={id} />
           <input type="hidden" name="entity_id" value={completed.entity_id} />

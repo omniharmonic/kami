@@ -343,16 +343,12 @@ async function runEntity(a: { db: DbOrTx; twin: TwinClient; publisher?: Publishe
     anchor: binding.anchor,
     bindingVersion: current.version,
   });
-  // PRD §13 #4 and architecture A.1: an entity's page stays unpublished until a
-  // steward records that consultation happened. The snapshot is still computed
-  // and stored — the record should exist from day one — but nothing is written
-  // to the public bucket, so there is no page for anyone to read. Without this
-  // the field was a label on an admin screen and gated nothing.
-  if (entity.consultationDoneAt === null) {
+  // Publication is an explicit steward choice; consultation is optional.
+  if (entity.publishedAt === null) {
     return {
       slug: entity.slug,
       status: "withheld",
-      reason: "consultation_not_done",
+      reason: "entity_not_published",
       new_snapshot: !unchanged,
       snapshot_id: snapshotId,
       snapshot_hash: file.snapshot_hash,

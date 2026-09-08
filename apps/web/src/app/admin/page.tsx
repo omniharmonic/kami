@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { setConfigFieldAction, toggleConsultationAction } from "@/actions/admin";
+import { setConfigFieldAction, toggleConsultationAction, publishEntityAction } from "@/actions/admin";
 import { FormMessage } from "@/components/governance/FormMessage";
 import { admin as copy, howIWork as hiw, humanDuration } from "@/copy";
 import { getAdminData } from "@/lib/governance/queries";
@@ -59,6 +59,7 @@ export default async function AdminPage({ searchParams }: Props) {
       <FormMessage ok={typeof sp.ok === "string" ? sp.ok : null} error={typeof sp.error === "string" ? sp.error : null} okText={{ saved: "Saved." }} />
 
       <h2 style={{ fontSize: "1.05rem" }}>{copy.entities}</h2>
+      <p className="notice">Publication and consultation are independent. Consultation is encouraged as a being grows; recording or clearing it does not publish or hide a page.</p>
       <div style={{ overflowX: "auto" }}>
         <table style={{ borderCollapse: "collapse", width: "100%", fontSize: "0.9rem" }}>
           <thead>
@@ -69,6 +70,7 @@ export default async function AdminPage({ searchParams }: Props) {
               <th style={{ padding: "0.4rem" }}>{copy.cols.guardDrop}</th>
               <th style={{ padding: "0.4rem" }}>{copy.cols.pulseSkip}</th>
               <th style={{ padding: "0.4rem" }}>{copy.cols.tokens7d}</th>
+              <th style={{ padding: "0.4rem" }}>{copy.publication}</th>
               <th style={{ padding: "0.4rem" }}>{copy.cols.consultation}</th>
             </tr>
           </thead>
@@ -101,6 +103,12 @@ export default async function AdminPage({ searchParams }: Props) {
                 <td style={{ padding: "0.4rem" }}>{pct(e.guard_drop_pct)}</td>
                 <td style={{ padding: "0.4rem" }}>{pct(e.pulse_skip_pct)}</td>
                 <td style={{ padding: "0.4rem" }}>{e.tokens_7d.toLocaleString()}</td>
+                <td style={{ padding: "0.4rem" }}>
+                  {e.published_at ? <span>{copy.published}</span> : <form action={publishEntityAction}>
+                    <input type="hidden" name="entity_id" value={e.entity_id} />
+                    <span>{copy.unpublished}</span> <button type="submit" className="btn">{copy.publish}</button>
+                  </form>}
+                </td>
                 <td style={{ padding: "0.4rem" }}>
                   <form action={toggleConsultationAction} style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
                     <input type="hidden" name="entity_id" value={e.entity_id} />

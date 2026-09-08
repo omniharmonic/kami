@@ -39,6 +39,8 @@ export const entities = pgTable(
     cosmetics: jsonb("cosmetics").notNull().default(sql`'{}'::jsonb`),
     consultationMd: text("consultation_md"),
     consultationDoneAt: tz("consultation_done_at"),
+    /** Explicit publication is independent of optional consultation records. */
+    publishedAt: tz("published_at"),
     pausedAt: tz("paused_at"),
     retiredAt: tz("retired_at"),
     easUidRegistered: text("eas_uid_registered"),

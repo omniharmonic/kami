@@ -1,5 +1,5 @@
 /**
- * Who may see an entity that has not been consulted about yet (PRD §13 #4).
+ * Who may see an entity that has not been published yet.
  *
  * The gate lives here rather than in the layout because **a layout's
  * `notFound()` does not stop the page from rendering.** Under streaming both
@@ -26,9 +26,9 @@ import { getSession, hasRole } from "@/lib/session";
 export const PREVIEW_ROLES = ["steward", "guardian", "evaluator"] as const;
 
 /**
- * A role-holder — or a platform admin — sees an unconsulted entity anyway, with
+ * A role-holder — or a platform admin — sees an unpublished entity anyway, with
  * a banner, because they are the people who have to look at it in order to
- * finish the consultation.
+ * prepare the entity for publication.
  */
 export async function mayPreview(entityId: string): Promise<boolean> {
   const session = await getSession();
@@ -43,7 +43,7 @@ export async function mayPreview(entityId: string): Promise<boolean> {
 
 export type VisibleEntity = {
   entity: EntityView;
-  /** true when the viewer is seeing an unconsulted entity by virtue of a role */
+  /** true when the viewer is seeing an unpublished entity by virtue of a role */
   preview: boolean;
 };
 
@@ -57,7 +57,7 @@ export type VisibleEntity = {
 export async function requireVisibleEntity(slug: string): Promise<VisibleEntity> {
   const entity = await getEntityBySlug(slug);
   if (!entity) notFound();
-  const unpublished = entity.from_db && entity.consultation_done_at === null;
+  const unpublished = entity.from_db && !entity.published_at;
   if (!unpublished) return { entity, preview: false };
   if (await mayPreview(entity.id)) return { entity, preview: true };
   notFound();

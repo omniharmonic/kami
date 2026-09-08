@@ -24,6 +24,7 @@ import {
   createDraft,
   loadDraft,
   markConsultationDone,
+  publishEntity,
   publishState,
   resumeStep,
   saveStep,
@@ -225,17 +226,21 @@ describe("siblings are shown before any effort is invested (§4.4)", () => {
   }, 60_000);
 });
 
-describe("the consultation gate (PRD §13 #4)", () => {
-  it("creates everything and refuses to publish until a steward marks it done", async () => {
+describe("explicit publication and optional consultation", () => {
+  it("publishes explicitly without marking consultation complete, then records consultation independently", async () => {
     const state = await publishState(db, "entity/boulder-creek");
     expect(state.published).toBe(false);
-    expect(state.blocked_by).toBe("consultation");
+    expect(state.blocked_by).toBe("unpublished");
     expect(state.consultation_md).toMatch(/Tribal offices/);
 
     // the entity, its binding and its soul all exist while unpublished
     const [entity] = await db.select().from(schema.entities).where(eq(schema.entities.id, "entity/boulder-creek"));
     expect(entity).toBeTruthy();
 
+    const published = await publishEntity(db, "entity/boulder-creek", "u-maya", new Date("2026-09-06T12:00:00Z"));
+    expect(published.published).toBe(true);
+    expect(published.consultation_done_at).toBeNull();
+    expect((await publishEntity(db, "entity/boulder-creek", "u-maya")).published_at).toBe("2026-09-06T12:00:00.000Z");
     const after = await markConsultationDone(db, "entity/boulder-creek", "u-maya", new Date("2026-09-07T00:00:00Z"));
     expect(after.published).toBe(true);
     expect(after.consultation_done_at).toBe("2026-09-07T00:00:00.000Z");
@@ -246,6 +251,29 @@ describe("the consultation gate (PRD §13 #4)", () => {
 
     const events = await listEntityEvents(db, "entity/boulder-creek");
     expect(events.map((e) => e.kind)).toContain("consultation_marked_done");
+    expect(events.filter(e => e.kind === "entity.published")).toHaveLength(1);
+  });
+});
+
+describe("independent consultation records", () => {
+  it("publishes without any consultation note while preserving its existing pause", async () => {
+    const pausedAt = new Date("2026-09-06T12:00:00Z");
+    await db.insert(schema.entities).values({ id: "entity/no-consultation-note", slug: "no-consultation-note", name: "No consultation note", archetype: "creek", pausedAt });
+    await db.insert(schema.entityRoles).values({ entityId: "entity/no-consultation-note", userId: "u-maya", role: "steward", acceptedAt: pausedAt });
+    const state = await publishEntity(db, "entity/no-consultation-note", "u-maya");
+    expect(state.published).toBe(true);
+    expect(state.consultation_md).toBeNull();
+    expect(state.consultation_done_at).toBeNull();
+    const [entity] = await db.select().from(schema.entities).where(eq(schema.entities.id, "entity/no-consultation-note"));
+    expect(entity?.pausedAt).toEqual(pausedAt);
+  });
+  it("recording consultation completion does not publish an otherwise private being", async () => {
+    await db.insert(schema.entities).values({ id: "entity/optional-consultation", slug: "optional-consultation", name: "Optional consultation", archetype: "creek" });
+    const state = await markConsultationDone(db, "entity/optional-consultation", "u-maya");
+    expect(state.published).toBe(false);
+    expect(state.published_at).toBeNull();
+    expect(state.consultation_done_at).not.toBeNull();
+    await expect(publishEntity(db, "entity/optional-consultation", "u-maya")).rejects.toThrow();
   });
 });
 

@@ -10,8 +10,8 @@ const entityId = "entity/grant-creek";
 const draft = () => createGrantRound(db, { entityId, userId: "steward", title: "Creek observation projects", purposeMd: "Support careful community observations of the creek.", budgetUsdc: "400.50", applicationDeadline: "2026-09-14T12:00:00Z" }, { now });
 beforeAll(async () => {
     db = await createTestDb();
-    await seedEntity(db, { slug: "grant-creek", consultationDone: true });
-    await seedEntity(db, { slug: "foreign-creek", consultationDone: true });
+    await seedEntity(db, { slug: "grant-creek", consultationDone: false, published: true });
+    await seedEntity(db, { slug: "foreign-creek", consultationDone: false, published: true });
     for (const id of ["steward", "applicant", "stranger"])
         await seedUser(db, id);
     await db.insert(schema.entityRoles).values({ entityId, userId: "steward", role: "steward", acceptedAt: now });
@@ -50,7 +50,7 @@ describe("grant round lifecycle", () => {
         await expect(setGrantRoundStatus(db, { entityId, userId: "steward", roundId: another.id, status: "open" }, { now: deadline })).rejects.toThrow("deadline");
     });
     it("allows private paused preparation but refuses publication and foreign round mutations", async () => {
-        await db.update(schema.entities).set({ pausedAt: now, consultationDoneAt: null }).where(eq(schema.entities.id, entityId));
+        await db.update(schema.entities).set({ pausedAt: now, publishedAt: null }).where(eq(schema.entities.id, entityId));
         try {
             const round = await draft();
             await expect(getGrantBoard(db, entityId, null, now)).rejects.toThrow("not public");
@@ -58,7 +58,7 @@ describe("grant round lifecycle", () => {
             await setGrantRoundStatus(db, { entityId, userId: "steward", roundId: round.id, status: "closed" }, { now });
         }
         finally {
-            await db.update(schema.entities).set({ pausedAt: null, consultationDoneAt: now }).where(eq(schema.entities.id, entityId));
+            await db.update(schema.entities).set({ pausedAt: null, publishedAt: now }).where(eq(schema.entities.id, entityId));
         }
         const round = await draft();
         await expect(setGrantRoundStatus(db, { entityId: "entity/foreign-creek", userId: "steward", roundId: round.id, status: "closed" }, { now })).rejects.toThrow();

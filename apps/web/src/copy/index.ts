@@ -196,9 +196,9 @@ export const people = {
 } as const;
 
 export const entityPage = {
-  /** Shown to role-holders viewing an entity whose consultation is not recorded. */
+  /** Shown to role-holders viewing an entity not explicitly published. */
   consultationPreview:
-    "Private team preview. Public release awaits the steward’s record of consultation with the relevant Tribal offices and local guardians.",
+    "Private team preview. A steward can publish this being when it is ready. Consultation is encouraged as its work grows and is not a publication requirement.",
 } as const;
 
 export const siblings = {
@@ -282,7 +282,7 @@ export const howIWork = {
   drillEmpty: "No pause drill logged yet. Guardians run one before launch and record it here.",
   consultation: "Consultation record",
   consultationUnpublished:
-    "This page is not yet published. It stays unpublished until a steward marks consultation with the relevant Tribal offices done (PRD §13 #4).",
+    "No shared consultation record yet. Building relationships with relevant Tribal offices and local communities is encouraged as this being grows; it is not required for publication.",
   consultationDone: (iso: string) => `Consultation marked done ${iso}.`,
   consultationNever: "I never speak for nations. If a nation asserts its own voice for this place, I defer and say so here.",
   noToken: "No token, ever",
@@ -655,8 +655,12 @@ export const admin = {
   paused: "paused",
   retired: "retired",
   consultationDone: "done",
-  consultationPending: "pending",
-  toggleConsultation: "Toggle consultation done",
+  consultationPending: "not recorded (optional)",
+  toggleConsultation: "Update consultation record",
+  publication: "Publication",
+  published: "Public",
+  unpublished: "Private preview",
+  publish: "Publish page",
   usage: "Model usage per day (last 14 days)",
   usageUnit:
     "Usage is counted in language-model units — the words the model read and wrote. No token, ever: nothing here is a crypto token and nothing has a price.",

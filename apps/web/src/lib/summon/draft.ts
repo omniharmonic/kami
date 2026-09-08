@@ -13,15 +13,15 @@
  *
  * Nothing here publishes. An entity created by `completeSummon` exists, has a
  * binding in `pending_review`, a soul, a steward and two invited guardians —
- * and its page stays unpublished until a steward marks the consultation done
- * (PRD §13 #4). That refusal is the point, not an oversight.
+ * and its page stays private until a steward explicitly publishes it.
+ * Consultation is encouraged and can be recorded independently.
  */
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { bindingSha256, type Binding } from "@kami/binding";
 import { getDb, type Db } from "@/db/client";
 import { appendEntityEvent, type DbOrTx } from "@/db/events";
 import * as schema from "@/db/schema";
-import { inviteGuardian, type SendInviteMail } from "@/lib/governance/roles";
+import { inviteGuardian, requireEntityRole, type SendInviteMail } from "@/lib/governance/roles";
 import { withTx } from "@/lib/governance/tx";
 import type { SensingRow } from "./sensing";
 import type { RiveConfig } from "./parts";
@@ -238,9 +238,9 @@ export type CompleteResult = {
   binding_review: "pending_review";
   soul_version: number;
   invites: Array<{ id: string; email: string }>;
-  /** false until a steward marks the consultation done (PRD §13 #4) */
+  /** False until a steward explicitly publishes the being. */
   published: boolean;
-  publish_blocked_by: "consultation" | null;
+  publish_blocked_by: "unpublished" | null;
   safe: { state: string; reason: string };
   already: boolean;
 };
@@ -271,7 +271,7 @@ export type CompleteDeps = Deps & {
  * entity + rive_config + consultation_md, binding v1 (`pending_review`), soul
  * v1 (hard rules from the template, voice from the draft), the creator as
  * steward, two guardian invites. `published` is false while
- * `entities.consultation_done_at` is null, and the caller must say so.
+ * `entities.published_at` is null until an explicit human publication action.
  */
 export async function completeSummon(id: string, deps: CompleteDeps = {}): Promise<CompleteResult> {
   const db = dbOf(deps);
@@ -373,7 +373,7 @@ export async function completeSummon(id: string, deps: CompleteDeps = {}): Promi
         hard_rules_version: hardRules.version,
         twin_base_url: place.twin_base_url,
         published: false,
-        publish_blocked_by: "consultation",
+        publish_blocked_by: "unpublished",
       },
       at: now,
     });
@@ -413,7 +413,7 @@ export async function completeSummon(id: string, deps: CompleteDeps = {}): Promi
     soul_version: 1,
     invites,
     published: false,
-    publish_blocked_by: "consultation",
+    publish_blocked_by: "unpublished",
     safe: { state: safe.state, reason: safe.reason },
     already: false,
   };
@@ -431,7 +431,7 @@ async function describeCompleted(db: DbOrTx, completed: CompletedRecord): Promis
     .select({ id: schema.guardianInvites.id, email: schema.guardianInvites.email })
     .from(schema.guardianInvites)
     .where(eq(schema.guardianInvites.entityId, completed.entity_id));
-  const published = Boolean(entity?.consultationDoneAt);
+  const published = Boolean(entity?.publishedAt);
   const { safeReadiness } = await import("./safe");
   const safe = entity ? await safeReadiness(db, entity.id) : { state: "not_ready", reason: "no entity" };
   return {
@@ -443,27 +443,28 @@ async function describeCompleted(db: DbOrTx, completed: CompletedRecord): Promis
     soul_version: entity?.soulVersion ?? 1,
     invites: invites.map((i) => ({ id: i.id, email: i.email ?? "" })),
     published,
-    publish_blocked_by: published ? null : "consultation",
+    publish_blocked_by: published ? null : "unpublished",
     safe: { state: safe.state, reason: safe.reason },
   };
 }
 
 // ---------------------------------------------------------------------------
-// the consultation gate (PRD §13 #4)
+// explicit publication and optional consultation
 // ---------------------------------------------------------------------------
 
-export type PublishState = { published: boolean; blocked_by: "consultation" | null; consultation_md: string | null; consultation_done_at: string | null };
+export type PublishState = { published: boolean; published_at: string | null; blocked_by: "unpublished" | null; consultation_md: string | null; consultation_done_at: string | null };
 
 export async function publishState(db: DbOrTx, entityId: string): Promise<PublishState> {
   const [e] = await db
-    .select({ md: schema.entities.consultationMd, doneAt: schema.entities.consultationDoneAt })
+    .select({ md: schema.entities.consultationMd, doneAt: schema.entities.consultationDoneAt, publishedAt: schema.entities.publishedAt })
     .from(schema.entities)
     .where(eq(schema.entities.id, entityId))
     .limit(1);
   const done = e?.doneAt ?? null;
   return {
-    published: done !== null,
-    blocked_by: done === null ? "consultation" : null,
+    published: e?.publishedAt != null,
+    published_at: e?.publishedAt?.toISOString() ?? null,
+    blocked_by: e?.publishedAt == null ? "unpublished" : null,
     consultation_md: e?.md ?? null,
     consultation_done_at: done?.toISOString() ?? null,
   };
@@ -475,7 +476,22 @@ export async function setConsultationNote(db: DbOrTx, entityId: string, md: stri
   await appendEntityEvent(db, { entity_id: entityId, actor, kind: "consultation_recorded", payload: { chars: md.length }, at: now });
 }
 
-/** The steward action that lets a page publish. Idempotent. */
+/** Explicit human publication, independent of consultation, pause and treasury. */
+export async function publishEntity(db: DbOrTx, entityId: string, actor: string, now = new Date()): Promise<PublishState> {
+  return withTx(db, async tx => {
+    await requireEntityRole(tx, actor, entityId, ["steward"]);
+    const [entity] = await tx.select().from(schema.entities).where(eq(schema.entities.id, entityId)).limit(1).for("update");
+    if (!entity) throw new SummonError("draft_not_found", `no entity ${entityId}`);
+    if (entity.retiredAt) throw new SummonError("step_incomplete", "A retired being cannot be published.");
+    if (!entity.publishedAt) {
+      await tx.update(schema.entities).set({ publishedAt: now }).where(eq(schema.entities.id, entityId));
+      await appendEntityEvent(tx, { entity_id: entityId, actor, kind: "entity.published", payload: { published_at: now.toISOString(), consultation_recorded: Boolean(entity.consultationMd) }, at: now });
+    }
+    return publishState(tx, entityId);
+  });
+}
+
+/** Optional consultation record. This never publishes or unpauses a being. */
 export async function markConsultationDone(db: DbOrTx, entityId: string, actor: string, now = new Date()): Promise<PublishState> {
   const [e] = await db.select().from(schema.entities).where(eq(schema.entities.id, entityId)).limit(1);
   if (!e) throw new SummonError("draft_not_found", `no entity ${entityId}`);
@@ -491,11 +507,11 @@ export async function markConsultationDone(db: DbOrTx, entityId: string, actor: 
   return publishState(db, entityId);
 }
 
-/** Entities whose page is still held by the consultation gate. */
+/** Entities not explicitly published by a human steward. */
 export async function unpublishedEntities(db: DbOrTx) {
   return db
     .select({ id: schema.entities.id, slug: schema.entities.slug, name: schema.entities.name, consultationMd: schema.entities.consultationMd })
     .from(schema.entities)
-    .where(and(isNull(schema.entities.consultationDoneAt), isNull(schema.entities.retiredAt)))
+    .where(and(isNull(schema.entities.publishedAt), isNull(schema.entities.retiredAt)))
     .orderBy(schema.entities.slug);
 }

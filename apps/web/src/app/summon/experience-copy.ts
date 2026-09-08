@@ -13,7 +13,7 @@ export const experience = {
     { title: "Give it a shape", text: "Choose its appearance. Ecological conditions shape its state; care earns its adornments." },
     { title: "Find its voice", text: "Write a personality around shared rules: cite the evidence, admit uncertainty, and listen." },
     { title: "Gather its guardians", text: "Invite two people to help care for this being and hold its actions accountable." },
-    { title: "Make room for action", text: "Review optional funding, then the consultation and publication requirements." },
+    { title: "Make room for action", text: "Review optional funding and community relationships, then choose when to publish." },
   ],
   codeTitle: "The code of care",
   codeIntro: "Beings.earth is a shared practice of supporting the health and vitality of the web of life.",

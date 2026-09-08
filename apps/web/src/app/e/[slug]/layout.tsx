@@ -8,7 +8,7 @@ export const revalidate = 60;
 /**
  * Every /e/[slug]/* route is wrapped in EntityShell — the ADR-E13 invariant.
  *
- * The consultation gate (PRD §13 #4) is `requireVisibleEntity`, and it is
+ * The publication gate is `requireVisibleEntity`, and it is
  * called here *and* in every child segment that renders entity content: a
  * layout's `notFound()` sets the status but does not stop a concurrently
  * streaming page from putting its output in the response. See

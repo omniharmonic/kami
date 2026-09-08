@@ -6,7 +6,8 @@ const OK: Record<string, string> = {
   proposed: "Here is what the platform proposes.",
   deleted: "Draft discarded.",
   summoned: summon.review.created,
-  consultation_done: "Consultation marked done. The page can publish.",
+  consultation_done: "Consultation recorded. Publication is unchanged.",
+  published: "This being’s page is now public.",
 };
 
 /** The `?ok=` / `?error=` a summon action redirected back with (arch §6.2). */

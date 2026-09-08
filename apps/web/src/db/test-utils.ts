@@ -33,11 +33,12 @@ export async function seedEntity(
     archetype?: schema.Archetype;
     paused?: boolean;
     /**
-     * Consultation is recorded by default, because a seeded entity stands in
-     * for a live one and an unconsulted entity is deliberately unpublishable
-     * (PRD §13 #4). Pass false to exercise that gate.
+     * Historical fixtures recorded consultation for public entities. Preserve
+     * that default while allowing publication to be independently specified.
      */
     consultationDone?: boolean;
+    /** Defaults to the historical consultationDone convention for old fixtures. */
+    published?: boolean;
   } = {},
 ) {
   const slug = opts.slug ?? "boulder-creek";
@@ -51,6 +52,7 @@ export async function seedEntity(
       hermesProfile: slug,
       pausedAt: opts.paused ? new Date() : null,
       consultationDoneAt: opts.consultationDone === false ? null : new Date("2026-08-01T00:00:00Z"),
+      publishedAt: (opts.published ?? (opts.consultationDone !== false)) ? new Date("2026-08-01T00:00:00Z") : null,
     })
     .returning();
   return row!;

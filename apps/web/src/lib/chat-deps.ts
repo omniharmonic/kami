@@ -18,7 +18,7 @@ const HOUR = 60 * 60 * 1000;
 export const productionChatDeps: ChatDeps = {
   async getEntity(slug) {
     const e = await getEntityBySlug(slug);
-    if (e?.from_db && e.consultation_done_at === null && !(await mayPreview(e.id))) return null;
+    if (e?.from_db && !e.published_at && !(await mayPreview(e.id))) return null;
     return e && !e.retired ? { id: e.id, slug: e.slug, name: e.name, archetype: e.archetype, paused: e.paused } : null;
   },
 

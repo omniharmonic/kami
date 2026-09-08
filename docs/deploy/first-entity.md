@@ -1,5 +1,7 @@
 # From nothing to a talking creek
 
+> **Current publication policy (September 7, 2026):** Consultation is encouraged as a being grows and is never required for setup, publication, chat or grant rounds. `entities.published_at` independently controls public visibility. Consultation records remain truthful and optional; publishing does not mark consultation complete. Guardian approval, spending safeguards and sensitive-data rules remain unchanged. Any older consultation-gate descriptions below are historical and superseded.
+
 This is the spine: four checkpoints, in order, each ending with a `kami doctor` run that has
 to pass before you move on. It is written for one person setting up the first entity on a Mac
 mini, driving it with a hosted OpenAI-compatible API until the DGX Spark arrives.

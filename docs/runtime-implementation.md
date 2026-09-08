@@ -1,5 +1,7 @@
 # Guarded Hermes runtime implementation
 
+> **Current publication policy (September 7, 2026):** Consultation is encouraged as a being grows and is never required for setup, publication, chat or grant rounds. `entities.published_at` independently controls public visibility. Consultation records remain truthful and optional; publishing does not mark consultation complete. Guardian approval, spending safeguards and sensitive-data rules remain unchanged. Any older consultation-gate descriptions below are historical and superseded.
+
 Implemented September 7, 2026. These adapters are tested locally; deployment and live model verification are separate acceptance steps.
 
 ## Process boundary

@@ -1,5 +1,7 @@
 # PRD traceability and honest gaps
 
+> **Current publication policy (September 7, 2026):** Consultation is encouraged as a being grows and is never required for setup, publication, chat or grant rounds. `entities.published_at` independently controls public visibility. Consultation records remain truthful and optional; publishing does not mark consultation complete. Guardian approval, spending safeguards and sensitive-data rules remain unchanged. Any older consultation-gate descriptions below are historical and superseded.
+
 > **This is a dated audit, not a live status.** It was written against `1c1370d`, before the
 > deployment, the connect flow and the fixes in §6 and after. For where the project is *now*,
 > read [`STATUS.md`](STATUS.md); come back here for the row-by-row justification, which is

@@ -479,12 +479,12 @@ Ranked by severity × likelihood.
 
 ## 13. Ethics — binding
 
-The twin's PRD §12 applies in full to this platform: CARE principles alongside FAIR; Local Contexts TK/BC labels; overlapping Indigenous territories rendered as gradients, never tidy polygons; present-tense nations linked as the authority; consultation before publishing; sacred sites never at precision; one sensitivity gate; FIA plots never mapped; Sand Creek and the Treaty of Fort Wise named. To that, add:
+The twin's PRD §12 applies in full to this platform: CARE principles alongside FAIR; Local Contexts TK/BC labels; overlapping Indigenous territories rendered as gradients, never tidy polygons; present-tense nations linked as the authority; consultation encouraged as an entity grows, never required for publication; sacred sites never at precision; one sensitivity gate; FIA plots never mapped; Sand Creek and the Treaty of Fort Wise named. To that, add:
 
 1. **Disclosure, always.** Every page and every session states that this is an AI voice *for* a place, built on public sensor data, not the place, not a legal person. EU AI Act Article 50 and SB 243 duties are implemented, not argued about.
 2. **No manipulation of donors.** No urgency theatre, no "the creek will die without you", no dark patterns, no recurring-donation defaults. Every ask states what the money can and cannot do. Every donor gets the report (G6).
 3. **No claims of ecological causation beyond measurement.** The entity reports readings and published bands. It may say "after the cleanup, turbidity at the forebay fell from X to Y"; it may not say "the cleanup cleared the water." Its own predictions are scored, and it says when they were wrong.
-4. **Indigenous sovereignty.** The Front Range is Arapaho, Cheyenne, and Ute country, and also Comanche, Kiowa, and Plains Apache. An entity for a place here **consults** relevant Tribal offices before launch and **never speaks for nations**. If a nation asserts its own voice for a place, the platform's entity defers and says so on its page. The Colorado River Indian Tribes' 2025 personhood vote is the model of who has authority.
+4. **Indigenous sovereignty.** The Front Range is Arapaho, Cheyenne, and Ute country, and also Comanche, Kiowa, and Plains Apache. An entity for a place here is encouraged to build relationships with relevant Tribal offices and local communities as it grows; consultation is optional and never a launch requirement. It **never speaks for nations**. If a nation asserts its own voice for a place, the platform's entity defers and says so on its page. The Colorado River Indian Tribes' 2025 personhood vote is the model of who has authority.
 5. **Sensitivity gate inheritance.** The platform reads only published, gated data. It never seeks the real coordinates of a generalized place; it never builds an entity for a rare or harvest-pressured species; TK-labelled material carries no open licence through the entity.
 6. **Guardians can pause or kill the agent.** Any two guardians can pause cron, chat, and proposals within one gateway tick; any two can retire the entity, which freezes the Safe to guardian-only withdrawal to the steward wrapper and archives the page with its full record. This is a product feature with a button, not an ops procedure.
 7. **Data retention of chats.** Chats are stored for 90 days for safety review and eval building, then deleted unless the user opted in to contribute them to the training set; no personal data beyond email is collected; no under-13 accounts; evidence photos are licensed by the contributor under terms shown at upload and may be removed on request except where an attestation references them (the hash stays; the file may go).
@@ -513,7 +513,7 @@ The twin's PRD §12 applies in full to this platform: CARE principles alongside 
 | Guardian pause drill | Completed once; halt within 60 s | Drill log |
 | Hallucination-probe pass rate | ≥ 95% on every deployed model | Eval suite |
 | Entity prediction accuracy (its own strategy claims scored against later readings) | Reported publicly, no target in the first quarter | Quarterly memo |
-| Community: Nederland guardians and at least one Tribal office consulted | Done before public launch | Meeting record on the entity page |
+| Community: relationships with local guardians and relevant Tribal offices | Encouraged as the entity grows; optional | Meeting record on the entity page |
 | Sibling entities for the first place | ≥ 1 by day 90 | Registry |
 
 ---
